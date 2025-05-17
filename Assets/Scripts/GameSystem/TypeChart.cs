@@ -1,4 +1,4 @@
-namespace System
+namespace GameSystem
 {
     [System.Serializable]
     public enum ElementType
