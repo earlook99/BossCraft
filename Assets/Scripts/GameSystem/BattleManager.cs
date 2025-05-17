@@ -17,20 +17,26 @@ namespace GameSystem
     }
     public class BattleManager : MonoBehaviour
     {
+        [SerializeField] private UIManager _uiManager;
+        
         public AIWeights Weights;
         
         private BattleState _currentState;
         private List<ActionData> _currentPlayerChoices = new List<ActionData>();
 
         [SerializeField] private BattleEntity[] _entities = new BattleEntity[5];
-        
+        public BattleEntity[] Entities => _entities;
+
         private const int PlayerCount = 4; // 4 players
         
         private int _turnCount = 0;
+        public int TurnCount => _turnCount;
 
         private void Start()
         {
             SetState(BattleState.BossAction);
+            
+            _uiManager.OnAllChoicesComplete += HandleAllChoicesComplete;
         }
 
         private void SetState(BattleState newState)
@@ -106,12 +112,31 @@ namespace GameSystem
             yield break;
         }
 
+        // ReSharper disable Unity.PerformanceAnalysis
         ActionData DetermineBossChoice()
         {
-            // Evaluate moves
-            List<MoveData> bossMoveSet = _entities[(int)EntityType.Boss].MoveSet;
-
-            return new ActionData();
+            if (_entities[(int)EntityType.Boss] is null)
+            {
+                Debug.LogWarning("Boss entity is not initialized.");
+                return new ActionData();
+            }
+    
+            BattleEntity boss = _entities[(int)EntityType.Boss];
+    
+            if (boss.MoveSet.Count == 0)
+            {
+                Debug.LogWarning("Boss has no moves.");
+                return new ActionData();
+            }
+    
+            int moveIndex = 0;
+    
+            return new ActionData(
+                ActionType.Move,
+                moveIndex,
+                EntityType.Boss,
+                EntityType.Character1
+            );
         }
 
         float CalculateMoveScore(MoveInstance move, BattleEntity boss, List<BattleEntity> players)
