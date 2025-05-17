@@ -32,6 +32,11 @@ namespace Entity
         
         void Start()
         {
+            Initialize();
+        }
+
+        public void Initialize()
+        {
             CurrentHP = MaxHP;
 
             _moveInstances = MoveSet

@@ -24,11 +24,17 @@ namespace Data
         public ElementType Type;
         
         public int Power;
-        public int Accuracy = 100;
+        [SerializeField] private int _accuracy = 100;
         public float CriticalChance = 0.05f;
 
         public int Cooldown = 2;
         public int UsageLimit = 99;
+
+        public float Accuracy
+        {
+            get => _accuracy / 100f;
+            set => _accuracy = Mathf.Clamp(Mathf.RoundToInt(value), 0, 100);
+        }
     }
 
     [System.Serializable]

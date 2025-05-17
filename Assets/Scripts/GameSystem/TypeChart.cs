@@ -19,10 +19,10 @@ namespace GameSystem
             switch (distance) 
             {
                 case 0: return 1.0f;
-                case 1: return 2.0f;
+                case 1: return 0.5f;
                 case 2: return 1.0f;
                 case 3: return 1.0f; 
-                case 4: return 0.5f;
+                case 4: return 2.0f;
                 default: return 1.0f;
             }
         }
