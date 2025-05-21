@@ -1,0 +1,975 @@
+fileFormatVersion: 2
+guid: 61046d6cbf818f941ba2a15904c61dc8
+TextureImporter:
+  internalIDToNameTable:
+  - first:
+      213: -5421461478521820131
+    second: Fire-Punch_0
+  - first:
+      213: 3252295730228128589
+    second: Fire-Punch_1
+  - first:
+      213: 6598203481123206387
+    second: Fire-Punch_2
+  - first:
+      213: -4871677924142927943
+    second: Fire-Punch_3
+  - first:
+      213: -1022651834901571857
+    second: Fire-Punch_4
+  - first:
+      213: 2268844542855232798
+    second: Fire-Punch_5
+  - first:
+      213: 1480639173104040237
+    second: Fire-Punch_6
+  - first:
+      213: 8352048681184267611
+    second: Fire-Punch_7
+  - first:
+      213: 7478642762246364225
+    second: Fire-Punch_8
+  - first:
+      213: -534753647776471173
+    second: Fire-Punch_9
+  - first:
+      213: -272505565901333714
+    second: Fire-Punch_10
+  - first:
+      213: 4608864003328512278
+    second: Fire-Punch_11
+  - first:
+      213: -1429953787779942274
+    second: Fire-Punch_12
+  - first:
+      213: -3470677873142878775
+    second: Fire-Punch_13
+  - first:
+      213: 1665618355777374441
+    second: Fire-Punch_14
+  - first:
+      213: 3654300939650195137
+    second: Fire-Punch_15
+  - first:
+      213: -3648323924471318611
+    second: Fire-Punch_16
+  - first:
+      213: -4099835954443512928
+    second: Fire-Punch_17
+  - first:
+      213: 3890645387457026111
+    second: Fire-Punch_18
+  - first:
+      213: -6649423170609930430
+    second: Fire-Punch_19
+  - first:
+      213: 4959707576075469283
+    second: Fire-Punch_20
+  - first:
+      213: -1841972471108522167
+    second: Fire-Punch_21
+  - first:
+      213: -7911400334054625996
+    second: Fire-Punch_22
+  - first:
+      213: 4136892967096396577
+    second: Fire-Punch_23
+  - first:
+      213: -8409208662275517682
+    second: Fire-Punch_24
+  - first:
+      213: -7527943388229100635
+    second: Fire-Punch_25
+  - first:
+      213: -3178967453179211053
+    second: Fire-Punch_26
+  - first:
+      213: -7540438710712820327
+    second: Fire-Punch_27
+  - first:
+      213: -183544892209959206
+    second: Fire-Punch_28
+  - first:
+      213: 775265245657825826
+    second: Fire-Punch_29
+  - first:
+      213: -6803997285336561122
+    second: Fire-Punch_30
+  - first:
+      213: -4656544794832729899
+    second: Fire-Punch_31
+  - first:
+      213: -698126041639648363
+    second: Fire-Punch_32
+  externalObjects: {}
+  serializedVersion: 13
+  mipmaps:
+    mipMapMode: 0
+    enableMipMap: 0
+    sRGBTexture: 1
+    linearTexture: 0
+    fadeOut: 0
+    borderMipMap: 0
+    mipMapsPreserveCoverage: 0
+    alphaTestReferenceValue: 0.5
+    mipMapFadeDistanceStart: 1
+    mipMapFadeDistanceEnd: 3
+  bumpmap:
+    convertToNormalMap: 0
+    externalNormalMap: 0
+    heightScale: 0.25
+    normalMapFilter: 0
+    flipGreenChannel: 0
+  isReadable: 0
+  streamingMipmaps: 0
+  streamingMipmapsPriority: 0
+  vTOnly: 0
+  ignoreMipmapLimit: 0
+  grayScaleToAlpha: 0
+  generateCubemap: 6
+  cubemapConvolution: 0
+  seamlessCubemap: 0
+  textureFormat: 1
+  maxTextureSize: 2048
+  textureSettings:
+    serializedVersion: 2
+    filterMode: 1
+    aniso: 1
+    mipBias: 0
+    wrapU: 1
+    wrapV: 1
+    wrapW: 1
+  nPOTScale: 0
+  lightmap: 0
+  compressionQuality: 50
+  spriteMode: 2
+  spriteExtrude: 1
+  spriteMeshType: 1
+  alignment: 0
+  spritePivot: {x: 0.5, y: 0.5}
+  spritePixelsToUnits: 20
+  spriteBorder: {x: 0, y: 0, z: 0, w: 0}
+  spriteGenerateFallbackPhysicsShape: 1
+  alphaUsage: 1
+  alphaIsTransparency: 1
+  spriteTessellationDetail: -1
+  textureType: 8
+  textureShape: 1
+  singleChannelComponent: 0
+  flipbookRows: 1
+  flipbookColumns: 1
+  maxTextureSizeSet: 0
+  compressionQualitySet: 0
+  textureFormatSet: 0
+  ignorePngGamma: 0
+  applyGammaDecoding: 0
+  swizzle: 50462976
+  cookieLightType: 0
+  platformSettings:
+  - serializedVersion: 4
+    buildTarget: DefaultTexturePlatform
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 2
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Standalone
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  spriteSheet:
+    serializedVersion: 2
+    sprites:
+    - serializedVersion: 2
+      name: Fire-Punch_0
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 259
+        width: 42
+        height: 41
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d1c2e39628913c4b0800000000000000
+      internalID: -5421461478521820131
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Fire-Punch_1
+      rect:
+        serializedVersion: 2
+        x: 45
+        y: 258
+        width: 44
+        height: 42
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d4b64c83cb9722d20800000000000000
+      internalID: 3252295730228128589
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Fire-Punch_2
+      rect:
+        serializedVersion: 2
+        x: 93
+        y: 256
+        width: 42
+        height: 43
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 3f438187b17819b50800000000000000
+      internalID: 6598203481123206387
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Fire-Punch_3
+      rect:
+        serializedVersion: 2
+        x: 139
+        y: 255
+        width: 43
+        height: 44
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 9bf295f3db2546cb0800000000000000
+      internalID: -4871677924142927943
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Fire-Punch_4
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 203
+        width: 40
+        height: 41
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: fe65acb039fcec1f0800000000000000
+      internalID: -1022651834901571857
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Fire-Punch_5
+      rect:
+        serializedVersion: 2
+        x: 46
+        y: 205
+        width: 43
+        height: 42
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e1d3873471e8c7f10800000000000000
+      internalID: 2268844542855232798
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Fire-Punch_6
+      rect:
+        serializedVersion: 2
+        x: 94
+        y: 204
+        width: 41
+        height: 42
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d29f461bb794c8410800000000000000
+      internalID: 1480639173104040237
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Fire-Punch_7
+      rect:
+        serializedVersion: 2
+        x: 148
+        y: 203
+        width: 40
+        height: 43
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b5d02c4460078e370800000000000000
+      internalID: 8352048681184267611
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Fire-Punch_8
+      rect:
+        serializedVersion: 2
+        x: 17
+        y: 162
+        width: 36
+        height: 35
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 14c9dbdf7f979c760800000000000000
+      internalID: 7478642762246364225
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Fire-Punch_9
+      rect:
+        serializedVersion: 2
+        x: 55
+        y: 161
+        width: 37
+        height: 36
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b7760fdf36c2498f0800000000000000
+      internalID: -534753647776471173
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Fire-Punch_10
+      rect:
+        serializedVersion: 2
+        x: 95
+        y: 159
+        width: 36
+        height: 36
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e2b5221b1add73cf0800000000000000
+      internalID: -272505565901333714
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Fire-Punch_11
+      rect:
+        serializedVersion: 2
+        x: 134
+        y: 159
+        width: 36
+        height: 36
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 6111b786469f5ff30800000000000000
+      internalID: 4608864003328512278
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Fire-Punch_12
+      rect:
+        serializedVersion: 2
+        x: 17
+        y: 115
+        width: 35
+        height: 35
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e78f6223b98c72ce0800000000000000
+      internalID: -1429953787779942274
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Fire-Punch_13
+      rect:
+        serializedVersion: 2
+        x: 56
+        y: 117
+        width: 36
+        height: 35
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 9cda281ecdca5dfc0800000000000000
+      internalID: -3470677873142878775
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Fire-Punch_14
+      rect:
+        serializedVersion: 2
+        x: 96
+        y: 116
+        width: 35
+        height: 35
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 9e80b7bd1177d1710800000000000000
+      internalID: 1665618355777374441
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Fire-Punch_15
+      rect:
+        serializedVersion: 2
+        x: 141
+        y: 115
+        width: 35
+        height: 36
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 1ced932e75fa6b230800000000000000
+      internalID: 3654300939650195137
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Fire-Punch_16
+      rect:
+        serializedVersion: 2
+        x: 29
+        y: 80
+        width: 30
+        height: 30
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: da7f35868bc8e5dc0800000000000000
+      internalID: -3648323924471318611
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Fire-Punch_17
+      rect:
+        serializedVersion: 2
+        x: 61
+        y: 80
+        width: 31
+        height: 30
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 0a3150adbe47a17c0800000000000000
+      internalID: -4099835954443512928
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Fire-Punch_18
+      rect:
+        serializedVersion: 2
+        x: 94
+        y: 78
+        width: 30
+        height: 30
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: f38536acd595ef530800000000000000
+      internalID: 3890645387457026111
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Fire-Punch_19
+      rect:
+        serializedVersion: 2
+        x: 127
+        y: 78
+        width: 30
+        height: 30
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 24f1b824bd088b3a0800000000000000
+      internalID: -6649423170609930430
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Fire-Punch_20
+      rect:
+        serializedVersion: 2
+        x: 29
+        y: 41
+        width: 30
+        height: 30
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 3e1cac543cb64d440800000000000000
+      internalID: 4959707576075469283
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Fire-Punch_21
+      rect:
+        serializedVersion: 2
+        x: 62
+        y: 43
+        width: 30
+        height: 29
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 94f2785fbcfff66e0800000000000000
+      internalID: -1841972471108522167
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Fire-Punch_22
+      rect:
+        serializedVersion: 2
+        x: 95
+        y: 42
+        width: 29
+        height: 29
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 43d64c4005f053290800000000000000
+      internalID: -7911400334054625996
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Fire-Punch_23
+      rect:
+        serializedVersion: 2
+        x: 132
+        y: 41
+        width: 30
+        height: 30
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 12ba7914c32396930800000000000000
+      internalID: 4136892967096396577
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Fire-Punch_24
+      rect:
+        serializedVersion: 2
+        x: 27
+        y: 0
+        width: 48
+        height: 38
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e031eea864d7c4b80800000000000000
+      internalID: -8409208662275517682
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Fire-Punch_25
+      rect:
+        serializedVersion: 2
+        x: 89
+        y: 16
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 5ab9a578f5f578790800000000000000
+      internalID: -7527943388229100635
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Fire-Punch_26
+      rect:
+        serializedVersion: 2
+        x: 103
+        y: 16
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 3d299b8b1f902e3d0800000000000000
+      internalID: -3178967453179211053
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Fire-Punch_27
+      rect:
+        serializedVersion: 2
+        x: 118
+        y: 16
+        width: 15
+        height: 14
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 99d9b5d81fafa5790800000000000000
+      internalID: -7540438710712820327
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Fire-Punch_28
+      rect:
+        serializedVersion: 2
+        x: 133
+        y: 16
+        width: 15
+        height: 14
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: adeec7b94eae37df0800000000000000
+      internalID: -183544892209959206
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Fire-Punch_29
+      rect:
+        serializedVersion: 2
+        x: 89
+        y: 0
+        width: 15
+        height: 14
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 222042622ab42ca00800000000000000
+      internalID: 775265245657825826
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Fire-Punch_30
+      rect:
+        serializedVersion: 2
+        x: 104
+        y: 0
+        width: 14
+        height: 14
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e1acac2a4885391a0800000000000000
+      internalID: -6803997285336561122
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Fire-Punch_31
+      rect:
+        serializedVersion: 2
+        x: 119
+        y: 0
+        width: 14
+        height: 14
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 5d80d473e21a06fb0800000000000000
+      internalID: -4656544794832729899
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Fire-Punch_32
+      rect:
+        serializedVersion: 2
+        x: 135
+        y: 0
+        width: 15
+        height: 14
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 5938e9f5012cf46f0800000000000000
+      internalID: -698126041639648363
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    outline: []
+    customData: 
+    physicsShape: []
+    bones: []
+    spriteID: 
+    internalID: 0
+    vertices: []
+    indices: 
+    edges: []
+    weights: []
+    secondaryTextures: []
+    spriteCustomMetadata:
+      entries: []
+    nameFileIdTable:
+      Fire-Punch_0: -5421461478521820131
+      Fire-Punch_1: 3252295730228128589
+      Fire-Punch_10: -272505565901333714
+      Fire-Punch_11: 4608864003328512278
+      Fire-Punch_12: -1429953787779942274
+      Fire-Punch_13: -3470677873142878775
+      Fire-Punch_14: 1665618355777374441
+      Fire-Punch_15: 3654300939650195137
+      Fire-Punch_16: -3648323924471318611
+      Fire-Punch_17: -4099835954443512928
+      Fire-Punch_18: 3890645387457026111
+      Fire-Punch_19: -6649423170609930430
+      Fire-Punch_2: 6598203481123206387
+      Fire-Punch_20: 4959707576075469283
+      Fire-Punch_21: -1841972471108522167
+      Fire-Punch_22: -7911400334054625996
+      Fire-Punch_23: 4136892967096396577
+      Fire-Punch_24: -8409208662275517682
+      Fire-Punch_25: -7527943388229100635
+      Fire-Punch_26: -3178967453179211053
+      Fire-Punch_27: -7540438710712820327
+      Fire-Punch_28: -183544892209959206
+      Fire-Punch_29: 775265245657825826
+      Fire-Punch_3: -4871677924142927943
+      Fire-Punch_30: -6803997285336561122
+      Fire-Punch_31: -4656544794832729899
+      Fire-Punch_32: -698126041639648363
+      Fire-Punch_4: -1022651834901571857
+      Fire-Punch_5: 2268844542855232798
+      Fire-Punch_6: 1480639173104040237
+      Fire-Punch_7: 8352048681184267611
+      Fire-Punch_8: 7478642762246364225
+      Fire-Punch_9: -534753647776471173
+  mipmapLimitGroupName: 
+  pSDRemoveMatte: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

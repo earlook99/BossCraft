@@ -1,16 +1,20 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using Entity;
+using TMPro;
 using UI;
 using UnityEngine;
+using UnityEngine.UI;
 
 namespace GameSystem
 {
     public enum ActionType
     {
         Move,
-        Item
-        // etc...
+        Item,
+        Guard,
+        Taunt
     }
 
     public enum EntityType
@@ -21,7 +25,7 @@ namespace GameSystem
         Character4,
         Boss
     }
-    
+
     public struct ActionData
     {
         public ActionType Action;
@@ -29,144 +33,186 @@ namespace GameSystem
         public EntityType Source;
         public EntityType Target;
 
-        public ActionData(ActionType move, int moveIndex, EntityType boss, EntityType character1)
+        public ActionData(ActionType actionType, int actionIndex, EntityType source, EntityType target)
         {
-            throw new NotImplementedException();
+            Action = actionType;
+            ActionIndex = actionIndex;
+            Source = source;
+            Target = target;
         }
     }
+
     public class UIManager : MonoBehaviour
     {
         [Header("References")]
         [SerializeField] private BattleManager _battleManager;
-        
+
+        // ---- (씬에 직접 배치된) 보스 영역, 파티 영역
         [Header("UI Containers")]
-        [SerializeField] private Transform _bossArea;
-        [SerializeField] private Transform _partyArea;
-        [SerializeField] private GameObject _actionMenu;
-        [SerializeField] private GameObject _battleInfo;
-        
-        [Header("UI Prefabs")]
-        [SerializeField] private GameObject _characterStatusPrefab;
-        [SerializeField] private GameObject _actionButtonPrefab;
-        
-        private List<ActionData> _playerChoices = new List<ActionData>();
-        private int _currentPlayerIndex;
+        [SerializeField] private RectTransform _bossArea;
+        [SerializeField] private RectTransform _partyArea;
+
+        // ---- (씬에 직접 배치된) 패널(게임오브젝트) + 거기에 붙어있는 ActionMenuUI
+        [Header("Action Menu")]
+        [SerializeField] private GameObject _actionMenuPanel; 
+        [SerializeField] private ActionMenuUI _actionMenuUI;
+
+        [Header("Other UI")]
+        [SerializeField] private GameObject _battleInfo; // 전투 메시지 등
+
+        // ---- (Project에서 만든 Prefab 참조) ----
+        [Header("Prefabs")]
+        [SerializeField] private CharacterStatusUI _characterStatusPrefab; 
+
+        private Dictionary<int, CharacterStatusUI> _entityStatusUIs = new Dictionary<int, CharacterStatusUI>();
         private BattleEntity[] _battleEntities;
-        
-        public event Action<List<ActionData>> OnAllChoicesComplete;
-        
-        private void Start()
+
+        private int _currentPlayerIndex;
+
+        // public event Action OnPlayerTurnEnd;
+
+        private void Awake()
         {
-            if (!_battleManager)
+            if (_battleManager == null)
             {
-                _battleManager = FindFirstObjectByType<BattleManager>();
+                _battleManager = FindAnyObjectByType<BattleManager>();
+            }
+            // 액션메뉴 초기 비활성화
+            if (_actionMenuPanel != null)
+            {
+                _actionMenuPanel.SetActive(false);
             }
             
+            // 전투 UI 초기 세팅
             SetupBattleUI();
         }
 
-        private void SetupBattleUI()
+        private void Start()
         {
-            _battleEntities = _battleManager.Entities;
-            _playerChoices = new List<ActionData>();
             _currentPlayerIndex = 0;
-            
-            CreateEntityStatusUI();
-            
-            _actionMenu.SetActive(false);
         }
-        
-        private void CreateEntityStatusUI()
+
+        public void SetupBattleUI()
         {
-            var bossEntity = _battleEntities[(int)EntityType.Boss];
-            if (bossEntity != null)
+            CleanupExistingUI();
+
+            // BattleManager로부터 엔티티 배열 가져오기
+            _battleEntities = _battleManager.Entities;
+            
+            // 보스 UI 생성
+            CreateBossStatusUI();
+            // 플레이어 파티 UI 생성
+            CreatePartyStatusUIs();
+        }
+
+        private void CleanupExistingUI()
+        {
+            foreach (var kv in _entityStatusUIs)
             {
-                GameObject bossStatusObj = Instantiate(_characterStatusPrefab, _bossArea);
-                CharacterStatusUI bossStatusUI = bossStatusObj.GetComponent<CharacterStatusUI>();
-                bossStatusUI.Setup(bossEntity, (int)EntityType.Boss);
-        
-                RectTransform bossRect = bossStatusObj.GetComponent<RectTransform>();
-                bossRect.sizeDelta = new Vector2(300, 150);
-            }
-    
-            for (int i = 0; i < 4; i++)
-            {
-                var playerEntity = _battleEntities[i];
-                if (playerEntity != null)
+                if (kv.Value != null && kv.Value.gameObject != null)
                 {
-                    GameObject playerStatusObj = Instantiate(_characterStatusPrefab, _partyArea);
-                    CharacterStatusUI playerStatusUI = playerStatusObj.GetComponent<CharacterStatusUI>();
-                    playerStatusUI.Setup(playerEntity, i);
+                    Destroy(kv.Value.gameObject);
                 }
             }
+            _entityStatusUIs.Clear();
         }
-        
-        public void StartPlayerTurn()
+
+        private void CreateBossStatusUI()
         {
-            _currentPlayerIndex = 0;
-            _playerChoices.Clear();
-            ShowActionMenuForCurrentPlayer();
-        }
-        
-        private void ShowActionMenuForCurrentPlayer()
-        {
-            _actionMenu.SetActive(true);
-            
-            BattleEntity currentPlayerEntity = _battleEntities[_currentPlayerIndex];
-    
-            ActionMenuUI actionMenuUI = _actionMenu.GetComponent<ActionMenuUI>();
-            if (actionMenuUI != null)
-            {
-                actionMenuUI.Setup(currentPlayerEntity, _currentPlayerIndex, _battleManager.TurnCount);
-            }
-        }
-        
-        public void OnActionSelected(ActionType actionType, int actionIndex)
-        {
-            ActionData newAction = new ActionData
-            {
-                Action = actionType,
-                ActionIndex = actionIndex,
-                Source = (EntityType)_currentPlayerIndex,
-                Target = EntityType.Boss
-            };
-    
-            _playerChoices.Add(newAction);
-    
-            _currentPlayerIndex++;
-    
-            if (_currentPlayerIndex >= 4)
-            {
-                _actionMenu.SetActive(false);
-                OnAllChoicesComplete?.Invoke(_playerChoices);
-            }
-            else
-            {
-                ShowActionMenuForCurrentPlayer();
-            }
-        }
-        
-        public void ShowBattleMessage(string message, float duration = 2f)
-        {
-            // 전투 메시지 표시...
-        }
-        
-        public void UpdateEntityUI(int entityIndex)
-        {
-            if (entityIndex < 0 || entityIndex >= _battleEntities.Length)
+            var bossEntity = _battleEntities[(int)EntityType.Boss];
+            if (bossEntity == null || _bossArea == null || _characterStatusPrefab == null)
             {
                 return;
             }
 
-            CharacterStatusUI[] allStatusUIs = FindObjectsByType<CharacterStatusUI>(FindObjectsSortMode.None);            
-            foreach (var statusUI in allStatusUIs)
+            // Prefab Instantiate → 보스 영역에 붙이기
+            var statusUI = Instantiate(_characterStatusPrefab, _bossArea);
+            statusUI.Setup(bossEntity, (int)EntityType.Boss);
+
+            _entityStatusUIs.Add((int)EntityType.Boss, statusUI);
+        }
+
+        private void CreatePartyStatusUIs()
+        {
+            if (_partyArea == null || _characterStatusPrefab == null)
             {
-                if (statusUI.EntityIndex == entityIndex)
-                {
-                    statusUI.UpdateHP();
-                    break;
-                }
+                return;
+            }
+
+            // 4명 (Character1~4)
+            for (int i = 0; i < 4; i++)
+            {
+                var entity = _battleEntities[i];
+                if (entity == null) continue;
+
+                var statusUI = Instantiate(_characterStatusPrefab, _partyArea);
+                statusUI.Setup(entity, i);
+
+                _entityStatusUIs.Add(i, statusUI);
             }
         }
+        
+        public void ShowActionMenuForCurrentPlayer(int currentPlayerIndex)
+        {
+            _currentPlayerIndex = currentPlayerIndex;
+            
+            if (_actionMenuPanel)
+            {
+                _actionMenuPanel.SetActive(true);
+            }
+            
+            if (_actionMenuUI)
+            {
+                var playerEntity = _battleEntities[_currentPlayerIndex];
+                
+                // turnCount 등은 예시
+                _actionMenuUI.Setup(this, playerEntity, _currentPlayerIndex);
+            }
+        }
+
+        public void OnActionSelect(ActionType actionType, int actionIndex)
+        {
+            var newAction = new ActionData(actionType, actionIndex, (EntityType)_currentPlayerIndex, EntityType.Boss);
+            _battleManager.OnActionChoice(newAction);
+        }
+
+        private void StartBossTurn()
+        {
+            // 플레이어 액션메뉴 숨기기
+            if (_actionMenuPanel != null)
+            {
+                _actionMenuPanel.SetActive(false);
+            }
+        }
+
+        // ---- 배틀 메시지 표시 ----
+
+        public IEnumerator ShowBattleMessage(string message, float duration = 2f)
+        {
+            var messageText = _battleInfo.GetComponentInChildren<TextMeshProUGUI>();
+            if (messageText != null)
+            {
+                messageText.text = message;
+                _battleInfo.SetActive(true);
+                yield return new WaitForSeconds(duration);
+            }
+        }
+        
+        public IEnumerator AnimateHPBarDecrease(int entityIndex, int startHP, int endHP)
+        {
+            float duration = 1.0f;
+            float elapsed = 0f;
+            while (elapsed < duration)
+            {
+                elapsed += Time.deltaTime;
+                float t = elapsed / duration;
+                int currentHP = (int)Mathf.Lerp(startHP, endHP, t);
+                _entityStatusUIs[entityIndex].UpdateHP(currentHP);
+                yield return null;
+            }
+
+            _entityStatusUIs[entityIndex].UpdateHP(endHP);
+        }
+
     }
 }

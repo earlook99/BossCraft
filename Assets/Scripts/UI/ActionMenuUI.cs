@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using Data;
 using UnityEngine;
@@ -7,81 +8,110 @@ using TMPro;
 
 namespace UI
 {
+    public enum MenuState
+    {
+        Main,
+        Moves,
+        Items
+    }
     public class ActionMenuUI : MonoBehaviour
     {
-        [SerializeField] private Transform actionButtonsContainer;
-        [SerializeField] private GameObject actionButtonPrefab;
-        
-        [SerializeField] private TextMeshProUGUI playerNameText;
-        [SerializeField] private TextMeshProUGUI turnInfoText;
-        
+        [SerializeField] private Transform ButtonsContainer; 
+        [SerializeField] private GameObject ButtonPrefab;
+
+        private UIManager _uiManager;
         private BattleEntity _currentEntity;
-        private List<ActionButtonUI> _spawnedButtons = new List<ActionButtonUI>();
-        
-        public void Setup(BattleEntity entity, int playerIndex, int turnCount)
+        private int _playerIndex;
+        private MenuState _currentState;
+
+        public void Setup(UIManager manager, BattleEntity entity, int playerIndex)
         {
+            _uiManager = manager;
             _currentEntity = entity;
-
-            if (playerNameText is not null)
+            _playerIndex = playerIndex;
+            _currentState = MenuState.Main;
+            
+            if (entity == null)
             {
-                playerNameText.text = entity.EntityName;
-            }
-
-            if (turnInfoText is not null)
-            {
-                turnInfoText.text = $"턴 {turnCount}";
+                return;
             }
 
             ClearButtons();
             CreateActionButtons();
         }
-        
+
         private void ClearButtons()
         {
-            foreach (var button in _spawnedButtons)
+            foreach (Transform child in ButtonsContainer)
             {
-                Destroy(button.gameObject);
+                Destroy(child.gameObject);
             }
-            _spawnedButtons.Clear();
         }
-        
+
         private void CreateActionButtons()
         {
-            for (int i = 0; i < _currentEntity.MoveSet.Count; i++)
-            {
-                MoveData move = _currentEntity.MoveSet[i];
-                
-                GameObject buttonObj = Instantiate(actionButtonPrefab, actionButtonsContainer);
-                ActionButtonUI buttonUI = buttonObj.GetComponent<ActionButtonUI>();
-                
-                buttonUI.Setup(move.Name, ActionType.Move, i);
-                buttonUI.OnButtonClicked += OnActionButtonClicked;
-                
-                _spawnedButtons.Add(buttonUI);
-            }
-            
-            GameObject itemButtonObj = Instantiate(actionButtonPrefab, actionButtonsContainer);
-            ActionButtonUI itemButtonUI = itemButtonObj.GetComponent<ActionButtonUI>();
-            
-            itemButtonUI.Setup("아이템", ActionType.Item, 0);
-            itemButtonUI.OnButtonClicked += OnActionButtonClicked;
-            
-            _spawnedButtons.Add(itemButtonUI);
+            CreateButton("Fight", () => SwitchMenuState(MenuState.Moves));
+            CreateButton("Item",  () => SwitchMenuState(MenuState.Items));
+            CreateButton("Guard",  () => HandleActionSelect(ActionType.Guard, -1));
+            CreateButton("Taunt",  () => HandleActionSelect(ActionType.Taunt, -1));
         }
-        
-        private void OnActionButtonClicked(ActionType actionType, int actionIndex)
+
+        private void CreateMoveButtons()
         {
-            UIManager uiManager = FindObjectOfType<UIManager>();
-            uiManager.OnActionSelected(actionType, actionIndex);
-        }
-        
-        private void OnDestroy()
-        {
-            foreach (var button in _spawnedButtons)
+            ReadOnlySpan<MoveInstance> currentMoves = _currentEntity.MoveInstances;
+
+            for (int i = 0; i < currentMoves.Length; i++)
             {
-                if (button != null)
-                    button.OnButtonClicked -= OnActionButtonClicked;
+                int index = i;
+                CreateButton(currentMoves[i].Data.Name, () => HandleActionSelect(ActionType.Move, index));
             }
+        }
+
+        private void CreateButton(string label, Action onClick)
+        {
+            var buttonObj = Instantiate(ButtonPrefab, ButtonsContainer);
+            var buttonUI = buttonObj.GetComponent<ActionButtonUI>();
+
+            buttonUI.Setup(label, 0);
+            buttonUI.OnButtonClicked += (aIndex) =>
+            {
+                onClick?.Invoke();
+            };
+        }
+
+        private void SwitchMenuState(MenuState newState)
+        {
+            _currentState = newState;
+            
+            ClearButtons();
+
+            switch (newState)
+            {
+                case MenuState.Main:
+                {
+                    CreateActionButtons();
+                    break;
+                }
+
+                case MenuState.Moves:
+                {
+                    CreateMoveButtons();
+                    break;
+                }
+
+                case MenuState.Items:
+                {
+                    // TODO: CreateItemButtons();
+                    break;
+                }
+                    
+                default: break;
+            }
+        }
+
+        private void HandleActionSelect(ActionType actionType, int actionIndex)
+        {
+            _uiManager.OnActionSelect(actionType, actionIndex);
         }
     }
 }

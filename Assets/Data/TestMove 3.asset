@@ -12,10 +12,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c7080a18dee88af47baae11fd18048d9, type: 3}
   m_Name: TestMove 3
   m_EditorClassIdentifier: 
-  Name: 
+  Name: TestMove3
   Category: 0
   Type: 0
-  Power: 0
+  Power: 100
   _accuracy: 100
   CriticalChance: 0.05
   Cooldown: 2

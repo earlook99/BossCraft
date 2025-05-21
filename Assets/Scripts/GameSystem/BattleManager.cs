@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
@@ -22,7 +23,6 @@ namespace GameSystem
         public AIWeights Weights;
         
         private BattleState _currentState;
-        private List<ActionData> _currentPlayerChoices = new List<ActionData>();
 
         [SerializeField] private BattleEntity[] _entities = new BattleEntity[5];
         public BattleEntity[] Entities => _entities;
@@ -32,11 +32,19 @@ namespace GameSystem
         private int _turnCount = 0;
         public int TurnCount => _turnCount;
 
+        private int _currentPlayerIndex;
+        
+        public event Action OnEntitiesInitialized;
+
+        [SerializeField] private GameObject _testEffect;
+
         private void Start()
         {
-            SetState(BattleState.BossAction);
+            _currentPlayerIndex = 0;
             
-            _uiManager.OnAllChoicesComplete += HandleAllChoicesComplete;
+            OnEntitiesInitialized?.Invoke();
+            
+            SetState(BattleState.PlayerChoice);
         }
 
         private void SetState(BattleState newState)
@@ -45,9 +53,6 @@ namespace GameSystem
             {
                 case BattleState.PlayerChoice:
                     StartPlayerChoicePhase();
-                    break;
-                case BattleState.PlayerAction:
-                    StartCoroutine(StartPlayerActionPhase());
                     break;
                 case BattleState.BossAction:
                     StartCoroutine(StartBossActionPhase());
@@ -59,51 +64,68 @@ namespace GameSystem
             }
         }
 
-        void StartPlayerChoicePhase()
+        private void StartPlayerChoicePhase()
         {
             _turnCount++;
             
-            // TODO: Bind UI events
-            // then call HandleAllChoicesComplete();
+            _uiManager.ShowActionMenuForCurrentPlayer(_currentPlayerIndex);
         }
 
-        void HandleAllChoicesComplete(List<ActionData> choices)
+        public void OnActionChoice(ActionData newAction)
         {
-            _currentPlayerChoices = choices;
-            SetState(BattleState.PlayerAction);
-        }
-
-        IEnumerator StartPlayerActionPhase()
-        {
-            // TODO: Call UI functions...
-
-            foreach (var choice in _currentPlayerChoices)
+            switch (newAction.Action)
             {
-                var sourceEntity = _entities[(int)choice.Source];
-                var targetEntity = _entities[(int)choice.Target];
-
-                switch (choice.Action)
+                case ActionType.Move:
                 {
-                    case ActionType.Move:
-                    {
-                        var moveInstance = sourceEntity.GetMoveInstance(choice.ActionIndex);
-                        targetEntity.TakeDamage(moveInstance.Data.Type, DamageFormula.GetRawHit(sourceEntity, moveInstance));
-                        break;
-                    }
-                    case ActionType.Item:
-                    {
-                        // TODO: Item use logic
-                        break;
-                    }
-                    default:
-                    {
-                        break;
-                    }
+                    StartCoroutine(ProcessMove(newAction));
+                    break;
                 }
+                
+                default: break;
             }
+        }
+        
+        public IEnumerator ProcessMove(ActionData newAction)
+        {
+            var source = _entities[(int)newAction.Source];
+            var target = _entities[(int)newAction.Target];
             
-            SetState(BattleState.BossAction);
-            yield break;
+            MoveInstance move = source.GetMoveInstance(newAction.ActionIndex);
+            if (move == null)
+            {
+                yield break;
+            }
+
+            switch (move.Data.Category)
+            {
+                case MoveCategory.Single:
+                {
+                    // Battle Message
+                    yield return StartCoroutine(_uiManager.ShowBattleMessage($"{source.EntityName}의 {move.Data.Name}!", 1f));
+                    
+                    // TODO: Implementing PlayMoveEffects()
+                    yield return StartCoroutine(PlayMoveEffects(target));
+                    
+                    // Damage
+                    int prevHP = target.CurrentHP;
+                    target.TakeDamage(move.Data.Type, DamageFormula.GetRawHit(source, move));
+                    int currHP = target.CurrentHP;
+                    
+                    // HP Animation
+                    yield return StartCoroutine(_uiManager.AnimateHPBarDecrease((int)newAction.Target, prevHP, currHP));
+
+                    break;
+                }
+                    
+                default:
+                    break;
+            }
+        }
+
+        private IEnumerator PlayMoveEffects(BattleEntity target)
+        {
+            var effect = Instantiate(_testEffect, target.transform.position, target.transform.rotation);
+            yield return new WaitForSeconds(4f);
         }
 
         IEnumerator StartBossActionPhase()
