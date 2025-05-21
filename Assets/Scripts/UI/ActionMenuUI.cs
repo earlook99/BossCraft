@@ -50,6 +50,7 @@ namespace UI
 
         private void CreateActionButtons()
         {
+            StartCoroutine(_uiManager.ShowBattleMessage("무엇을 할까?", 1f));
             CreateButton("Fight", () => SwitchMenuState(MenuState.Moves));
             CreateButton("Item",  () => SwitchMenuState(MenuState.Items));
             CreateButton("Guard",  () => HandleActionSelect(ActionType.Guard, -1));

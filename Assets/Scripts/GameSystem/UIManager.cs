@@ -186,7 +186,6 @@ namespace GameSystem
         }
 
         // ---- 배틀 메시지 표시 ----
-
         public IEnumerator ShowBattleMessage(string message, float duration = 2f)
         {
             var messageText = _battleInfo.GetComponentInChildren<TextMeshProUGUI>();

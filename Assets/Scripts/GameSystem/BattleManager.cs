@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using Camera;
 using Data;
 using Entity;
 using NUnit.Framework;
@@ -19,6 +20,7 @@ namespace GameSystem
     public class BattleManager : MonoBehaviour
     {
         [SerializeField] private UIManager _uiManager;
+        [SerializeField] private CameraManager _cameraManager;
         
         public AIWeights Weights;
         
@@ -73,16 +75,26 @@ namespace GameSystem
 
         public void OnActionChoice(ActionData newAction)
         {
+            StartCoroutine(HandleActionChoice(newAction));
+        }
+
+        public IEnumerator HandleActionChoice(ActionData newAction)
+        {
             switch (newAction.Action)
             {
                 case ActionType.Move:
                 {
-                    StartCoroutine(ProcessMove(newAction));
+                    yield return StartCoroutine(ProcessMove(newAction));
                     break;
                 }
                 
                 default: break;
             }
+            
+            //
+            _currentPlayerIndex++;
+            _cameraManager.SwitchCameraTo(CineCamType.BattleOutZoom);
+            StartPlayerChoicePhase();
         }
         
         public IEnumerator ProcessMove(ActionData newAction)

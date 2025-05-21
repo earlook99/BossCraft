@@ -11,6 +11,7 @@ GameObject:
   - component: {fileID: 6090714290564923054}
   - component: {fileID: 5157405992379811202}
   - component: {fileID: 3071605830691845070}
+  - component: {fileID: 8322292661725989510}
   m_Layer: 0
   m_Name: TestEffect
   m_TagString: Untagged
@@ -110,3 +111,15 @@ Animator:
   m_AllowConstantClipSamplingOptimization: 1
   m_KeepAnimatorStateOnDisable: 0
   m_WriteDefaultValuesOnDisable: 0
+--- !u!114 &8322292661725989510
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3822704047910981250}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e01b361720285b8418bcc0eb3f77e8d6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
