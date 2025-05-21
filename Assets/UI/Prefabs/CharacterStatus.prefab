@@ -105,11 +105,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c3c0e9f29ebb0f042a08cb8c1476121b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  characterIcon: {fileID: 0}
-  nameText: {fileID: 8295657170701434916}
-  hpBar: {fileID: 7710678718638708146}
-  hpText: {fileID: 8084595657289604374}
-  typeIcon: {fileID: 0}
+  _characterIcon: {fileID: 0}
+  _nameText: {fileID: 8295657170701434916}
+  _hpBar: {fileID: 7710678718638708146}
+  _hpText: {fileID: 8084595657289604374}
 --- !u!1 &2698437606964492697
 GameObject:
   m_ObjectHideFlags: 0

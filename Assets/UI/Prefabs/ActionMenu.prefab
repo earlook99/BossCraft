@@ -293,5 +293,5 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ba591e327c6c40d42bdf0177e5d61f9f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  ButtonsContainer: {fileID: 1287530307090263840}
-  ButtonPrefab: {fileID: 2008966237063463622, guid: 7e347a2aa34617c4eaf34b15a5b332e0, type: 3}
+  _buttonsContainer: {fileID: 1287530307090263840}
+  _buttonPrefab: {fileID: 2008966237063463622, guid: 7e347a2aa34617c4eaf34b15a5b332e0, type: 3}
