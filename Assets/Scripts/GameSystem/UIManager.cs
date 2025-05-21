@@ -207,7 +207,7 @@ namespace GameSystem
                 _battleMessageTextComponent.text = message;
                 if (_battleInfo != null) _battleInfo.SetActive(true); // Show the parent GameObject
                 yield return new WaitForSeconds(duration);
-                if (_battleInfo != null) _battleInfo.SetActive(false); // Hide after duration
+                // if (_battleInfo != null) _battleInfo.SetActive(false); // Hide after duration
             }
         }
         
