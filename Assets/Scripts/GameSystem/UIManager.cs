@@ -9,102 +9,91 @@ using UnityEngine.UI;
 
 namespace GameSystem
 {
-    public enum ActionType
-    {
-        Move,
-        Item,
-        Guard,
-        Taunt
-    }
-
-    public enum EntityType
-    {
-        Character1,
-        Character2,
-        Character3,
-        Character4,
-        Boss
-    }
-
-    public struct ActionData
-    {
-        public ActionType Action;
-        public int ActionIndex;
-        public EntityType Source;
-        public EntityType Target;
-
-        public ActionData(ActionType actionType, int actionIndex, EntityType source, EntityType target)
-        {
-            Action = actionType;
-            ActionIndex = actionIndex;
-            Source = source;
-            Target = target;
-        }
-    }
-
+    /// <summary>
+    /// Manages the user interface for the battle system.
+    /// This includes displaying character statuses, action menus, and battle messages.
+    /// </summary>
     public class UIManager : MonoBehaviour
     {
         [Header("References")]
         [SerializeField] private BattleManager _battleManager;
 
-        // ---- (씬에 직접 배치된) 보스 영역, 파티 영역
+        // ---- (Scene-placed) Boss Area, Party Area
         [Header("UI Containers")]
-        [SerializeField] private RectTransform _bossArea;
-        [SerializeField] private RectTransform _partyArea;
+        [SerializeField] private RectTransform _bossArea; // Parent transform for boss status UI
+        [SerializeField] private RectTransform _partyArea; // Parent transform for player party status UIs
 
-        // ---- (씬에 직접 배치된) 패널(게임오브젝트) + 거기에 붙어있는 ActionMenuUI
+        // ---- (Scene-placed) Panel (GameObject) + ActionMenuUI attached to it
         [Header("Action Menu")]
-        [SerializeField] private GameObject _actionMenuPanel; 
-        [SerializeField] private ActionMenuUI _actionMenuUI;
+        [SerializeField] private GameObject _actionMenuPanel; // The panel GameObject holding the action menu
+        [SerializeField] private ActionMenuUI _actionMenuUI; // The script component for the action menu
 
         [Header("Other UI")]
-        [SerializeField] private GameObject _battleInfo; // 전투 메시지 등
+        [SerializeField] private GameObject _battleInfo; // GameObject used to display battle messages. Battle messages, etc.
 
-        // ---- (Project에서 만든 Prefab 참조) ----
+        // ---- (Reference to Prefab made in Project) ----
         [Header("Prefabs")]
-        [SerializeField] private CharacterStatusUI _characterStatusPrefab; 
+        [SerializeField] private CharacterStatusUI _characterStatusPrefab; // Prefab for character status UI elements
 
-        private Dictionary<int, CharacterStatusUI> _entityStatusUIs = new Dictionary<int, CharacterStatusUI>();
-        private BattleEntity[] _battleEntities;
+        private Dictionary<int, CharacterStatusUI> _entityStatusUIs = new Dictionary<int, CharacterStatusUI>(); // Cache for instantiated status UIs
+        private BattleEntity[] _battleEntities; // Cache for battle entities
+        private TextMeshProUGUI _battleMessageTextComponent; // Cached TextMeshProUGUI component for battle messages
 
-        private int _currentPlayerIndex;
+        private int _currentPlayerIndex; // Index of the player character whose turn it is to act
 
-        // public event Action OnPlayerTurnEnd;
-
+        /// <summary>
+        /// Called when the script instance is being loaded.
+        /// Ensures BattleManager reference and initializes UI components.
+        /// </summary>
         private void Awake()
         {
             if (_battleManager == null)
             {
                 _battleManager = FindAnyObjectByType<BattleManager>();
             }
-            // 액션메뉴 초기 비활성화
+            // Deactivate action menu initially
             if (_actionMenuPanel != null)
             {
                 _actionMenuPanel.SetActive(false);
             }
+
+            if (_battleInfo != null) 
+            { 
+                _battleMessageTextComponent = _battleInfo.GetComponentInChildren<TextMeshProUGUI>(); 
+            }
             
-            // 전투 UI 초기 세팅
+            // Initial setup for battle UI
             SetupBattleUI();
         }
 
+        /// <summary>
+        /// Called before the first frame update.
+        /// Initializes the current player index.
+        /// </summary>
         private void Start()
         {
             _currentPlayerIndex = 0;
         }
 
+        /// <summary>
+        /// Sets up the entire battle UI, including cleaning up existing elements and creating new ones.
+        /// </summary>
         public void SetupBattleUI()
         {
             CleanupExistingUI();
 
-            // BattleManager로부터 엔티티 배열 가져오기
+            // Get entity array from BattleManager
             _battleEntities = _battleManager.Entities;
             
-            // 보스 UI 생성
+            // Create Boss UI
             CreateBossStatusUI();
-            // 플레이어 파티 UI 생성
+            // Create Player Party UI
             CreatePartyStatusUIs();
         }
 
+        /// <summary>
+        /// Cleans up any existing character status UI elements.
+        /// </summary>
         private void CleanupExistingUI()
         {
             foreach (var kv in _entityStatusUIs)
@@ -117,6 +106,9 @@ namespace GameSystem
             _entityStatusUIs.Clear();
         }
 
+        /// <summary>
+        /// Creates and sets up the status UI for the boss entity.
+        /// </summary>
         private void CreateBossStatusUI()
         {
             var bossEntity = _battleEntities[(int)EntityType.Boss];
@@ -125,13 +117,16 @@ namespace GameSystem
                 return;
             }
 
-            // Prefab Instantiate → 보스 영역에 붙이기
+            // Instantiate Prefab -> Attach to Boss Area
             var statusUI = Instantiate(_characterStatusPrefab, _bossArea);
             statusUI.Setup(bossEntity, (int)EntityType.Boss);
 
             _entityStatusUIs.Add((int)EntityType.Boss, statusUI);
         }
 
+        /// <summary>
+        /// Creates and sets up the status UIs for all player characters in the party.
+        /// </summary>
         private void CreatePartyStatusUIs()
         {
             if (_partyArea == null || _characterStatusPrefab == null)
@@ -139,7 +134,7 @@ namespace GameSystem
                 return;
             }
 
-            // 4명 (Character1~4)
+            // 4 characters (Character1~4)
             for (int i = 0; i < 4; i++)
             {
                 var entity = _battleEntities[i];
@@ -152,6 +147,10 @@ namespace GameSystem
             }
         }
         
+        /// <summary>
+        /// Shows the action menu for the specified player.
+        /// </summary>
+        /// <param name="currentPlayerIndex">The index of the player whose turn it is.</param>
         public void ShowActionMenuForCurrentPlayer(int currentPlayerIndex)
         {
             _currentPlayerIndex = currentPlayerIndex;
@@ -165,38 +164,60 @@ namespace GameSystem
             {
                 var playerEntity = _battleEntities[_currentPlayerIndex];
                 
-                // turnCount 등은 예시
+                // turnCount, etc., are examples
                 _actionMenuUI.Setup(this, playerEntity, _currentPlayerIndex);
             }
         }
 
+        /// <summary>
+        /// Called when an action is selected from the action menu.
+        /// Constructs an <see cref="ActionData"/> object and passes it to the <see cref="BattleManager"/>.
+        /// </summary>
+        /// <param name="actionType">The type of action selected.</param>
+        /// <param name="actionIndex">The specific index of the action (e.g., move index, item index).</param>
         public void OnActionSelect(ActionType actionType, int actionIndex)
         {
             var newAction = new ActionData(actionType, actionIndex, (EntityType)_currentPlayerIndex, EntityType.Boss);
             _battleManager.OnActionChoice(newAction);
         }
 
+        /// <summary>
+        /// Called when it's the boss's turn, to hide the player action menu.
+        /// </summary>
         private void StartBossTurn()
         {
-            // 플레이어 액션메뉴 숨기기
+            // Hide player action menu
             if (_actionMenuPanel != null)
             {
                 _actionMenuPanel.SetActive(false);
             }
         }
 
-        // ---- 배틀 메시지 표시 ----
+        // ---- Display battle message ----
+        /// <summary>
+        /// Displays a battle message on the UI for a specified duration.
+        /// </summary>
+        /// <param name="message">The message to display.</param>
+        /// <param name="duration">How long the message should be visible, in seconds.</param>
+        /// <returns>An IEnumerator for the coroutine.</returns>
         public IEnumerator ShowBattleMessage(string message, float duration = 2f)
         {
-            var messageText = _battleInfo.GetComponentInChildren<TextMeshProUGUI>();
-            if (messageText != null)
+            if (_battleMessageTextComponent != null)
             {
-                messageText.text = message;
-                _battleInfo.SetActive(true);
+                _battleMessageTextComponent.text = message;
+                if (_battleInfo != null) _battleInfo.SetActive(true); // Show the parent GameObject
                 yield return new WaitForSeconds(duration);
+                if (_battleInfo != null) _battleInfo.SetActive(false); // Hide after duration
             }
         }
         
+        /// <summary>
+        /// Animates the HP bar of a specified entity decreasing from a start HP to an end HP.
+        /// </summary>
+        /// <param name="entityIndex">The index of the entity whose HP bar to animate.</param>
+        /// <param name="startHP">The HP value to start the animation from.</param>
+        /// <param name="endHP">The HP value to end the animation at.</param>
+        /// <returns>An IEnumerator for the coroutine.</returns>
         public IEnumerator AnimateHPBarDecrease(int entityIndex, int startHP, int endHP)
         {
             float duration = 1.0f;
