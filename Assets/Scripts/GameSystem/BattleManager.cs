@@ -146,8 +146,17 @@ namespace GameSystem
             
             //
             _currentPlayerIndex++;
-            _cameraManager.SwitchCameraTo(CineCamType.BattleOutZoom);
-            StartPlayerChoicePhase();
+            // _cameraManager.SwitchCameraTo(CineCamType.BattleOutZoom);
+
+            if (_currentPlayerIndex >= 4)
+            {
+                _currentPlayerIndex = 0;
+                SetState(BattleState.BossAction);
+            }
+            else
+            {
+                StartPlayerChoicePhase();
+            }
         }
         
         /// <summary>
@@ -212,113 +221,150 @@ namespace GameSystem
         /// <returns>An IEnumerator for the coroutine.</returns>
         IEnumerator StartBossActionPhase()
         {
-            ActionData bossAction = DetermineBossChoice();
-            // TODO: Implement full boss action execution based on bossAction
-            yield break;
+            var boss = _entities[(int)EntityType.Boss];
+            BattleEntity[] players = new BattleEntity[4];
+            for (int i = 0; i < 4; i++)
+            {
+                players[i] = _entities[i];
+            }
+
+            UtilityAI bossAI = new UtilityAI(boss, players, Weights);
+
+            MoveDecision decision = bossAI.Decide();
+
+            if (decision.MoveIndex < 0)
+            {
+                Debug.Log("No valid boss moves.");
+                yield break;
+            }
+            else
+            {
+                ActionData bossAction = new ActionData(
+                    ActionType.Move,
+                    decision.MoveIndex,
+                    EntityType.Boss,
+                    decision.TargetEntity
+                );
+
+                yield return StartCoroutine(HandleBossActionChoice(bossAction));
+            }
+            
+            SetState(BattleState.CheckBattleEnd);
+        }
+
+        private IEnumerator HandleBossActionChoice(ActionData bossAction)
+        {
+            var boss = _entities[(int)EntityType.Boss];
+            var move = boss.GetMoveInstance(bossAction.ActionIndex);
+
+            move.UsageLeft--;
+            move.CooldownLeft = move.Data.Cooldown;
+
+            yield return StartCoroutine(ProcessMove(bossAction));
         }
 
         // ReSharper disable Unity.PerformanceAnalysis
-        /// <summary>
-        /// Determines the boss's next action.
-        /// Currently selects the first move if available.
-        /// </summary>
-        /// <returns>The <see cref="ActionData"/> for the boss's chosen action.</returns>
-        ActionData DetermineBossChoice()
-        {
-            if (_entities[(int)EntityType.Boss] is null)
-            {
-                Debug.LogWarning("Boss entity is not initialized.");
-                return new ActionData();
-            }
-    
-            BattleEntity boss = _entities[(int)EntityType.Boss];
-    
-            if (boss.MoveSet.Count == 0)
-            {
-                Debug.LogWarning("Boss has no moves.");
-                return new ActionData();
-            }
-    
-            int moveIndex = 0;
-    
-            return new ActionData(
-                ActionType.Move,
-                moveIndex,
-                EntityType.Boss,
-                EntityType.Character1
-            );
-        }
+        //// <summary>
+        //// Determines the boss's next action.
+        //// Currently selects the first move if available.
+        //// </summary>
+        //// <returns>The <see cref="ActionData"/> for the boss's chosen action.</returns>
+        // ActionData DetermineBossChoice()
+        // {
+        //     if (_entities[(int)EntityType.Boss] is null)
+        //     {
+        //         Debug.LogWarning("Boss entity is not initialized.");
+        //         return new ActionData();
+        //     }
+        //
+        //     BattleEntity boss = _entities[(int)EntityType.Boss];
+        //
+        //     if (boss.MoveSet.Count == 0)
+        //     {
+        //         Debug.LogWarning("Boss has no moves.");
+        //         return new ActionData();
+        //     }
+        //
+        //     int moveIndex = 0;
+        //
+        //     return new ActionData(
+        //         ActionType.Move,
+        //         moveIndex,
+        //         EntityType.Boss,
+        //         EntityType.Character1
+        //     );
+        // }
 
-        /// <summary>
-        /// Calculates a score for a given move for the boss AI.
-        /// This score helps the AI decide which move to use.
-        /// </summary>
-        /// <param name="move">The move instance to score.</param>
-        /// <param name="boss">The boss entity performing the move.</param>
-        /// <param name="players">A list of player entities who could be targets.</param>
-        /// <returns>A float score representing the desirability of the move.</returns>
-        float CalculateMoveScore(MoveInstance move, BattleEntity boss, List<BattleEntity> players)
-        {
-            if (move.CooldownLeft > 0 || move.UsageLeft == 0)
-            {
-                return 0f;
-            }
-            
-            MoveData data = move.Data;
-            
-            float SingleScore() =>
-                players.Max(p =>
-                {
-                    float raw = DamageFormula.GetExpectedRawDamage(boss, data);
-                    float exp = p.PreviewMitigate(raw, data); // Expected damage after mitigation
-
-                    bool canKO = p.CurrentHP <= exp;
-                    float bonus = canKO ? Weights.KillBonus * data.Accuracy : 0f; // Bonus for potential KO
-
-                    return (exp + bonus) * Weights.SingleHit;
-                });
-
-            float AOEScore() =>
-                players.Sum(p =>
-                {
-                    float raw = DamageFormula.GetExpectedRawDamage(boss, data);
-                    float exp = p.PreviewMitigate(raw, data); // Expected damage after mitigation for this player
-
-                    bool canKO = p.CurrentHP <= exp;
-                    float bonus = canKO ? Weights.KillBonus * data.Accuracy : 0f; // Bonus for potential KO on this player
-
-                    return exp + bonus;
-                }) * Weights.AOE;
-
-            float MultiRandomScore() =>
-                players.Max(p =>
-                {
-                    float raw = DamageFormula.GetExpectedRawDamage(boss, data) * Weights.MultiRandomHit;
-                    float exp = p.PreviewMitigate(raw, data);
-                    return exp;
-                });
-
-            float ChargeScore() =>
-                players.Max(p =>
-                {
-                    float raw = DamageFormula.GetExpectedRawDamage(boss, data) * Weights.Charge;
-                    float exp = p.PreviewMitigate(raw, data);
-                    return exp;
-                });
-
-            return data.Category switch
-            {
-                MoveCategory.Single => SingleScore(),
-                MoveCategory.AOE => AOEScore(),
-                MoveCategory.MultiRandom => MultiRandomScore(),
-                MoveCategory.Charge => ChargeScore(),
-                MoveCategory.Buff => Weights.BuffBase,
-                MoveCategory.Debuff => Weights.DebuffBase,
-                MoveCategory.ClearOppBuff => Weights.ClearOppBuffBase,
-                MoveCategory.ClearSelfDebuff => Weights.ClearSelfDebuffBase,
-                MoveCategory.Stun => Weights.StunBase * data.Accuracy,
-                _ => 0f
-            };
-        }
+        // /// <summary>
+        // /// Calculates a score for a given move for the boss AI.
+        // /// This score helps the AI decide which move to use.
+        // /// </summary>
+        // /// <param name="move">The move instance to score.</param>
+        // /// <param name="boss">The boss entity performing the move.</param>
+        // /// <param name="players">A list of player entities who could be targets.</param>
+        // /// <returns>A float score representing the desirability of the move.</returns>
+        // float CalculateMoveScore(MoveInstance move, BattleEntity boss, List<BattleEntity> players)
+        // {
+        //     if (move.CooldownLeft > 0 || move.UsageLeft == 0)
+        //     {
+        //         return 0f;
+        //     }
+        //     
+        //     MoveData data = move.Data;
+        //     
+        //     float SingleScore() =>
+        //         players.Max(p =>
+        //         {
+        //             float raw = DamageFormula.GetExpectedRawDamage(boss, data);
+        //             float exp = p.PreviewMitigate(raw, data); // Expected damage after mitigation
+        //
+        //             bool canKO = p.CurrentHP <= exp;
+        //             float bonus = canKO ? Weights.KillBonus * data.Accuracy : 0f; // Bonus for potential KO
+        //
+        //             return (exp + bonus) * Weights.SingleHit;
+        //         });
+        //
+        //     float AOEScore() =>
+        //         players.Sum(p =>
+        //         {
+        //             float raw = DamageFormula.GetExpectedRawDamage(boss, data);
+        //             float exp = p.PreviewMitigate(raw, data); // Expected damage after mitigation for this player
+        //
+        //             bool canKO = p.CurrentHP <= exp;
+        //             float bonus = canKO ? Weights.KillBonus * data.Accuracy : 0f; // Bonus for potential KO on this player
+        //
+        //             return exp + bonus;
+        //         }) * Weights.AOE;
+        //
+        //     float MultiRandomScore() =>
+        //         players.Max(p =>
+        //         {
+        //             float raw = DamageFormula.GetExpectedRawDamage(boss, data) * Weights.MultiRandomHit;
+        //             float exp = p.PreviewMitigate(raw, data);
+        //             return exp;
+        //         });
+        //
+        //     float ChargeScore() =>
+        //         players.Max(p =>
+        //         {
+        //             float raw = DamageFormula.GetExpectedRawDamage(boss, data) * Weights.Charge;
+        //             float exp = p.PreviewMitigate(raw, data);
+        //             return exp;
+        //         });
+        //
+        //     return data.Category switch
+        //     {
+        //         MoveCategory.Single => SingleScore(),
+        //         MoveCategory.AOE => AOEScore(),
+        //         MoveCategory.MultiRandom => MultiRandomScore(),
+        //         MoveCategory.Charge => ChargeScore(),
+        //         MoveCategory.Buff => Weights.BuffBase,
+        //         MoveCategory.Debuff => Weights.DebuffBase,
+        //         MoveCategory.ClearOppBuff => Weights.ClearOppBuffBase,
+        //         MoveCategory.ClearSelfDebuff => Weights.ClearSelfDebuffBase,
+        //         MoveCategory.Stun => Weights.StunBase * data.Accuracy,
+        //         _ => 0f
+        //     };
+        // }
     }
 }

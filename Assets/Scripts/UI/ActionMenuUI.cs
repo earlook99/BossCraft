@@ -79,7 +79,7 @@ namespace UI
         /// </summary>
         private void CreateActionButtons()
         {
-            StartCoroutine(_uiManager.ShowBattleMessage("What will you do?", 1f));
+            StartCoroutine(_uiManager.ShowBattleMessage($"What will {_currentEntity.EntityName} do?", 1f));
             CreateButton("Fight", () => SwitchMenuState(MenuState.Moves));
             CreateButton("Item",  () => SwitchMenuState(MenuState.Items));
             CreateButton("Guard",  () => HandleActionSelect(ActionType.Guard, -1));
