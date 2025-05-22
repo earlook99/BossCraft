@@ -134,7 +134,8 @@ TextureImporter:
     secondaryTextures: []
     spriteCustomMetadata:
       entries: []
-    nameFileIdTable: {}
+    nameFileIdTable:
+      trainer-n--battle-sc_0: -966995208234686074
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

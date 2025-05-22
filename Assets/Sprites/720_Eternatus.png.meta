@@ -134,7 +134,8 @@ TextureImporter:
     secondaryTextures: []
     spriteCustomMetadata:
       entries: []
-    nameFileIdTable: {}
+    nameFileIdTable:
+      720_Eternatus_0: -4800388406083057015
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

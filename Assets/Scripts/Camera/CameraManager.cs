@@ -11,7 +11,8 @@ namespace Camera
         Player2,
         Player3,
         Player4,
-        ZoomOut
+        ZoomOut,
+        Boss
     }
     
     [Serializable]
@@ -23,6 +24,9 @@ namespace Camera
     
     public class CameraManager : MonoBehaviour
     {
+        [SerializeField] private UnityEngine.Camera mainCamera;
+        [SerializeField] private UnityEngine.Camera bossCamera;
+        
         [SerializeField] private List<CamMapping> camMappings;
         
         private Dictionary<CineCamType, CinemachineCamera> camDict;
@@ -45,6 +49,24 @@ namespace Camera
 
         public void SwitchCameraTo(CineCamType camType)
         {
+            if (camType == CineCamType.ZoomOut)
+            {
+                camDict[CineCamType.Boss].enabled = false;
+                bossCamera.enabled = false;
+
+                int bossLayer = LayerMask.NameToLayer("Boss");
+                mainCamera.cullingMask |= (1 << bossLayer);
+
+            }
+            else
+            {
+                camDict[CineCamType.Boss].enabled = true;
+                bossCamera.enabled = true;
+
+                int bossLayer = LayerMask.NameToLayer("Boss");
+                mainCamera.cullingMask &= ~(1 << bossLayer);
+            }
+            
             foreach (var kvp in camDict)
             {
                 kvp.Value.Priority = 0;

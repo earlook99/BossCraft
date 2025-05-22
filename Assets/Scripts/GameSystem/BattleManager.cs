@@ -63,7 +63,7 @@ namespace GameSystem
         /// </summary>
         public int TurnCount => _turnCount;
 
-        public int disableAlpha = 100;
+        public float disableAlpha = 0.1f;
 
         private int _currentPlayerIndex; // Index of the current player character whose turn it is
         
@@ -294,7 +294,7 @@ namespace GameSystem
             foreach (int index in entityIndices)
             {
                 var spriteColor = _entities[index].SpriteRenderer.color;
-                spriteColor.a = 255;
+                spriteColor.a = 1.0f;
                 _entities[index].SpriteRenderer.color = spriteColor;
             }
         }
