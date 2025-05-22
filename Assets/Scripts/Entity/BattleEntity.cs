@@ -20,6 +20,9 @@ namespace Entity
         public ElementType ElementType;
         /// <summary>The sprite used to represent the entity in the UI.</summary>
         public Sprite EntitySprite;
+
+        private SpriteRenderer _spriteRenderer;
+        public SpriteRenderer SpriteRenderer => _spriteRenderer;
     
         [Header("Stats")]
         /// <summary>The maximum hit points of the entity.</summary>
@@ -68,6 +71,14 @@ namespace Entity
             _moveInstances = MoveSet
                 .Select(so => new MoveInstance(so))
                 .ToArray();
+
+            _spriteRenderer = GetComponent<SpriteRenderer>();
+            if (_spriteRenderer && this is not BossEntity)
+            {
+                var newColor = _spriteRenderer.color;
+                newColor.a = 0.1f;
+                _spriteRenderer.color = newColor;
+            }
         }
 
         /// <summary>

@@ -11,7 +11,6 @@ namespace UI
     public class CharacterStatusUI : MonoBehaviour
     {
         [Header("UI References")]
-        [SerializeField] private Image _characterIcon; // Image component for the character's icon
         [SerializeField] private TextMeshProUGUI _nameText; // Text component for the character's name
         [SerializeField] private Slider _hpBar; // Slider component for the HP bar
         [SerializeField] private TextMeshProUGUI _hpText; // Text component for the HP values (current/max)
@@ -31,10 +30,6 @@ namespace UI
             // _entityIndex = index; // Field removed
 
             _nameText.text = entity.EntityName;
-            if (entity.EntitySprite != null)
-            {
-                _characterIcon.sprite = entity.EntitySprite;
-            }
             
             if (_hpBar != null && _hpBar.fillRect != null) // Ensure HP bar and its fillRect are assigned
             {

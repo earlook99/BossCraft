@@ -7,8 +7,11 @@ namespace Camera
 {
     public enum CineCamType
     {
-        BattleNormal,
-        BattleOutZoom
+        Player1,
+        Player2,
+        Player3,
+        Player4,
+        ZoomOut
     }
     
     [Serializable]
