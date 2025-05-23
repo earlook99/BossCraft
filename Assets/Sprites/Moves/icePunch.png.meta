@@ -1,0 +1,1128 @@
+fileFormatVersion: 2
+guid: a29eb4055721fb14f8844f86b9645ad9
+TextureImporter:
+  internalIDToNameTable:
+  - first:
+      213: 7232236395203563753
+    second: icePunch_0
+  - first:
+      213: 6603595127384103146
+    second: icePunch_1
+  - first:
+      213: -6156344883730159497
+    second: icePunch_2
+  - first:
+      213: -3277683614065230598
+    second: icePunch_3
+  - first:
+      213: 3561288367293053660
+    second: icePunch_4
+  - first:
+      213: 5175818869806336121
+    second: icePunch_5
+  - first:
+      213: 1063823677879432665
+    second: icePunch_6
+  - first:
+      213: 8296644805038759737
+    second: icePunch_7
+  - first:
+      213: -5524275112771405535
+    second: icePunch_8
+  - first:
+      213: 4560024979093461469
+    second: icePunch_9
+  - first:
+      213: 8118363818125308527
+    second: icePunch_10
+  - first:
+      213: -7354876590053441654
+    second: icePunch_11
+  - first:
+      213: 3430327603038278385
+    second: icePunch_12
+  - first:
+      213: -733707000464313475
+    second: icePunch_13
+  - first:
+      213: -2913871603598163199
+    second: icePunch_14
+  - first:
+      213: -3877183795194524349
+    second: icePunch_15
+  - first:
+      213: -3829430318804328722
+    second: icePunch_16
+  - first:
+      213: 2416285051362822827
+    second: icePunch_17
+  - first:
+      213: 628287163709640954
+    second: icePunch_18
+  - first:
+      213: -4774608224039318284
+    second: icePunch_19
+  - first:
+      213: -6008600378686817952
+    second: icePunch_20
+  - first:
+      213: 6008596177722247871
+    second: icePunch_21
+  - first:
+      213: 189072466627660347
+    second: icePunch_22
+  - first:
+      213: 483879063601189943
+    second: icePunch_23
+  - first:
+      213: -1578912972572395283
+    second: icePunch_24
+  - first:
+      213: -8695159130130906183
+    second: icePunch_25
+  - first:
+      213: 478796659513478691
+    second: icePunch_26
+  - first:
+      213: 7571466325352508112
+    second: icePunch_27
+  - first:
+      213: -8999594747057519726
+    second: icePunch_28
+  - first:
+      213: 2812979533134379146
+    second: icePunch_29
+  - first:
+      213: 8330537332850774215
+    second: icePunch_30
+  - first:
+      213: 4131866122652380876
+    second: icePunch_31
+  - first:
+      213: 5174628817652854176
+    second: icePunch_32
+  - first:
+      213: -5011485936241149411
+    second: icePunch_33
+  - first:
+      213: -493779851064331723
+    second: icePunch_34
+  - first:
+      213: 1444143961609108172
+    second: icePunch_35
+  - first:
+      213: -4407381299177775776
+    second: icePunch_36
+  - first:
+      213: -1950156202627887930
+    second: icePunch_37
+  - first:
+      213: -7240277600713847127
+    second: icePunch_38
+  - first:
+      213: 2822616549762633177
+    second: icePunch_39
+  - first:
+      213: 6809525756650042864
+    second: icePunch_40
+  - first:
+      213: -8434684781709855083
+    second: icePunch_41
+  - first:
+      213: -9074125865639909079
+    second: icePunch_42
+  - first:
+      213: 6751378047898812754
+    second: icePunch_43
+  - first:
+      213: -6545945577363445974
+    second: icePunch_44
+  - first:
+      213: -755974361564082562
+    second: icePunch_45
+  - first:
+      213: -1683281378730158679
+    second: icePunch_46
+  - first:
+      213: -3943684543360642184
+    second: icePunch_47
+  - first:
+      213: -6481947111800142369
+    second: icePunch_48
+  - first:
+      213: -2514738796828626127
+    second: icePunch_49
+  - first:
+      213: -2867055342711915868
+    second: icePunch_50
+  - first:
+      213: 4014345059380122116
+    second: icePunch_51
+  - first:
+      213: 5397914170718240224
+    second: icePunch_52
+  - first:
+      213: -8702869030738244194
+    second: icePunch_53
+  - first:
+      213: -8359971303087714589
+    second: icePunch_54
+  - first:
+      213: -8897825563887501013
+    second: icePunch_55
+  - first:
+      213: -8744806384467705578
+    second: icePunch_56
+  - first:
+      213: -5086042574535678260
+    second: icePunch_57
+  - first:
+      213: 8665370942570827448
+    second: icePunch_58
+  - first:
+      213: 9202351945328367320
+    second: icePunch_59
+  - first:
+      213: 3302790175020619188
+    second: icePunch_60
+  - first:
+      213: -2933844004538086400
+    second: icePunch_61
+  - first:
+      213: -257270786218581117
+    second: icePunch_62
+  - first:
+      213: -7983105159252849691
+    second: icePunch_63
+  - first:
+      213: -6875021054489449691
+    second: icePunch_64
+  - first:
+      213: -6808956607136299183
+    second: icePunch_65
+  - first:
+      213: 5139819041239446410
+    second: icePunch_66
+  - first:
+      213: 3670975213592022243
+    second: icePunch_67
+  - first:
+      213: -5190460871264794732
+    second: icePunch_68
+  - first:
+      213: 6383648039117792876
+    second: icePunch_69
+  - first:
+      213: -3797119570904568572
+    second: icePunch_70
+  - first:
+      213: -1386734221115205696
+    second: icePunch_71
+  - first:
+      213: 4873342847549327761
+    second: icePunch_72
+  - first:
+      213: -3226615489504508053
+    second: icePunch_73
+  - first:
+      213: 7228793697908791025
+    second: icePunch_74
+  - first:
+      213: -1480188220691253620
+    second: icePunch_75
+  - first:
+      213: 8780054311421524708
+    second: icePunch_76
+  - first:
+      213: -6605669110398988336
+    second: icePunch_77
+  - first:
+      213: -8531999720313255668
+    second: icePunch_78
+  - first:
+      213: 5327328822648108136
+    second: icePunch_79
+  - first:
+      213: 1754997259809152932
+    second: icePunch_80
+  - first:
+      213: 4375128088500252867
+    second: icePunch_81
+  - first:
+      213: -7612241559937105566
+    second: icePunch_82
+  - first:
+      213: 3212609263099977224
+    second: icePunch_83
+  - first:
+      213: 8683731683930040953
+    second: icePunch_84
+  - first:
+      213: 3265562405648258212
+    second: icePunch_85
+  - first:
+      213: 5882412136724628450
+    second: icePunch_86
+  - first:
+      213: 4218934961637427447
+    second: icePunch_87
+  - first:
+      213: -8895760544232288147
+    second: icePunch_88
+  - first:
+      213: -6644462832855941004
+    second: icePunch_89
+  - first:
+      213: -57588521314554772
+    second: icePunch_90
+  - first:
+      213: -5699158713711310414
+    second: icePunch_91
+  - first:
+      213: -5526840588608136166
+    second: icePunch_92
+  - first:
+      213: 514616246962984175
+    second: icePunch_93
+  - first:
+      213: -5716767555000365798
+    second: icePunch_94
+  - first:
+      213: -2373799169857941739
+    second: icePunch_95
+  - first:
+      213: 2118507668936024953
+    second: icePunch_96
+  - first:
+      213: 7894572488988300535
+    second: icePunch_97
+  - first:
+      213: 5004380842857192114
+    second: icePunch_98
+  - first:
+      213: 5766685492277389708
+    second: icePunch_99
+  - first:
+      213: 5631496881160773818
+    second: icePunch_100
+  - first:
+      213: -3448552052270393987
+    second: icePunch_101
+  - first:
+      213: 2987721233279454403
+    second: icePunch_102
+  - first:
+      213: -3885123804785824866
+    second: icePunch_103
+  - first:
+      213: 3068881682748001977
+    second: icePunch_104
+  - first:
+      213: -435315196631012033
+    second: icePunch_105
+  - first:
+      213: 7545230176877473825
+    second: icePunch_106
+  - first:
+      213: -4950394607963688338
+    second: icePunch_107
+  - first:
+      213: 3231616523240197567
+    second: icePunch_108
+  - first:
+      213: 1099716589314329829
+    second: icePunch_109
+  - first:
+      213: -9121805159326464645
+    second: icePunch_110
+  - first:
+      213: 4073359612409736383
+    second: icePunch_111
+  - first:
+      213: 2011264184113491104
+    second: icePunch_112
+  - first:
+      213: -3663328075049899321
+    second: icePunch_113
+  - first:
+      213: -7810231702946484888
+    second: icePunch_114
+  - first:
+      213: -5199404157135462776
+    second: icePunch_115
+  - first:
+      213: -3431638824417171503
+    second: icePunch_116
+  - first:
+      213: 6251696558624833317
+    second: icePunch_117
+  - first:
+      213: 6711252543592309471
+    second: icePunch_118
+  - first:
+      213: -4685260332273205951
+    second: icePunch_119
+  - first:
+      213: -2956250971499499460
+    second: icePunch_120
+  - first:
+      213: -1644377244061390833
+    second: icePunch_121
+  - first:
+      213: -6845452842826470030
+    second: icePunch_122
+  - first:
+      213: -7856013671051309508
+    second: icePunch_123
+  - first:
+      213: -7003842573533292188
+    second: icePunch_124
+  - first:
+      213: 322527584141965247
+    second: icePunch_125
+  - first:
+      213: -7535222560408888392
+    second: icePunch_126
+  - first:
+      213: -4889036461792421714
+    second: icePunch_127
+  - first:
+      213: -7382894481347709646
+    second: icePunch_128
+  - first:
+      213: 4749124061616841653
+    second: icePunch_129
+  - first:
+      213: 2079323467394778369
+    second: icePunch_130
+  - first:
+      213: -1411253036759505577
+    second: icePunch_131
+  - first:
+      213: 962976159418440417
+    second: icePunch_132
+  - first:
+      213: -1705415798740778429
+    second: icePunch_133
+  - first:
+      213: -4008458652006800662
+    second: icePunch_134
+  - first:
+      213: 6942363696938763178
+    second: icePunch_135
+  - first:
+      213: -7511367105285158406
+    second: icePunch_136
+  - first:
+      213: 3498608369774051160
+    second: icePunch_137
+  - first:
+      213: 2375921026363515115
+    second: icePunch_138
+  - first:
+      213: -2913915209761952336
+    second: icePunch_139
+  - first:
+      213: -342655802119997486
+    second: icePunch_140
+  - first:
+      213: -2826175334749636132
+    second: icePunch_141
+  - first:
+      213: 4803628712791152820
+    second: icePunch_142
+  - first:
+      213: -2258171179400127937
+    second: icePunch_143
+  - first:
+      213: -5508670339043930152
+    second: icePunch_144
+  - first:
+      213: 7459932639013339833
+    second: icePunch_145
+  - first:
+      213: -960308530734934361
+    second: icePunch_146
+  - first:
+      213: 901229178055658016
+    second: icePunch_147
+  - first:
+      213: -6588794519341131497
+    second: icePunch_148
+  - first:
+      213: 6087262617875193610
+    second: icePunch_149
+  - first:
+      213: -3388141583747425277
+    second: icePunch_150
+  - first:
+      213: 2589755374800690052
+    second: icePunch_151
+  - first:
+      213: -3855344957101895484
+    second: icePunch_152
+  externalObjects: {}
+  serializedVersion: 13
+  mipmaps:
+    mipMapMode: 0
+    enableMipMap: 0
+    sRGBTexture: 1
+    linearTexture: 0
+    fadeOut: 0
+    borderMipMap: 0
+    mipMapsPreserveCoverage: 0
+    alphaTestReferenceValue: 0.5
+    mipMapFadeDistanceStart: 1
+    mipMapFadeDistanceEnd: 3
+  bumpmap:
+    convertToNormalMap: 0
+    externalNormalMap: 0
+    heightScale: 0.25
+    normalMapFilter: 0
+    flipGreenChannel: 0
+  isReadable: 0
+  streamingMipmaps: 0
+  streamingMipmapsPriority: 0
+  vTOnly: 0
+  ignoreMipmapLimit: 0
+  grayScaleToAlpha: 0
+  generateCubemap: 6
+  cubemapConvolution: 0
+  seamlessCubemap: 0
+  textureFormat: 1
+  maxTextureSize: 2048
+  textureSettings:
+    serializedVersion: 2
+    filterMode: 1
+    aniso: 1
+    mipBias: 0
+    wrapU: 1
+    wrapV: 1
+    wrapW: 1
+  nPOTScale: 0
+  lightmap: 0
+  compressionQuality: 50
+  spriteMode: 2
+  spriteExtrude: 1
+  spriteMeshType: 1
+  alignment: 0
+  spritePivot: {x: 0.5, y: 0.5}
+  spritePixelsToUnits: 100
+  spriteBorder: {x: 0, y: 0, z: 0, w: 0}
+  spriteGenerateFallbackPhysicsShape: 1
+  alphaUsage: 1
+  alphaIsTransparency: 1
+  spriteTessellationDetail: -1
+  textureType: 8
+  textureShape: 1
+  singleChannelComponent: 0
+  flipbookRows: 1
+  flipbookColumns: 1
+  maxTextureSizeSet: 0
+  compressionQualitySet: 0
+  textureFormatSet: 0
+  ignorePngGamma: 0
+  applyGammaDecoding: 0
+  swizzle: 50462976
+  cookieLightType: 0
+  platformSettings:
+  - serializedVersion: 4
+    buildTarget: DefaultTexturePlatform
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Standalone
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  spriteSheet:
+    serializedVersion: 2
+    sprites:
+    - serializedVersion: 2
+      name: icePunch_0
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 1280
+        width: 256
+        height: 256
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 3e1d3b58642ed934a8debfaab010ff6b
+      internalID: 150978832
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: icePunch_1
+      rect:
+        serializedVersion: 2
+        x: 256
+        y: 1280
+        width: 256
+        height: 256
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: e4ffaa940de52894bb33149b0fedbd71
+      internalID: 43689249
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: icePunch_2
+      rect:
+        serializedVersion: 2
+        x: 512
+        y: 1280
+        width: 256
+        height: 256
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 151fc3b9923f03840b9ddf9de0e1ae85
+      internalID: -1547802486
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: icePunch_3
+      rect:
+        serializedVersion: 2
+        x: 768
+        y: 1280
+        width: 256
+        height: 256
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 80004b0fcd647274680e2972f8541371
+      internalID: -1703926347
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: icePunch_4
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 1024
+        width: 256
+        height: 256
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 056fbe5eae0bf0745aebb1d728c10a35
+      internalID: -1916436951
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: icePunch_5
+      rect:
+        serializedVersion: 2
+        x: 256
+        y: 1024
+        width: 256
+        height: 256
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 7ce1e00e26029a840be041ee736b979b
+      internalID: -2046963930
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: icePunch_6
+      rect:
+        serializedVersion: 2
+        x: 512
+        y: 1024
+        width: 256
+        height: 256
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: f4de2f7c503657b4bb9b457f8a5275ce
+      internalID: -567675175
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: icePunch_7
+      rect:
+        serializedVersion: 2
+        x: 768
+        y: 1024
+        width: 256
+        height: 256
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 2ce4c12819cf5ad48879c9b19daa6682
+      internalID: -1754572990
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: icePunch_8
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 768
+        width: 256
+        height: 256
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 7e76d6894fc8aaf41b57b2ebcf7bc6d0
+      internalID: -1676267274
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: icePunch_9
+      rect:
+        serializedVersion: 2
+        x: 256
+        y: 768
+        width: 256
+        height: 256
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 54f730a196f5e90428fcddf189763290
+      internalID: 1914192346
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: icePunch_10
+      rect:
+        serializedVersion: 2
+        x: 512
+        y: 768
+        width: 256
+        height: 256
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 32727a317bd29ad4aba1c4ab8c2a4a83
+      internalID: -204756278
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: icePunch_11
+      rect:
+        serializedVersion: 2
+        x: 768
+        y: 768
+        width: 256
+        height: 256
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: d49595730c93e1c46b24455d9a289397
+      internalID: 2103279470
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: icePunch_12
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 512
+        width: 256
+        height: 256
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 8736e98418e1a1943852b068647f9904
+      internalID: -614522040
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: icePunch_13
+      rect:
+        serializedVersion: 2
+        x: 256
+        y: 512
+        width: 256
+        height: 256
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 48568bbac83b3314da0ea6bd027fce29
+      internalID: 1941042769
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: icePunch_14
+      rect:
+        serializedVersion: 2
+        x: 512
+        y: 512
+        width: 256
+        height: 256
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 9c1fe3f66050a454a9c20ae02c528acf
+      internalID: 54910955
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: icePunch_15
+      rect:
+        serializedVersion: 2
+        x: 768
+        y: 512
+        width: 256
+        height: 256
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: dd31891662cc011428f4dfb7a35ef7e8
+      internalID: 431657831
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: icePunch_16
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 256
+        width: 256
+        height: 256
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: ab4373624c0b6b1478f1479b19b0817c
+      internalID: -1317011340
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: icePunch_17
+      rect:
+        serializedVersion: 2
+        x: 256
+        y: 256
+        width: 256
+        height: 256
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 34003f936c6e1ee4d9565a9db195c74b
+      internalID: 352135403
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: icePunch_18
+      rect:
+        serializedVersion: 2
+        x: 512
+        y: 256
+        width: 256
+        height: 256
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 7f2b46ca12e62e4419f31d43a8e039ec
+      internalID: -2089815523
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: icePunch_19
+      rect:
+        serializedVersion: 2
+        x: 768
+        y: 256
+        width: 256
+        height: 256
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: ab67d1b09fb1dae4a9a7e69fc50ee3a3
+      internalID: -7439667
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: icePunch_20
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 0
+        width: 256
+        height: 256
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: fd7900bf56269fd4e9ae971107e5bd54
+      internalID: -1809257392
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: icePunch_21
+      rect:
+        serializedVersion: 2
+        x: 256
+        y: 0
+        width: 256
+        height: 256
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 7e9abc9460df40b4b87c5262696870e1
+      internalID: -2051535748
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: icePunch_22
+      rect:
+        serializedVersion: 2
+        x: 512
+        y: 0
+        width: 256
+        height: 256
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 585d0ac1b23e9dd4886613cc9df7db9d
+      internalID: -855705797
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: icePunch_23
+      rect:
+        serializedVersion: 2
+        x: 768
+        y: 0
+        width: 256
+        height: 256
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 75500cf2f1fa79f43b8f89d9e6a2d05b
+      internalID: 1408800005
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    outline: []
+    customData: 
+    physicsShape: []
+    bones: []
+    spriteID: be06c9d91244f8d4aa403da324ddd853
+    internalID: 0
+    vertices: []
+    indices: 
+    edges: []
+    weights: []
+    secondaryTextures: []
+    spriteCustomMetadata:
+      entries: []
+    nameFileIdTable:
+      icePunch_0: 150978832
+      icePunch_1: 43689249
+      icePunch_10: -204756278
+      icePunch_11: 2103279470
+      icePunch_12: -614522040
+      icePunch_13: 1941042769
+      icePunch_14: 54910955
+      icePunch_15: 431657831
+      icePunch_16: -1317011340
+      icePunch_17: 352135403
+      icePunch_18: -2089815523
+      icePunch_19: -7439667
+      icePunch_2: -1547802486
+      icePunch_20: -1809257392
+      icePunch_21: -2051535748
+      icePunch_22: -855705797
+      icePunch_23: 1408800005
+      icePunch_3: -1703926347
+      icePunch_4: -1916436951
+      icePunch_5: -2046963930
+      icePunch_6: -567675175
+      icePunch_7: -1754572990
+      icePunch_8: -1676267274
+      icePunch_9: 1914192346
+  mipmapLimitGroupName: 
+  pSDRemoveMatte: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

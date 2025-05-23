@@ -178,7 +178,7 @@ namespace GameSystem
         public void OnActionSelect(ActionType actionType, int actionIndex)
         {
             var newAction = new ActionData(actionType, actionIndex, (EntityType)_currentPlayerIndex, EntityType.Boss);
-            _battleManager.OnActionChoice(newAction);
+            _battleManager.ReceivePlayerChoice(newAction);
         }
 
         /// <summary>

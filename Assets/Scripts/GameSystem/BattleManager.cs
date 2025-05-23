@@ -1,7 +1,5 @@
 using System;
 using System.Collections;
-using System.Collections.Generic;
-using System.Linq;
 using Camera;
 using Data;
 using Entity;
@@ -9,249 +7,124 @@ using UnityEngine;
 
 namespace GameSystem
 {
-    /// <summary>
-    /// Defines the possible states of a battle.
-    /// </summary>
     public enum BattleState
     {
-        /// <summary>
-        /// The player is choosing an action.
-        /// </summary>
         PlayerChoice,
-        /// <summary>
-        /// The player's chosen action is being executed.
-        /// </summary>
-        PlayerAction, // Currently unused, but defined for potential future states
-        /// <summary>
-        /// The boss is performing an action.
-        /// </summary>
         BossAction,
-        /// <summary>
-        /// The battle is checking for end conditions (e.g., all players defeated, boss defeated).
-        /// </summary>
-        CheckBattleEnd
+        CheckBattleEnd,
+        BattleEnded
     }
 
-    /// <summary>
-    /// Manages the overall flow and state of a battle.
-    /// This includes turn management, action handling, and game state transitions.
-    /// </summary>
     public class BattleManager : MonoBehaviour
     {
         [SerializeField] private UIManager _uiManager;
         [SerializeField] private CameraManager _cameraManager;
         
-        /// <summary>
-        /// Weights used by the boss AI to determine move scores.
-        /// </summary>
         public AIWeights Weights;
-        
+
         private BattleState _currentState;
 
         [SerializeField] private BattleEntity[] _entities = new BattleEntity[5];
-        /// <summary>
-        /// Gets the array of all battle entities participating in the battle.
-        /// Index 0-3 for players, Index 4 for Boss. See <see cref="EntityType"/> for indexing.
-        /// </summary>
         public BattleEntity[] Entities => _entities;
 
-        private const int PlayerCount = 4; // Number of player characters
-        
-        private int _turnCount = 0;
-        /// <summary>
-        /// Gets the current turn count of the battle.
-        /// </summary>
+        private const int PlayerCount = 4; 
+        private int _turnCount; 
         public int TurnCount => _turnCount;
 
-        public float disableAlpha = 0.1f;
+        private float _disableAlpha = 0.1f;
 
-        private int _currentPlayerIndex; // Index of the current player character whose turn it is
-        
-        /// <summary>
-        /// Event triggered when all battle entities have been initialized.
-        /// </summary>
+        private int _currentPlayerIndex;
+
         public event Action OnEntitiesInitialized;
 
-        [SerializeField] private GameObject _testEffect; // Temporary for visual effect testing
-        
-        /// <summary>
-        /// Called when the script instance is being loaded.
-        /// Initializes the current player index, invokes entity initialization event, and sets the initial battle state.
-        /// </summary>
+        [SerializeField] private GameObject _testEffect;
+
         private void Start()
         {
             _currentPlayerIndex = 0;
-            
             OnEntitiesInitialized?.Invoke();
-            
-            SetState(BattleState.PlayerChoice);
 
-            // DisableSprite(0, 1, 2, 3);
+            ChangeBattleState(BattleState.PlayerChoice);
         }
 
-        /// <summary>
-        /// Sets the current state of the battle and triggers corresponding phase logic.
-        /// </summary>
-        /// <param name="newState">The new battle state to transition to.</param>
-        private void SetState(BattleState newState)
+        private void ChangeBattleState(BattleState newState)
         {
             _currentState = newState;
-            switch (newState)
+            switch (_currentState)
             {
                 case BattleState.PlayerChoice:
-                    StartPlayerChoicePhase();
+                    BeginPlayerTurn(_currentPlayerIndex);
                     break;
                 case BattleState.BossAction:
-                    StartCoroutine(StartBossActionPhase());
+                    StartCoroutine(BeginBossTurn());
                     break;
                 case BattleState.CheckBattleEnd:
                     break;
+                case BattleState.BattleEnded:
+                    HandleBattleEnd();
+                    break;
                 default:
                     break;
             }
         }
 
-        /// <summary>
-        /// Starts the player choice phase, incrementing the turn count and showing the action menu.
-        /// </summary>
-        private void StartPlayerChoicePhase()
+        private void BeginPlayerTurn(int playerIndex)
         {
             _turnCount++;
-            
-            _cameraManager.SwitchCameraTo((CineCamType)_currentPlayerIndex);
-            
-            EnableSprite(_currentPlayerIndex);
-            
-            _uiManager.ShowActionMenuForCurrentPlayer(_currentPlayerIndex);
+            _cameraManager.SwitchCameraTo((CineCamType)playerIndex);
+            SetSpriteAlphaExclusive(playerIndex);
+            _uiManager.ShowActionMenuForCurrentPlayer(playerIndex);
         }
 
-        /// <summary>
-        /// Called when a player makes an action choice. Starts the action handling coroutine.
-        /// </summary>
-        /// <param name="newAction">The action chosen by the player.</param>
-        public void OnActionChoice(ActionData newAction)
+        public void ReceivePlayerChoice(ActionData newAction)
         {
-            StartCoroutine(HandleActionChoice(newAction));
+            StartCoroutine(ExecutePlayerAction(newAction));
         }
 
-        /// <summary>
-        /// Coroutine to handle the execution of a chosen player action.
-        /// </summary>
-        /// <param name="newAction">The action data.</param>
-        /// <returns>An IEnumerator for the coroutine.</returns>
-        public IEnumerator HandleActionChoice(ActionData newAction)
+        private IEnumerator ExecutePlayerAction(ActionData action)
         {
-            switch (newAction.Action)
+            switch (action.Action)
             {
                 case ActionType.Move:
-                {
-                    yield return StartCoroutine(ProcessMove(newAction));
+                    yield return StartCoroutine(PerformMove(action));
                     break;
-                }
-                
-                default: break;
+                default:
+                    break;
             }
-            
-            //
-            _currentPlayerIndex++;
 
-            if (_currentPlayerIndex >= 4)
+            if (CheckBattleEnd()) yield break;
+
+            _currentPlayerIndex++;
+            if (_currentPlayerIndex >= PlayerCount)
             {
                 _currentPlayerIndex = 0;
-                _cameraManager.SwitchCameraTo((CineCamType)4); // ZoomOut
-                SetState(BattleState.BossAction);
+                _cameraManager.SwitchCameraTo((CineCamType)4);
+                SetSpriteAlphaExclusive(-1);
+                ChangeBattleState(BattleState.BossAction);
             }
             else
             {
-                DisableSprite(_currentPlayerIndex - 1);
-                EnableSprite(_currentPlayerIndex);
-                StartPlayerChoicePhase();
-            }
-        }
-        
-        /// <summary>
-        /// Coroutine to process a move action.
-        /// Includes displaying battle messages, playing effects, calculating damage, and animating HP.
-        /// </summary>
-        /// <param name="newAction">The move action data.</param>
-        /// <returns>An IEnumerator for the coroutine.</returns>
-        public IEnumerator ProcessMove(ActionData newAction)
-        {
-            var source = _entities[(int)newAction.Source];
-            var target = _entities[(int)newAction.Target];
-            
-            MoveInstance move = source.GetMoveInstance(newAction.ActionIndex);
-            if (move == null)
-            {
-                yield break;
-            }
-
-            switch (move.Data.Category)
-            {
-                case MoveCategory.Single:
-                {
-                    // Battle Message
-                    yield return StartCoroutine(_uiManager.ShowBattleMessage($"{source.EntityName}의 {move.Data.Name}!", 1f));
-                    
-                    // TODO: Implementing PlayMoveEffects()
-                    yield return StartCoroutine(PlayMoveEffects(target));
-                    
-                    // Damage
-                    int prevHP = target.CurrentHP;
-                    target.TakeDamage(move.Data.Type, DamageFormula.GetRawHit(source, move));
-                    int currHP = target.CurrentHP;
-                    
-                    // HP Animation
-                    yield return StartCoroutine(_uiManager.AnimateHPBarDecrease((int)newAction.Target, prevHP, currHP));
-
-                    break;
-                }
-                    
-                default:
-                    break;
+                SetSpriteAlphaExclusive(_currentPlayerIndex);
+                ChangeBattleState(BattleState.PlayerChoice);
             }
         }
 
-        /// <summary>
-        /// Coroutine to play visual effects for a move on a target.
-        /// Currently uses a placeholder test effect.
-        /// </summary>
-        /// <param name="target">The target entity for the visual effect.</param>
-        /// <returns>An IEnumerator for the coroutine.</returns>
-        private IEnumerator PlayMoveEffects(BattleEntity target)
-        {
-            var effect = Instantiate(_testEffect, target.transform.position, target.transform.rotation);
-            yield return new WaitForSeconds(4f);
-        }
-
-        /// <summary>
-        /// Coroutine to start the boss's action phase.
-        /// Currently determines the boss choice but doesn't fully execute it yet.
-        /// </summary>
-        /// <returns>An IEnumerator for the coroutine.</returns>
-        IEnumerator StartBossActionPhase()
+        private IEnumerator BeginBossTurn()
         {
             _cameraManager.SwitchCameraTo((CineCamType)4);
-            
-            var boss = _entities[(int)EntityType.Boss];
+            SetSpriteAlphaExclusive(-1);
+
+            var boss = _entities[4];
             BattleEntity[] players = new BattleEntity[4];
             for (int i = 0; i < 4; i++)
             {
                 players[i] = _entities[i];
             }
-            
-            EnableSprite(0, 1, 2, 3);
 
             UtilityAI bossAI = new UtilityAI(boss, players, Weights);
-
             MoveDecision decision = bossAI.Decide();
 
-            if (decision.MoveIndex < 0)
-            {
-                Debug.Log("No valid boss moves.");
-                yield break;
-            }
-            else
+            if (decision.MoveIndex >= 0)
             {
                 ActionData bossAction = new ActionData(
                     ActionType.Move,
@@ -259,43 +132,128 @@ namespace GameSystem
                     EntityType.Boss,
                     decision.TargetEntity
                 );
-
-                yield return StartCoroutine(HandleBossActionChoice(bossAction));
+                yield return StartCoroutine(ExecuteBossAction(bossAction));
             }
-            
-            DisableSprite(0, 1, 2, 3);
-            
-            SetState(BattleState.CheckBattleEnd);
+
+            ChangeBattleState(BattleState.CheckBattleEnd);
         }
 
-        private IEnumerator HandleBossActionChoice(ActionData bossAction)
+        private IEnumerator ExecuteBossAction(ActionData bossAction)
         {
             var boss = _entities[(int)EntityType.Boss];
             var move = boss.GetMoveInstance(bossAction.ActionIndex);
-
             move.UsageLeft--;
             move.CooldownLeft = move.Data.Cooldown;
 
-            yield return StartCoroutine(ProcessMove(bossAction));
+            yield return StartCoroutine(PerformMove(bossAction));
+            if (CheckBattleEnd()) yield break;
         }
 
-        public void DisableSprite(params int[] entityIndices)
+        private IEnumerator PerformMove(ActionData action)
         {
-            foreach (int index in entityIndices)
+            var source = _entities[(int)action.Source];
+            var target = _entities[(int)action.Target];
+
+            MoveInstance move = source.GetMoveInstance(action.ActionIndex);
+            if (move == null) yield break;
+
+            switch (move.Data.Category)
             {
-                var spriteColor = _entities[index].SpriteRenderer.color;
-                spriteColor.a = disableAlpha;
-                _entities[index].SpriteRenderer.color = spriteColor;
+                case MoveCategory.Single:
+                    yield return ShowActionMessage(source, move.Data);
+                    yield return SpawnMoveEffects(source, target);
+
+                    int prevHP = target.CurrentHP;
+                    target.TakeDamage(move.Data.Type, DamageFormula.GetRawHit(source, move));
+                    int currHP = target.CurrentHP;
+
+                    yield return StartCoroutine(
+                        _uiManager.AnimateHPBarDecrease(
+                            (int)action.Target, prevHP, currHP
+                        )
+                    );
+                    break;
             }
         }
-        
-        public void EnableSprite(params int[] entityIndices)
+
+        private IEnumerator ShowActionMessage(BattleEntity source, MoveData moveData)
         {
-            foreach (int index in entityIndices)
+            yield return StartCoroutine(
+                _uiManager.ShowBattleMessage(
+                    $"{source.EntityName} used {moveData.Name}!", 1f
+                )
+            );
+        }
+
+        private IEnumerator SpawnMoveEffects(BattleEntity source, BattleEntity target)
+        {
+            if (source is BossEntity)
             {
-                var spriteColor = _entities[index].SpriteRenderer.color;
-                spriteColor.a = 1.0f;
-                _entities[index].SpriteRenderer.color = spriteColor;
+                var effect = Instantiate(_testEffect, 
+                    target.transform.position, 
+                    target.transform.rotation);
+                yield return new WaitForSeconds(4f);
+            }
+            else
+            {
+                var effect = Instantiate(_testEffect, 
+                    target.transform.position, 
+                    target.transform.rotation);
+                int newLayer = LayerMask.NameToLayer("BossEffect");
+                effect.layer = newLayer;
+                yield return new WaitForSeconds(4f);
+            }
+        }
+
+        private bool CheckBattleEnd()
+        {
+            var boss = _entities[4];
+            if (boss.CurrentHP <= 0)
+            {
+                Debug.Log("Battle End: Players Win!");
+                return true;
+            }
+
+            bool allPlayersDead = true;
+            for (int i = 0; i < 4; i++)
+            {
+                if (_entities[i].CurrentHP > 0)
+                {
+                    allPlayersDead = false;
+                    break;
+                }
+            }
+            if (allPlayersDead)
+            {
+                Debug.Log("Battle End: Boss Wins!");
+                return true;
+            }
+
+            return false;
+        }
+
+        private void HandleBattleEnd()
+        {
+            StartCoroutine(_uiManager.ShowBattleMessage("Battle Ended"));
+        }
+
+        private void SetSpriteAlphaExclusive(int activeIndex)
+        {
+            for (int i = 0; i < PlayerCount; i++)
+            {
+                var spriteRenderer = _entities[i].SpriteRenderer;
+                if (!spriteRenderer) continue;
+
+                var color = spriteRenderer.color;
+                if (activeIndex < 0)
+                {
+                    color.a = 1.0f;
+                }
+                else
+                {
+                    color.a = (i == activeIndex) ? 1.0f : _disableAlpha;
+                }
+                spriteRenderer.color = color;
             }
         }
     }

@@ -373,7 +373,6 @@ GameObject:
   m_Component:
   - component: {fileID: 170260800}
   - component: {fileID: 170260799}
-  - component: {fileID: 170260798}
   - component: {fileID: 170260797}
   - component: {fileID: 170260801}
   m_Layer: 0
@@ -427,14 +426,6 @@ MonoBehaviour:
     m_MipBias: 0
     m_VarianceClampScale: 0.9
     m_ContrastAdaptiveSharpening: 0
---- !u!81 &170260798
-AudioListener:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 170260796}
-  m_Enabled: 1
 --- !u!20 &170260799
 Camera:
   m_ObjectHideFlags: 0
@@ -474,7 +465,7 @@ Camera:
   m_Depth: 0
   m_CullingMask:
     serializedVersion: 2
-    m_Bits: 64
+    m_Bits: 320
   m_RenderingPath: -1
   m_TargetTexture: {fileID: 0}
   m_TargetDisplay: 0
@@ -659,7 +650,7 @@ Camera:
   m_Depth: -1
   m_CullingMask:
     serializedVersion: 2
-    m_Bits: 55
+    m_Bits: 183
   m_RenderingPath: -1
   m_TargetTexture: {fileID: 0}
   m_TargetDisplay: 0
@@ -680,7 +671,7 @@ Transform:
   m_GameObject: {fileID: 519420028}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 13, y: 0, z: -10}
+  m_LocalPosition: {x: 0, y: 0, z: -10}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -1336,7 +1327,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   Priority:
-    Enabled: 0
+    Enabled: 1
     m_Value: 10
   OutputChannel: 1
   StandbyUpdate: 2
@@ -2040,8 +2031,7 @@ MonoBehaviour:
   - {fileID: 1962907172}
   - {fileID: 151399436}
   - {fileID: 653686870}
-  disableAlpha: 100
-  _testEffect: {fileID: 3822704047910981250, guid: e06a957d9ce1ed64a973c3fe82cad8aa, type: 3}
+  _testEffect: {fileID: 1780023157926200721, guid: c32dfe6bdf3deb749890acd3d26e4222, type: 3}
 --- !u!1 &1696047434
 GameObject:
   m_ObjectHideFlags: 0
