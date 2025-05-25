@@ -1,9 +1,9 @@
 using System;
 using System.Collections.Generic;
-using UnityEngine;
 using Unity.Cinemachine;
+using UnityEngine;
 
-namespace Camera
+namespace CameraSystem
 {
     public enum CineCamType
     {
@@ -26,6 +26,9 @@ namespace Camera
     {
         [SerializeField] private UnityEngine.Camera mainCamera;
         [SerializeField] private UnityEngine.Camera bossCamera;
+
+        public UnityEngine.Camera MainCamera => mainCamera;
+        public UnityEngine.Camera BossCamera => bossCamera;
         
         [SerializeField] private List<CamMapping> camMappings;
         
@@ -57,6 +60,7 @@ namespace Camera
                 int bossLayer = LayerMask.NameToLayer("Boss");
                 mainCamera.cullingMask |= (1 << bossLayer);
 
+                //mainCamera.orthographic = true;
             }
             else
             {
@@ -65,6 +69,8 @@ namespace Camera
 
                 int bossLayer = LayerMask.NameToLayer("Boss");
                 mainCamera.cullingMask &= ~(1 << bossLayer);
+
+                // mainCamera.orthographic = false;
             }
             
             foreach (var kvp in camDict)

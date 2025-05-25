@@ -15,7 +15,7 @@ MonoBehaviour:
   Name: TestMove1
   Category: 0
   Type: 0
-  Power: 10
+  Power: 3
   _accuracy: 100
   CriticalChance: 0.05
   Cooldown: 2

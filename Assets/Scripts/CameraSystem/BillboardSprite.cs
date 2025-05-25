@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace Camera
+namespace CameraSystem
 {
     public class BillboardSprite : MonoBehaviour
     {

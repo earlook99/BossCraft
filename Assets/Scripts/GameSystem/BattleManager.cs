@@ -1,8 +1,9 @@
 using System;
 using System.Collections;
-using Camera;
+using CameraSystem;
 using Data;
 using Entity;
+using Unity.Cinemachine; // CinemachineBrain
 using UnityEngine;
 
 namespace GameSystem
@@ -19,7 +20,7 @@ namespace GameSystem
     {
         [SerializeField] private UIManager _uiManager;
         [SerializeField] private CameraManager _cameraManager;
-        
+
         public AIWeights Weights;
 
         private BattleState _currentState;
@@ -28,10 +29,8 @@ namespace GameSystem
         public BattleEntity[] Entities => _entities;
 
         private const int PlayerCount = 4; 
-        private int _turnCount; 
+        private int _turnCount;
         public int TurnCount => _turnCount;
-
-        private float _disableAlpha = 0.1f;
 
         private int _currentPlayerIndex;
 
@@ -44,6 +43,7 @@ namespace GameSystem
             _currentPlayerIndex = 0;
             OnEntitiesInitialized?.Invoke();
 
+            // 초기에 PlayerChoice 상태로 전환
             ChangeBattleState(BattleState.PlayerChoice);
         }
 
@@ -55,15 +55,21 @@ namespace GameSystem
                 case BattleState.PlayerChoice:
                     BeginPlayerTurn(_currentPlayerIndex);
                     break;
+
                 case BattleState.BossAction:
                     StartCoroutine(BeginBossTurn());
                     break;
+
                 case BattleState.CheckBattleEnd:
+                    if (!CheckBattleEnd())
+                    {
+                        _currentPlayerIndex = 0;
+                        ChangeBattleState(BattleState.PlayerChoice);
+                    }
                     break;
+
                 case BattleState.BattleEnded:
                     HandleBattleEnd();
-                    break;
-                default:
                     break;
             }
         }
@@ -88,17 +94,17 @@ namespace GameSystem
                 case ActionType.Move:
                     yield return StartCoroutine(PerformMove(action));
                     break;
-                default:
-                    break;
             }
 
-            if (CheckBattleEnd()) yield break;
+            if (CheckBattleEnd()) 
+                yield break; 
 
             _currentPlayerIndex++;
             if (_currentPlayerIndex >= PlayerCount)
             {
+                // 플레이어 4명 행동이 끝나면 BossAction으로
                 _currentPlayerIndex = 0;
-                _cameraManager.SwitchCameraTo((CineCamType)4);
+                _cameraManager.SwitchCameraTo(CineCamType.ZoomOut);
                 SetSpriteAlphaExclusive(-1);
                 ChangeBattleState(BattleState.BossAction);
             }
@@ -111,11 +117,9 @@ namespace GameSystem
 
         private IEnumerator BeginBossTurn()
         {
-            _cameraManager.SwitchCameraTo((CineCamType)4);
-            SetSpriteAlphaExclusive(-1);
-
+            // 1) 보스 AI 결정 및 행동
             var boss = _entities[4];
-            BattleEntity[] players = new BattleEntity[4];
+            var players = new BattleEntity[4];
             for (int i = 0; i < 4; i++)
             {
                 players[i] = _entities[i];
@@ -135,6 +139,10 @@ namespace GameSystem
                 yield return StartCoroutine(ExecuteBossAction(bossAction));
             }
 
+            // 2) 보스 턴이 끝나면 그냥 Player1 카메라 복귀 (즉시)
+            _cameraManager.SwitchCameraTo(CineCamType.Player1);
+
+            // 3) 전투 흐름 재개
             ChangeBattleState(BattleState.CheckBattleEnd);
         }
 
@@ -146,7 +154,9 @@ namespace GameSystem
             move.CooldownLeft = move.Data.Cooldown;
 
             yield return StartCoroutine(PerformMove(bossAction));
-            if (CheckBattleEnd()) yield break;
+
+            if (CheckBattleEnd()) 
+                yield break;
         }
 
         private IEnumerator PerformMove(ActionData action)
@@ -180,7 +190,8 @@ namespace GameSystem
         {
             yield return StartCoroutine(
                 _uiManager.ShowBattleMessage(
-                    $"{source.EntityName} used {moveData.Name}!", 1f
+                    $"{source.EntityName} used {moveData.Name}!",
+                    1f
                 )
             );
         }
@@ -189,19 +200,15 @@ namespace GameSystem
         {
             if (source is BossEntity)
             {
-                var effect = Instantiate(_testEffect, 
-                    target.transform.position, 
-                    target.transform.rotation);
-                yield return new WaitForSeconds(4f);
+                var effect = Instantiate(_testEffect, target.transform.position, target.transform.rotation);
+                yield return new WaitForSeconds(2f);
             }
             else
             {
-                var effect = Instantiate(_testEffect, 
-                    target.transform.position, 
-                    target.transform.rotation);
+                var effect = Instantiate(_testEffect, target.transform.position, target.transform.rotation);
                 int newLayer = LayerMask.NameToLayer("BossEffect");
                 effect.layer = newLayer;
-                yield return new WaitForSeconds(4f);
+                yield return new WaitForSeconds(2f);
             }
         }
 
@@ -211,6 +218,7 @@ namespace GameSystem
             if (boss.CurrentHP <= 0)
             {
                 Debug.Log("Battle End: Players Win!");
+                ChangeBattleState(BattleState.BattleEnded);
                 return true;
             }
 
@@ -226,6 +234,7 @@ namespace GameSystem
             if (allPlayersDead)
             {
                 Debug.Log("Battle End: Boss Wins!");
+                ChangeBattleState(BattleState.BattleEnded);
                 return true;
             }
 
@@ -245,14 +254,9 @@ namespace GameSystem
                 if (!spriteRenderer) continue;
 
                 var color = spriteRenderer.color;
-                if (activeIndex < 0)
-                {
-                    color.a = 1.0f;
-                }
-                else
-                {
-                    color.a = (i == activeIndex) ? 1.0f : _disableAlpha;
-                }
+                color.a = (activeIndex < 0)
+                    ? 1.0f
+                    : ((i == activeIndex) ? 1.0f : 0.1f);
                 spriteRenderer.color = color;
             }
         }
