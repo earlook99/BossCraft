@@ -1,0 +1,9 @@
+namespace AI
+{
+    public static class ServerConfig
+    {
+        // 여기에 당신의 Hugging Face Space URL을 넣으세요
+        // 예: https://username-spacename.hf.space
+        public const string HUGGINGFACE_URL = "YOUR_HUGGINGFACE_SPACE_URL_HERE";
+    }
+}
