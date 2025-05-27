@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using TMPro;
+using Unity.Plastic.Newtonsoft.Json;
 using UnityEngine;
 using UnityEngine.Networking;
 using UnityEngine.UI;
@@ -18,20 +19,26 @@ namespace AI
     public class GenerationParameters
     {
         [Range(0.1f, 1.0f)]
+        [JsonProperty("strength")]
         public float strength = 0.85f;
     
         [Range(1.0f, 20.0f)]
+        [JsonProperty("guidance_scale")]
         public float guidance_scale = 3.0f;  // JSON 키 이름과 일치하도록
     
         [Range(10, 100)]
+        [JsonProperty("inference_steps")]
         public int inference_steps = 40;     // JSON 키 이름과 일치하도록
     
         [Range(0.0f, 1.0f)]
+        [JsonProperty("lora_weight")]
         public float lora_weight = 0.7f;
     
         [TextArea(2, 4)]
+        [JsonProperty("negative_prompt")]
         public string negative_prompt = "realistic, photograph, human, normal animal";
-    
+        
+        [JsonProperty("seed")]
         public int seed = -1;
     }
     
@@ -44,6 +51,7 @@ namespace AI
         [SerializeField] private Button selectImageButton;
         [SerializeField] private Button generateButton;
         [SerializeField] private Button returnButton;
+        [SerializeField] private Button rerollButton;
         [SerializeField] private RawImage originalImage;
         [SerializeField] private RawImage generatedImage;
         [SerializeField] private TextMeshProUGUI statusText;
@@ -75,8 +83,10 @@ namespace AI
         {
             selectImageButton.onClick.AddListener(SelectImage);
             generateButton.onClick.AddListener(GenerateBossImage);
+            rerollButton.onClick.AddListener(GenerateBossImage);
             
             generateButton.interactable = false;
+            rerollButton.interactable = false;
             if (loadingIndicator) loadingIndicator.SetActive(false);
             
             UpdateStatus("Click 'Select Image' to start");
@@ -169,6 +179,7 @@ namespace AI
             generateButton.interactable = false;
             selectImageButton.interactable = false;
             returnButton.interactable = false;
+            rerollButton.interactable = false;
     
             float startTime = Time.time;
             UpdateStatus("Connecting to server...");
@@ -184,7 +195,14 @@ namespace AI
                 parameters = parameters  // Inspector에서 설정한 parameters 객체 그대로 사용
             };
     
-            string json = JsonUtility.ToJson(request);
+            var settings = new JsonSerializerSettings
+            {
+                FloatFormatHandling = FloatFormatHandling.String,
+                FloatParseHandling = FloatParseHandling.Decimal,
+                Formatting = Formatting.None  // 압축된 JSON
+            };
+    
+            string json = JsonConvert.SerializeObject(request, settings);
             Debug.Log($"Request JSON: {json}"); // 디버깅용
     
             byte[] jsonBytes = System.Text.Encoding.UTF8.GetBytes(json);
@@ -219,6 +237,7 @@ namespace AI
             generateButton.interactable = true;
             selectImageButton.interactable = true;
             returnButton.interactable = true;
+            rerollButton.interactable = true;
             isProcessing = false;
         }
         
@@ -284,7 +303,7 @@ namespace AI
             try
             {
                 // Gradio 응답 파싱
-                var response = JsonUtility.FromJson<GradioResponse>(jsonResponse);
+                var response = JsonConvert.DeserializeObject<GradioResponse>(jsonResponse);
                 
                 if (response.data != null && response.data.Length >= 2)
                 {
