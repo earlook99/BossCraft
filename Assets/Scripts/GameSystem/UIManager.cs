@@ -6,6 +6,7 @@ using TMPro;
 using UI;
 using UnityEngine;
 using UnityEngine.UI;
+using Data;
 
 namespace GameSystem
 {
@@ -28,6 +29,9 @@ namespace GameSystem
         [SerializeField] private GameObject _actionMenuPanel; // The panel GameObject holding the action menu
         [SerializeField] private ActionMenuUI _actionMenuUI; // The script component for the action menu
 
+        [Header("Target Selection")]
+        [SerializeField] private TargetSelectionUI _targetSelectionUI; // 타겟 선택 UI
+
         [Header("Other UI")]
         [SerializeField] private GameObject _battleInfo; // GameObject used to display battle messages. Battle messages, etc.
 
@@ -40,6 +44,10 @@ namespace GameSystem
         private TextMeshProUGUI _battleMessageTextComponent; // Cached TextMeshProUGUI component for battle messages
 
         private int _currentPlayerIndex; // Index of the player character whose turn it is to act
+        
+        // 타겟 선택을 위한 임시 저장
+        private ActionType _pendingActionType;
+        private int _pendingActionIndex;
 
         /// <summary>
         /// Called when the script instance is being loaded.
@@ -51,6 +59,15 @@ namespace GameSystem
             {
                 _battleManager = FindAnyObjectByType<BattleManager>();
             }
+            
+            // TargetSelectionUI가 없으면 생성
+            if (_targetSelectionUI == null)
+            {
+                var targetSelectionGO = new GameObject("TargetSelectionUI");
+                targetSelectionGO.transform.SetParent(transform);
+                _targetSelectionUI = targetSelectionGO.AddComponent<TargetSelectionUI>();
+            }
+            
             // Deactivate action menu initially
             if (_actionMenuPanel != null)
             {
@@ -73,6 +90,12 @@ namespace GameSystem
         private void Start()
         {
             _currentPlayerIndex = 0;
+            
+            // TargetSelectionUI 초기화
+            if (_targetSelectionUI != null && _battleEntities != null)
+            {
+                _targetSelectionUI.Setup(this, _battleEntities);
+            }
         }
 
         /// <summary>
@@ -171,13 +194,94 @@ namespace GameSystem
 
         /// <summary>
         /// Called when an action is selected from the action menu.
-        /// Constructs an <see cref="ActionData"/> object and passes it to the <see cref="BattleManager"/>.
+        /// Now handles target selection before constructing ActionData.
         /// </summary>
         /// <param name="actionType">The type of action selected.</param>
         /// <param name="actionIndex">The specific index of the action (e.g., move index, item index).</param>
         public void OnActionSelect(ActionType actionType, int actionIndex)
         {
-            var newAction = new ActionData(actionType, actionIndex, (EntityType)_currentPlayerIndex, EntityType.Boss);
+            // 액션 메뉴를 일단 숨김
+            if (_actionMenuPanel != null)
+            {
+                _actionMenuPanel.SetActive(false);
+            }
+            
+            _pendingActionType = actionType;
+            _pendingActionIndex = actionIndex;
+            
+            // Move 타입이면 타겟 선택이 필요할 수 있음
+            if (actionType == ActionType.Move)
+            {
+                var playerEntity = _battleEntities[_currentPlayerIndex];
+                var moveData = playerEntity.GetMoveData(actionIndex);
+                
+                if (moveData != null)
+                {
+                    // AOE는 타겟 선택 없이 바로 실행
+                    if (moveData.Category == MoveCategory.AOE)
+                    {
+                        CompleteActionWithTarget(EntityType.Boss); // 더미 타겟
+                    }
+                    else
+                    {
+                        // 타겟 선택 시작
+                        StartTargetSelection(moveData);
+                    }
+                }
+                else
+                {
+                    Debug.LogError($"Move data not found for index {actionIndex}");
+                }
+            }
+            else
+            {
+                // Guard, Taunt 등은 타겟 선택 없이 바로 실행
+                CompleteActionWithTarget(EntityType.Boss); // 더미 타겟
+            }
+        }
+
+        /// <summary>
+        /// 타겟 선택을 시작합니다
+        /// </summary>
+        private void StartTargetSelection(MoveData moveData)
+        {
+            _targetSelectionUI.StartTargetSelection(
+                (EntityType)_currentPlayerIndex,
+                moveData.AllowedTargetSide,
+                moveData.Category,
+                OnTargetSelected,
+                OnTargetSelectionCancelled
+            );
+        }
+
+        /// <summary>
+        /// 타겟이 선택되었을 때 호출됩니다
+        /// </summary>
+        private void OnTargetSelected(EntityType target)
+        {
+            CompleteActionWithTarget(target);
+        }
+
+        /// <summary>
+        /// 타겟 선택이 취소되었을 때 호출됩니다
+        /// </summary>
+        private void OnTargetSelectionCancelled()
+        {
+            // 액션 메뉴로 돌아가기
+            ShowActionMenuForCurrentPlayer(_currentPlayerIndex);
+        }
+
+        /// <summary>
+        /// 선택된 타겟으로 액션을 완료합니다
+        /// </summary>
+        private void CompleteActionWithTarget(EntityType target)
+        {
+            var newAction = new ActionData(
+                _pendingActionType, 
+                _pendingActionIndex, 
+                (EntityType)_currentPlayerIndex, 
+                target
+            );
             _battleManager.ReceivePlayerChoice(newAction);
         }
 
@@ -233,6 +337,5 @@ namespace GameSystem
 
             _entityStatusUIs[entityIndex].UpdateHP(endHP);
         }
-
     }
 }

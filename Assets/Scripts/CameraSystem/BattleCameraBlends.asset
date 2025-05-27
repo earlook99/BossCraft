@@ -14,17 +14,17 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   CustomBlends:
   - From: '**ANY CAMERA**'
-    To: ZoomOutCamera
+    To: ZoomOutCamera1
     Blend:
       Style: 1
-      Time: 2
+      Time: 3
       CustomCurve:
         serializedVersion: 2
         m_Curve: []
         m_PreInfinity: 0
         m_PostInfinity: 0
         m_RotationOrder: 4
-  - From: ZoomOutCamera
+  - From: ZoomOutCamera1
     To: '**ANY CAMERA**'
     Blend:
       Style: 1
@@ -38,8 +38,8 @@ MonoBehaviour:
   - From: '**ANY CAMERA**'
     To: Player1Camera
     Blend:
-      Style: 3
-      Time: 1
+      Style: 1
+      Time: 2
       CustomCurve:
         serializedVersion: 2
         m_Curve: []

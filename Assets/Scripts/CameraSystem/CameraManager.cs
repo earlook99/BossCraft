@@ -52,27 +52,6 @@ namespace CameraSystem
 
         public void SwitchCameraTo(CineCamType camType)
         {
-            if (camType == CineCamType.ZoomOut)
-            {
-                camDict[CineCamType.Boss].enabled = false;
-                bossCamera.enabled = false;
-
-                int bossLayer = LayerMask.NameToLayer("Boss");
-                mainCamera.cullingMask |= (1 << bossLayer);
-
-                //mainCamera.orthographic = true;
-            }
-            else
-            {
-                camDict[CineCamType.Boss].enabled = true;
-                bossCamera.enabled = true;
-
-                int bossLayer = LayerMask.NameToLayer("Boss");
-                mainCamera.cullingMask &= ~(1 << bossLayer);
-
-                // mainCamera.orthographic = false;
-            }
-            
             foreach (var kvp in camDict)
             {
                 kvp.Value.Priority = 0;
