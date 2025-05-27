@@ -32,6 +32,8 @@ namespace Data
         // Status conditions base
         /// <summary>Base score for moves that can apply a stun effect.</summary>
         public float StunBase = 40f;
+
+        public float HealBase = 40f;
         
         // Kill bonus
         /// <summary>Bonus score added if a move is predicted to knock out a target.</summary>

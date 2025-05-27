@@ -20,3 +20,4 @@ MonoBehaviour:
   CriticalChance: 0.05
   Cooldown: 2
   UsageLimit: 99
+  RequiresCharge: 1

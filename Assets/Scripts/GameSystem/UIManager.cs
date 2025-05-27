@@ -218,7 +218,7 @@ namespace GameSystem
         /// <param name="startHP">The HP value to start the animation from.</param>
         /// <param name="endHP">The HP value to end the animation at.</param>
         /// <returns>An IEnumerator for the coroutine.</returns>
-        public IEnumerator AnimateHPBarDecrease(int entityIndex, int startHP, int endHP)
+        public IEnumerator AnimateHPBarUpdate(int entityIndex, int startHP, int endHP)
         {
             float duration = 1.0f;
             float elapsed = 0f;

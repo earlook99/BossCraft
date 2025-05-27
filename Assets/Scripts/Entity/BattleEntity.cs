@@ -44,14 +44,26 @@ namespace Entity
         /// </summary>
         public ReadOnlySpan<MoveInstance> MoveInstances => _moveInstances;
         
+        public bool IsStunned { get; private set; }
+        public int StunTurnsLeft { get; private set; }
+
+        private bool _isCharging = false;
+        public bool IsCharging => _isCharging;
+
+        private int _chargingMoveIndex;
+        public int ChargingMoveIndex => _chargingMoveIndex;
+
+        private EntityType _chargingMoveTarget;
+        public EntityType ChargingMoveTarget => _chargingMoveTarget;
+        
         /// <summary>
         /// Gets the current attack buff multiplier for this entity. Defaults to 1f (no buff).
         /// </summary>
-        public float AtkBuffMultiplier { get; private set; } = 1f;
+        public float AtkBuffMultiplier = 1f;
         /// <summary>
         /// Gets the current defense buff multiplier for this entity. Defaults to 1f (no buff).
         /// </summary>
-        public float DefBuffMultiplier { get; private set; } = 1f;
+        public float DefBuffMultiplier = 1f;
         
         /// <summary>
         /// Called when the script instance is being loaded. Calls Initialize.
@@ -138,13 +150,41 @@ namespace Entity
         /// </summary>
         /// <param name="moveType">The elemental type of the incoming move.</param>
         /// <param name="context">The <see cref="RawHit"/> context containing initial damage and hit status.</param>
-        public void TakeDamage(ElementType moveType, RawHit context)
+        public void TakeDamage(ElementType moveType, int damage)
         {
-            int finalDamage = Mathf.RoundToInt(context.Damage * GetDefenseFactor() * GetWeaknessFactor(moveType));
+            int finalDamage = Mathf.RoundToInt(damage * GetDefenseFactor() * GetWeaknessFactor(moveType));
             finalDamage = Mathf.Max(finalDamage, 1);
 
             CurrentHP -= finalDamage;
             CurrentHP = Mathf.Clamp(CurrentHP, 0, MaxHP);
+        }
+
+        public void ApplyStun(int turns)
+        {
+            IsStunned = true;
+            StunTurnsLeft = turns;
+        }
+
+        public void ReduceStunDuration()
+        {
+            if (StunTurnsLeft > 0)
+            {
+                StunTurnsLeft--;
+                if (StunTurnsLeft <= 0) IsStunned = false;
+            }
+        }
+
+        public void ClearBuffandDebuffs()
+        {
+            AtkBuffMultiplier = 1f;
+            DefBuffMultiplier = 1f;
+        }
+
+        public void SetChargingState(bool newState, int moveIndex = -1, EntityType target = EntityType.Boss)
+        {
+            _isCharging = newState;
+            _chargingMoveIndex = moveIndex;
+            _chargingMoveTarget = target;
         }
     }
 }

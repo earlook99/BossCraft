@@ -14,9 +14,14 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   Name: TestMove1
   Category: 0
+  AllowedTargetSide: 3
   Type: 0
-  Power: 3
-  _accuracy: 100
-  CriticalChance: 0.05
   Cooldown: 2
   UsageLimit: 99
+  RequiresCharge: 0
+  Effects:
+  - EffectType: 0
+    Power: 5
+    BuffsType: 0
+    Accuracy: 0.6
+    CritChance: 0

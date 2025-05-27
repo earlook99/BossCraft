@@ -6,16 +6,14 @@ namespace GameSystem
     [System.Serializable]
     public enum ElementType
     {
-        /// <summary>The Fire element.</summary>
-        Fire,
-        /// <summary>The Water element.</summary>
-        Water,
-        /// <summary>The Electric element.</summary>
-        Electric,
-        /// <summary>The Rock element.</summary>
-        Rock,
-        /// <summary>The Grass element.</summary>
-        Grass
+        Blaze,
+        Tide,
+        Mystic,
+        Terra,
+        Nature,
+        Dark,
+        Light,
+        Storm
     }
     
     /// <summary>
