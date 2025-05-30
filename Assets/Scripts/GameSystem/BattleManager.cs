@@ -527,7 +527,8 @@ namespace GameSystem
 
         private void HandleBattleEnd()
         {
-            StartCoroutine(_uiManager.ShowBattleMessage("Battle Ended!"));
+            bool playerWon = _entities[4].CurrentHP <= 0;
+            _uiManager.ShowBattleEndScreen(playerWon);
         }
 
         private void SetSpriteAlphaExclusive(int activeIndex)

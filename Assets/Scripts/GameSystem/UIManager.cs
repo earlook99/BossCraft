@@ -19,12 +19,10 @@ namespace GameSystem
         [Header("References")]
         [SerializeField] private BattleManager _battleManager;
 
-        // ---- (Scene-placed) Boss Area, Party Area
         [Header("UI Containers")]
         [SerializeField] private RectTransform _bossArea; // Parent transform for boss status UI
         [SerializeField] private RectTransform _partyArea; // Parent transform for player party status UIs
 
-        // ---- (Scene-placed) Panel (GameObject) + ActionMenuUI attached to it
         [Header("Action Menu")]
         [SerializeField] private GameObject _actionMenuPanel; // The panel GameObject holding the action menu
         [SerializeField] private ActionMenuUI _actionMenuUI; // The script component for the action menu
@@ -34,8 +32,8 @@ namespace GameSystem
 
         [Header("Other UI")]
         [SerializeField] private GameObject _battleInfo; // GameObject used to display battle messages. Battle messages, etc.
+        [SerializeField] private BattleEndUI _battleEndUI;
 
-        // ---- (Reference to Prefab made in Project) ----
         [Header("Prefabs")]
         [SerializeField] private CharacterStatusUI _characterStatusPrefab; // Prefab for character status UI elements
 
@@ -45,14 +43,9 @@ namespace GameSystem
 
         private int _currentPlayerIndex; // Index of the player character whose turn it is to act
         
-        // 타겟 선택을 위한 임시 저장
         private ActionType _pendingActionType;
         private int _pendingActionIndex;
-
-        /// <summary>
-        /// Called when the script instance is being loaded.
-        /// Ensures BattleManager reference and initializes UI components.
-        /// </summary>
+        
         private void Awake()
         {
             if (_battleManager == null)
@@ -82,11 +75,7 @@ namespace GameSystem
             // Initial setup for battle UI
             SetupBattleUI();
         }
-
-        /// <summary>
-        /// Called before the first frame update.
-        /// Initializes the current player index.
-        /// </summary>
+        
         private void Start()
         {
             _currentPlayerIndex = 0;
@@ -97,10 +86,7 @@ namespace GameSystem
                 _targetSelectionUI.Setup(this, _battleEntities);
             }
         }
-
-        /// <summary>
-        /// Sets up the entire battle UI, including cleaning up existing elements and creating new ones.
-        /// </summary>
+        
         public void SetupBattleUI()
         {
             CleanupExistingUI();
@@ -113,10 +99,7 @@ namespace GameSystem
             // Create Player Party UI
             CreatePartyStatusUIs();
         }
-
-        /// <summary>
-        /// Cleans up any existing character status UI elements.
-        /// </summary>
+        
         private void CleanupExistingUI()
         {
             foreach (var kv in _entityStatusUIs)
@@ -128,10 +111,7 @@ namespace GameSystem
             }
             _entityStatusUIs.Clear();
         }
-
-        /// <summary>
-        /// Creates and sets up the status UI for the boss entity.
-        /// </summary>
+        
         private void CreateBossStatusUI()
         {
             var bossEntity = _battleEntities[(int)EntityType.Boss];
@@ -146,10 +126,7 @@ namespace GameSystem
 
             _entityStatusUIs.Add((int)EntityType.Boss, statusUI);
         }
-
-        /// <summary>
-        /// Creates and sets up the status UIs for all player characters in the party.
-        /// </summary>
+        
         private void CreatePartyStatusUIs()
         {
             if (_partyArea == null || _characterStatusPrefab == null)
@@ -170,10 +147,6 @@ namespace GameSystem
             }
         }
         
-        /// <summary>
-        /// Shows the action menu for the specified player.
-        /// </summary>
-        /// <param name="currentPlayerIndex">The index of the player whose turn it is.</param>
         public void ShowActionMenuForCurrentPlayer(int currentPlayerIndex)
         {
             _currentPlayerIndex = currentPlayerIndex;
@@ -191,13 +164,7 @@ namespace GameSystem
                 _actionMenuUI.Setup(this, playerEntity, _currentPlayerIndex);
             }
         }
-
-        /// <summary>
-        /// Called when an action is selected from the action menu.
-        /// Now handles target selection before constructing ActionData.
-        /// </summary>
-        /// <param name="actionType">The type of action selected.</param>
-        /// <param name="actionIndex">The specific index of the action (e.g., move index, item index).</param>
+        
         public void OnActionSelect(ActionType actionType, int actionIndex)
         {
             // 액션 메뉴를 일단 숨김
@@ -239,10 +206,7 @@ namespace GameSystem
                 CompleteActionWithTarget(EntityType.Boss); // 더미 타겟
             }
         }
-
-        /// <summary>
-        /// 타겟 선택을 시작합니다
-        /// </summary>
+        
         private void StartTargetSelection(MoveData moveData)
         {
             _targetSelectionUI.StartTargetSelection(
@@ -253,27 +217,18 @@ namespace GameSystem
                 OnTargetSelectionCancelled
             );
         }
-
-        /// <summary>
-        /// 타겟이 선택되었을 때 호출됩니다
-        /// </summary>
+        
         private void OnTargetSelected(EntityType target)
         {
             CompleteActionWithTarget(target);
         }
-
-        /// <summary>
-        /// 타겟 선택이 취소되었을 때 호출됩니다
-        /// </summary>
+        
         private void OnTargetSelectionCancelled()
         {
             // 액션 메뉴로 돌아가기
             ShowActionMenuForCurrentPlayer(_currentPlayerIndex);
         }
-
-        /// <summary>
-        /// 선택된 타겟으로 액션을 완료합니다
-        /// </summary>
+        
         private void CompleteActionWithTarget(EntityType target)
         {
             var newAction = new ActionData(
@@ -284,10 +239,7 @@ namespace GameSystem
             );
             _battleManager.ReceivePlayerChoice(newAction);
         }
-
-        /// <summary>
-        /// Called when it's the boss's turn, to hide the player action menu.
-        /// </summary>
+        
         private void StartBossTurn()
         {
             // Hide player action menu
@@ -296,14 +248,7 @@ namespace GameSystem
                 _actionMenuPanel.SetActive(false);
             }
         }
-
-        // ---- Display battle message ----
-        /// <summary>
-        /// Displays a battle message on the UI for a specified duration.
-        /// </summary>
-        /// <param name="message">The message to display.</param>
-        /// <param name="duration">How long the message should be visible, in seconds.</param>
-        /// <returns>An IEnumerator for the coroutine.</returns>
+        
         public IEnumerator ShowBattleMessage(string message, float duration = 2f)
         {
             if (_battleMessageTextComponent != null)
@@ -315,13 +260,6 @@ namespace GameSystem
             }
         }
         
-        /// <summary>
-        /// Animates the HP bar of a specified entity decreasing from a start HP to an end HP.
-        /// </summary>
-        /// <param name="entityIndex">The index of the entity whose HP bar to animate.</param>
-        /// <param name="startHP">The HP value to start the animation from.</param>
-        /// <param name="endHP">The HP value to end the animation at.</param>
-        /// <returns>An IEnumerator for the coroutine.</returns>
         public IEnumerator AnimateHPBarUpdate(int entityIndex, int startHP, int endHP)
         {
             float duration = 1.0f;
@@ -336,6 +274,14 @@ namespace GameSystem
             }
 
             _entityStatusUIs[entityIndex].UpdateHP(endHP);
+        }
+        
+        public void ShowBattleEndScreen(bool isVictory)
+        {
+            if (_battleEndUI != null)
+            {
+                _battleEndUI.ShowBattleEnd(isVictory);
+            }
         }
     }
 }
