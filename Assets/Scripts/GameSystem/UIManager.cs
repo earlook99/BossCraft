@@ -56,9 +56,23 @@ namespace GameSystem
             // TargetSelectionUI가 없으면 생성
             if (_targetSelectionUI == null)
             {
-                var targetSelectionGO = new GameObject("TargetSelectionUI");
-                targetSelectionGO.transform.SetParent(transform);
-                _targetSelectionUI = targetSelectionGO.AddComponent<TargetSelectionUI>();
+                _targetSelectionUI = GetComponentInChildren<TargetSelectionUI>(true);
+            
+                if (_targetSelectionUI == null)
+                {
+                    // 자식에 없으면 생성
+                    var targetSelectionGO = new GameObject("TargetSelectionUI");
+                    targetSelectionGO.transform.SetParent(transform, false);
+                
+                    // RectTransform 설정
+                    var rect = targetSelectionGO.AddComponent<RectTransform>();
+                    rect.anchorMin = Vector2.zero;
+                    rect.anchorMax = Vector2.one;
+                    rect.offsetMin = Vector2.zero;
+                    rect.offsetMax = Vector2.zero;
+                
+                    _targetSelectionUI = targetSelectionGO.AddComponent<TargetSelectionUI>();
+                }
             }
             
             // Deactivate action menu initially

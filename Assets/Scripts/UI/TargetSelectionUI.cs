@@ -10,71 +10,102 @@ using UnityEngine.UI;
 
 namespace UI
 {
-    /// <summary>
-    /// 스킬 사용 시 타겟을 선택하는 UI 시스템
-    /// </summary>
     public class TargetSelectionUI : MonoBehaviour
     {
         [Header("Visual Feedback")]
-        [SerializeField] private GameObject _targetIndicatorPrefab; // 타겟 가능한 엔티티 위에 표시할 인디케이터
-        [SerializeField] private Color _validTargetColor = Color.green;
-        [SerializeField] private Color _selectedTargetColor = Color.yellow;
+        [SerializeField] private GameObject _targetIndicatorPrefab;
+        [SerializeField] private Color _validTargetColor = new Color(0.2f, 1f, 0.2f, 0.8f);
+        [SerializeField] private Color _selectedTargetColor = new Color(1f, 1f, 0.2f, 1f);
+        [SerializeField] private Color _hoverTargetColor = new Color(0.5f, 1f, 0.5f, 0.9f);
+        [SerializeField] private float _indicatorScale = 1.5f;
+        [SerializeField] private float _pulseSpeed = 2f;
+        [SerializeField] private float _pulseAmount = 0.2f;
         
         private UIManager _uiManager;
         private BattleEntity[] _allEntities;
         private List<int> _validTargetIndices = new List<int>();
         private int _currentTargetIndex = 0;
         private Dictionary<int, GameObject> _targetIndicators = new Dictionary<int, GameObject>();
+        private Dictionary<int, Button> _targetButtons = new Dictionary<int, Button>();
         
-        // 타겟 선택 완료 시 호출될 콜백
+        private Canvas _parentCanvas;
+        private RectTransform _canvasRectTransform;
+        
         private Action<EntityType> _onTargetSelected;
         private Action _onCancelled;
         
         private bool _isActive = false;
+        private Coroutine _pulseCoroutine;
 
         private void Awake()
         {
-            // 필수 컴포넌트 체크
-            if (Camera.main == null)
+            _parentCanvas = GetComponentInParent<Canvas>();
+            if (_parentCanvas == null)
             {
-                Debug.LogError("Main Camera not found! Please tag your main camera as 'MainCamera'");
+                Debug.LogError("TargetSelectionUI must be a child of a Canvas!");
+                return;
             }
-    
-            Canvas canvas = GetComponentInParent<Canvas>();
-            if (canvas == null)
+            
+            _canvasRectTransform = _parentCanvas.GetComponent<RectTransform>();
+            
+            if (_targetIndicatorPrefab == null)
             {
-                Debug.LogError("TargetSelectionUI must be child of a Canvas!");
-            }
-            else if (canvas.renderMode == RenderMode.ScreenSpaceCamera && canvas.worldCamera == null)
-            {
-                Debug.LogError("Canvas is in Screen Space - Camera mode but no camera assigned!");
+                CreateDefaultIndicatorPrefab();
             }
         }
 
         private void CreateDefaultIndicatorPrefab()
         {
-            // 임시 GameObject 생성
-            var tempGO = new GameObject("TempIndicator");
+            var tempGO = new GameObject("TargetIndicator");
             tempGO.transform.SetParent(transform, false);
             
-            // RectTransform 추가
             var rectTransform = tempGO.AddComponent<RectTransform>();
-            rectTransform.sizeDelta = new Vector2(60, 60);
+            rectTransform.sizeDelta = new Vector2(120, 120);
             
-            // Image 컴포넌트 추가
-            var image = tempGO.AddComponent<Image>();
+            var canvasGroup = tempGO.AddComponent<CanvasGroup>();
             
-            // 간단한 원형 스프라이트 생성
-            var texture = new Texture2D(64, 64);
-            var center = new Vector2(32, 32);
-            for (int x = 0; x < 64; x++)
+            var bgImage = tempGO.AddComponent<Image>();
+            bgImage.sprite = CreateCircleSprite();
+            bgImage.color = _validTargetColor;
+            bgImage.raycastTarget = true;
+            
+            var arrowGO = new GameObject("Arrow");
+            arrowGO.transform.SetParent(tempGO.transform, false);
+            var arrowRect = arrowGO.AddComponent<RectTransform>();
+            arrowRect.anchoredPosition = new Vector2(0, -70);
+            arrowRect.sizeDelta = new Vector2(40, 40);
+            
+            var arrowImage = arrowGO.AddComponent<Image>();
+            arrowImage.sprite = CreateArrowSprite();
+            arrowImage.color = Color.white;
+            
+            var button = tempGO.AddComponent<Button>();
+            button.transition = Selectable.Transition.None;
+            button.targetGraphic = bgImage;
+            
+            tempGO.SetActive(false);
+            _targetIndicatorPrefab = tempGO;
+        }
+
+        private Sprite CreateCircleSprite()
+        {
+            var texture = new Texture2D(128, 128);
+            var center = new Vector2(64, 64);
+            
+            for (int x = 0; x < 128; x++)
             {
-                for (int y = 0; y < 64; y++)
+                for (int y = 0; y < 128; y++)
                 {
                     float distance = Vector2.Distance(new Vector2(x, y), center);
-                    if (distance < 30 && distance > 25)
+                    
+                    if (distance < 62 && distance > 58)
                     {
                         texture.SetPixel(x, y, Color.white);
+                    }
+                    else if (distance < 58)
+                    {
+                        float alpha = 0.1f;
+                        texture.SetPixel(x, y, new Color(1, 1, 1, alpha));
                     }
                     else
                     {
@@ -84,12 +115,35 @@ namespace UI
             }
             texture.Apply();
             
-            image.sprite = Sprite.Create(texture, new Rect(0, 0, 64, 64), new Vector2(0.5f, 0.5f));
-            image.color = _validTargetColor;
+            return Sprite.Create(texture, new Rect(0, 0, 128, 128), new Vector2(0.5f, 0.5f));
+        }
+
+        private Sprite CreateArrowSprite()
+        {
+            var texture = new Texture2D(64, 64);
             
-            // 프리팹으로 저장
-            tempGO.SetActive(false);
-            _targetIndicatorPrefab = tempGO;
+            for (int x = 0; x < 64; x++)
+            {
+                for (int y = 0; y < 64; y++)
+                {
+                    texture.SetPixel(x, y, Color.clear);
+                }
+            }
+            
+            for (int i = 0; i < 32; i++)
+            {
+                int width = 32 - i;
+                for (int j = -width/2; j <= width/2; j++)
+                {
+                    if (32 + j >= 0 && 32 + j < 64 && i + 16 < 64)
+                    {
+                        texture.SetPixel(32 + j, i + 16, Color.white);
+                    }
+                }
+            }
+            
+            texture.Apply();
+            return Sprite.Create(texture, new Rect(0, 0, 64, 64), new Vector2(0.5f, 0.5f));
         }
 
         public void Setup(UIManager uiManager, BattleEntity[] entities)
@@ -98,9 +152,6 @@ namespace UI
             _allEntities = entities;
         }
 
-        /// <summary>
-        /// 타겟 선택 모드를 시작합니다
-        /// </summary>
         public void StartTargetSelection(
             EntityType caster, 
             TargetSide allowedSide,
@@ -109,50 +160,39 @@ namespace UI
             Action onCancelled)
         {
             Debug.Log($"[TargetSelection] Started - Caster: {caster}, AllowedSide: {allowedSide}, Category: {category}");
-    
+            
             _onTargetSelected = onSelected;
             _onCancelled = onCancelled;
             _isActive = true;
-    
-            // 유효한 타겟 찾기
+
             FindValidTargets(caster, allowedSide, category);
-    
+
             Debug.Log($"[TargetSelection] Found {_validTargetIndices.Count} valid targets");
-    
+
             if (_validTargetIndices.Count == 0)
             {
                 Debug.LogWarning("No valid targets found!");
                 Cancel();
                 return;
             }
-    
-            // 첫 번째 유효한 타겟 선택
+
             _currentTargetIndex = 0;
-    
-            // 타겟 인디케이터 표시
             ShowTargetIndicators();
             UpdateTargetHighlight();
-    
             StartCoroutine(HandleTargetSelectionInput());
         }
 
-        /// <summary>
-        /// 스킬의 조건에 맞는 유효한 타겟을 찾습니다
-        /// </summary>
         private void FindValidTargets(EntityType caster, TargetSide allowedSide, MoveCategory category)
         {
             _validTargetIndices.Clear();
             int casterIndex = (int)caster;
             
-            // AOE는 타겟 선택이 필요 없음 (자동으로 전체 적용)
             if (category == MoveCategory.AOE)
             {
-                // AOE는 타겟 선택 스킵하고 바로 실행
-                _onTargetSelected?.Invoke(EntityType.Boss); // 더미 값
+                _onTargetSelected?.Invoke(EntityType.Boss);
                 return;
             }
             
-            // Single 또는 MultiRandom의 경우
             for (int i = 0; i < _allEntities.Length; i++)
             {
                 var entity = _allEntities[i];
@@ -168,19 +208,17 @@ namespace UI
                         
                     case TargetSide.Ally:
                     case TargetSide.Allies:
-                        // 플레이어끼리는 아군, 보스는 자기만 아군
-                        if (casterIndex < 4) // 플레이어가 시전자
+                        if (casterIndex < 4)
                             isValidTarget = (i < 4 && i != casterIndex);
-                        else // 보스가 시전자
+                        else
                             isValidTarget = (i == casterIndex);
                         break;
                         
                     case TargetSide.Enemy:
                     case TargetSide.Enemies:
-                        // 플레이어는 보스가 적, 보스는 플레이어들이 적
-                        if (casterIndex < 4) // 플레이어가 시전자
+                        if (casterIndex < 4)
                             isValidTarget = (i == 4);
-                        else // 보스가 시전자
+                        else
                             isValidTarget = (i < 4);
                         break;
                         
@@ -196,21 +234,11 @@ namespace UI
             }
         }
 
-        /// <summary>
-        /// 타겟 인디케이터를 표시합니다
-        /// </summary>
         private void ShowTargetIndicators()
         {
             Debug.Log($"[TargetSelection] ShowTargetIndicators - Valid targets: {_validTargetIndices.Count}");
             ClearIndicators();
-    
-            // 프리팹 체크
-            if (_targetIndicatorPrefab == null)
-            {
-                Debug.LogWarning("Target Indicator Prefab is null! Creating default...");
-                CreateDefaultIndicatorPrefab();
-            }
-    
+            
             foreach (int index in _validTargetIndices)
             {
                 if (index < 0 || index >= _allEntities.Length)
@@ -218,131 +246,176 @@ namespace UI
                     Debug.LogError($"Invalid target index: {index}");
                     continue;
                 }
-        
+                
                 var entity = _allEntities[index];
                 if (entity == null) 
                 {
                     Debug.LogError($"Entity at index {index} is null!");
                     continue;
                 }
-        
-                // 인디케이터 생성
+                
                 var indicator = Instantiate(_targetIndicatorPrefab, transform);
                 if (indicator == null)
                 {
                     Debug.LogError("Failed to instantiate indicator!");
                     continue;
                 }
-        
+                
                 indicator.SetActive(true);
-        
-                // RectTransform 확인
-                if (!indicator.TryGetComponent<RectTransform>(out var rectTransform))
+                
+                var rectTransform = indicator.GetComponent<RectTransform>();
+                rectTransform.localScale = Vector3.one * _indicatorScale;
+                
+                var button = indicator.GetComponent<Button>();
+                if (button != null)
                 {
-                    rectTransform = indicator.AddComponent<RectTransform>();
+                    int capturedIndex = index;
+                    button.onClick.RemoveAllListeners();
+                    button.onClick.AddListener(() => OnIndicatorClicked(capturedIndex));
+                    
+                    var eventTrigger = indicator.AddComponent<UnityEngine.EventSystems.EventTrigger>();
+                    
+                    var pointerEnter = new UnityEngine.EventSystems.EventTrigger.Entry();
+                    pointerEnter.eventID = UnityEngine.EventSystems.EventTriggerType.PointerEnter;
+                    pointerEnter.callback.AddListener((data) => { OnIndicatorHover(capturedIndex, true); });
+                    eventTrigger.triggers.Add(pointerEnter);
+                    
+                    var pointerExit = new UnityEngine.EventSystems.EventTrigger.Entry();
+                    pointerExit.eventID = UnityEngine.EventSystems.EventTriggerType.PointerExit;
+                    pointerExit.callback.AddListener((data) => { OnIndicatorHover(capturedIndex, false); });
+                    eventTrigger.triggers.Add(pointerExit);
                 }
-        
+                
                 UpdateIndicatorPosition(indicator, entity);
+                
                 _targetIndicators[index] = indicator;
+                _targetButtons[index] = button;
             }
         }
 
-        /// <summary>
-        /// 인디케이터 위치를 업데이트합니다
-        /// </summary>
+        private void OnIndicatorClicked(int entityIndex)
+        {
+            if (!_isActive) return;
+            
+            Debug.Log($"[TargetSelection] Indicator clicked for entity index: {entityIndex}");
+            
+            int validIndex = _validTargetIndices.IndexOf(entityIndex);
+            if (validIndex >= 0)
+            {
+                _currentTargetIndex = validIndex;
+                ConfirmTarget();
+            }
+        }
+
+        private void OnIndicatorHover(int entityIndex, bool isHovering)
+        {
+            if (!_isActive) return;
+            if (!_targetIndicators.ContainsKey(entityIndex)) return;
+            
+            var indicator = _targetIndicators[entityIndex];
+            if (indicator.TryGetComponent<Image>(out var image))
+            {
+                if (entityIndex != _validTargetIndices[_currentTargetIndex])
+                {
+                    image.color = isHovering ? _hoverTargetColor : _validTargetColor;
+                }
+            }
+        }
+
         private void UpdateIndicatorPosition(GameObject indicator, BattleEntity entity)
         {
-            if (entity == null || indicator == null) 
-            {
-                Debug.LogError("Entity or Indicator is null!");
-                return;
-            }
-    
-            Canvas canvas = GetComponentInParent<Canvas>();
-            if (canvas == null)
-            {
-                Debug.LogError("Canvas not found!");
-                return;
-            }
-    
-            Camera mainCamera = Camera.main;
-            if (mainCamera == null)
-            {
-                Debug.LogError("Main Camera not found!");
-                return;
-            }
-    
-            Camera uiCamera = canvas.worldCamera;
-            if (uiCamera == null && canvas.renderMode == RenderMode.ScreenSpaceCamera)
-            {
-                Debug.LogError("UI Camera not assigned to Canvas!");
-                return;
-            }
-    
-            RectTransform indicatorRect = indicator.GetComponent<RectTransform>();
-            if (indicatorRect == null)
-            {
-                Debug.LogError("Indicator doesn't have RectTransform!");
-                return;
-            }
-    
-            // 이제 안전하게 위치 계산
+            if (entity == null || indicator == null) return;
+            
             Vector3 worldPos = entity.transform.position + Vector3.up * 2f;
-            Vector3 screenPos = mainCamera.WorldToScreenPoint(worldPos);
-    
+            Vector3 screenPos = Camera.main.WorldToScreenPoint(worldPos);
+            
             if (screenPos.z < 0)
             {
                 indicator.SetActive(false);
                 return;
             }
-    
+            
             indicator.SetActive(true);
-    
-            Vector2 localPoint;
-            RectTransformUtility.ScreenPointToLocalPointInRectangle(
-                canvas.GetComponent<RectTransform>(),
-                screenPos,
-                uiCamera,
-                out localPoint
-            );
-    
-            indicatorRect.anchoredPosition = localPoint;
+            
+            if (_parentCanvas.renderMode == RenderMode.ScreenSpaceCamera)
+            {
+                Vector2 localPoint;
+                RectTransformUtility.ScreenPointToLocalPointInRectangle(
+                    _canvasRectTransform,
+                    screenPos,
+                    _parentCanvas.worldCamera,
+                    out localPoint
+                );
+                
+                indicator.GetComponent<RectTransform>().anchoredPosition = localPoint;
+            }
+            else if (_parentCanvas.renderMode == RenderMode.ScreenSpaceOverlay)
+            {
+                indicator.GetComponent<RectTransform>().position = screenPos;
+            }
         }
 
-        /// <summary>
-        /// 현재 선택된 타겟을 하이라이트합니다
-        /// </summary>
         private void UpdateTargetHighlight()
         {
+            if (_pulseCoroutine != null)
+            {
+                StopCoroutine(_pulseCoroutine);
+            }
+            
             foreach (var kvp in _targetIndicators)
             {
                 if (kvp.Value.TryGetComponent<Image>(out var image))
                 {
-                    image.color = (kvp.Key == _validTargetIndices[_currentTargetIndex]) 
-                        ? _selectedTargetColor 
-                        : _validTargetColor;
+                    bool isSelected = (kvp.Key == _validTargetIndices[_currentTargetIndex]);
+                    image.color = isSelected ? _selectedTargetColor : _validTargetColor;
+                    
+                    var canvasGroup = kvp.Value.GetComponent<CanvasGroup>();
+                    if (canvasGroup != null)
+                    {
+                        canvasGroup.alpha = isSelected ? 1f : 0.7f;
+                    }
+                    
+                    if (isSelected)
+                    {
+                        _pulseCoroutine = StartCoroutine(PulseIndicator(kvp.Value));
+                    }
                 }
             }
         }
 
-        /// <summary>
-        /// 타겟 선택 입력을 처리합니다
-        /// </summary>
+        private IEnumerator PulseIndicator(GameObject indicator)
+        {
+            var rectTransform = indicator.GetComponent<RectTransform>();
+            float baseScale = _indicatorScale;
+            
+            while (_isActive && indicator != null)
+            {
+                float scale = baseScale + Mathf.Sin(Time.time * _pulseSpeed) * _pulseAmount;
+                rectTransform.localScale = Vector3.one * scale;
+                
+                var arrow = indicator.transform.Find("Arrow");
+                if (arrow != null)
+                {
+                    float bounce = Mathf.Sin(Time.time * _pulseSpeed * 2) * 10f;
+                    arrow.GetComponent<RectTransform>().anchoredPosition = new Vector2(0, -70 + bounce);
+                }
+                
+                yield return null;
+            }
+        }
+
         private IEnumerator HandleTargetSelectionInput()
         {
             while (_isActive)
             {
-                // 좌우 화살표로 타겟 변경
                 if (Input.GetKeyDown(KeyCode.LeftArrow) || Input.GetKeyDown(KeyCode.A))
                 {
-                    Debug.Log("[TargetSelection] Left arrow pressed");
                     SelectPreviousTarget();
                 }
                 else if (Input.GetKeyDown(KeyCode.RightArrow) || Input.GetKeyDown(KeyCode.D))
                 {
                     SelectNextTarget();
                 }
-                // 위아래 화살표로도 타겟 변경 (플레이어 파티의 경우)
                 else if (Input.GetKeyDown(KeyCode.UpArrow) || Input.GetKeyDown(KeyCode.W))
                 {
                     SelectPreviousTarget();
@@ -351,21 +424,13 @@ namespace UI
                 {
                     SelectNextTarget();
                 }
-                // Enter 또는 Space로 확정
                 else if (Input.GetKeyDown(KeyCode.Return) || Input.GetKeyDown(KeyCode.Space))
                 {
                     ConfirmTarget();
                 }
-                // ESC로 취소
                 else if (Input.GetKeyDown(KeyCode.Escape))
                 {
                     Cancel();
-                }
-                
-                // 마우스 클릭 처리
-                if (Input.GetMouseButtonDown(0))
-                {
-                    HandleMouseClick();
                 }
                 
                 yield return null;
@@ -389,34 +454,14 @@ namespace UI
             UpdateTargetHighlight();
         }
 
-        private void HandleMouseClick()
-        {
-            // 마우스 위치에서 레이캐스트
-            Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
-            if (Physics.Raycast(ray, out RaycastHit hit))
-            {
-                // 클릭한 오브젝트가 유효한 타겟인지 확인
-                var entity = hit.collider.GetComponent<BattleEntity>();
-                if (entity != null)
-                {
-                    int entityIndex = System.Array.IndexOf(_allEntities, entity);
-                    int validIndex = _validTargetIndices.IndexOf(entityIndex);
-                    
-                    if (validIndex >= 0)
-                    {
-                        _currentTargetIndex = validIndex;
-                        ConfirmTarget();
-                    }
-                }
-            }
-        }
-
         private void ConfirmTarget()
         {
             if (_validTargetIndices.Count > 0 && _currentTargetIndex < _validTargetIndices.Count)
             {
                 int selectedEntityIndex = _validTargetIndices[_currentTargetIndex];
                 EntityType selectedTarget = (EntityType)selectedEntityIndex;
+                
+                Debug.Log($"[TargetSelection] Target confirmed: {selectedTarget}");
                 
                 _isActive = false;
                 ClearIndicators();
@@ -427,6 +472,7 @@ namespace UI
 
         private void Cancel()
         {
+            Debug.Log("[TargetSelection] Selection cancelled");
             _isActive = false;
             ClearIndicators();
             _onCancelled?.Invoke();
@@ -434,22 +480,28 @@ namespace UI
 
         private void ClearIndicators()
         {
+            if (_pulseCoroutine != null)
+            {
+                StopCoroutine(_pulseCoroutine);
+                _pulseCoroutine = null;
+            }
+            
             foreach (var indicator in _targetIndicators.Values)
             {
                 if (indicator != null)
                     Destroy(indicator);
             }
             _targetIndicators.Clear();
+            _targetButtons.Clear();
         }
 
         private void Update()
         {
-            // 인디케이터 위치 지속적으로 업데이트 (카메라 이동 대응)
             if (_isActive)
             {
                 foreach (var kvp in _targetIndicators)
                 {
-                    if (kvp.Key < _allEntities.Length)
+                    if (kvp.Key < _allEntities.Length && _allEntities[kvp.Key] != null)
                     {
                         UpdateIndicatorPosition(kvp.Value, _allEntities[kvp.Key]);
                     }
@@ -460,7 +512,7 @@ namespace UI
         private void OnDestroy()
         {
             ClearIndicators();
-            if (_targetIndicatorPrefab != null && _targetIndicatorPrefab.transform.parent == null)
+            if (_targetIndicatorPrefab != null && _targetIndicatorPrefab.transform.parent == transform)
             {
                 Destroy(_targetIndicatorPrefab);
             }
