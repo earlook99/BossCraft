@@ -2023,6 +2023,7 @@ MonoBehaviour:
   - {fileID: 1962907172}
   - {fileID: 151399436}
   - {fileID: 653686870}
+  bossData: {fileID: 11400000, guid: 9cdfcd015267e83459642520104dfb32, type: 2}
   _testEffect: {fileID: 1780023157926200721, guid: c32dfe6bdf3deb749890acd3d26e4222, type: 3}
 --- !u!1 &1696047434
 GameObject:

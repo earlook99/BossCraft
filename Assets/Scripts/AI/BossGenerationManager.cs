@@ -1,5 +1,7 @@
 using System;
 using System.Collections;
+using Data;
+using GameSystem;
 using TMPro;
 using Unity.Plastic.Newtonsoft.Json;
 using UnityEngine;
@@ -14,37 +16,38 @@ namespace AI
         public string[] data;
         public GenerationParameters parameters;
     }
-    
+
     [Serializable]
     public class GenerationParameters
     {
         [Range(0.1f, 1.0f)]
         [JsonProperty("strength")]
         public float strength = 0.85f;
-    
+
         [Range(1.0f, 20.0f)]
         [JsonProperty("guidance_scale")]
         public float guidance_scale = 3.0f;  // JSON 키 이름과 일치하도록
-    
+
         [Range(10, 100)]
         [JsonProperty("inference_steps")]
         public int inference_steps = 40;     // JSON 키 이름과 일치하도록
-    
+
         [Range(0.0f, 1.0f)]
         [JsonProperty("lora_weight")]
         public float lora_weight = 0.7f;
-    
+
+        [TextArea(2, 4)]
+        [JsonProperty("prompt")]
+        public string prompt = "";
+
         [TextArea(2, 4)]
         [JsonProperty("negative_prompt")]
         public string negative_prompt = "realistic, photograph, human, normal animal";
-        
+
         [JsonProperty("seed")]
         public int seed = -1;
     }
-    
-    /// <summary>
-    /// 이미지 업로드 및 AI 보스 생성 테스트
-    /// </summary>
+
     public class BossGenerationManager : MonoBehaviour
     {
         [Header("UI References")]
@@ -52,62 +55,80 @@ namespace AI
         [SerializeField] private Button generateButton;
         [SerializeField] private Button returnButton;
         [SerializeField] private Button rerollButton;
+        [SerializeField] private Button confirmBossButton;
         [SerializeField] private RawImage originalImage;
         [SerializeField] private RawImage generatedImage;
         [SerializeField] private TextMeshProUGUI statusText;
         [SerializeField] private GameObject loadingIndicator;
-        
+        [SerializeField] private TMP_InputField bossNameField;
+
         [Header("Generation Parameters")]
         [SerializeField] private GenerationParameters parameters = new GenerationParameters();
-        
+
         [Header("Server Settings")]
         private string serverUrl = "";
-        
+
         private Texture2D uploadedTexture;
-        private bool isProcessing = false;
-        
+
+        // 상태 플래그
+        private bool isProcessing = false;       // 서버 요청 중 여부
+        private bool _hasName = false;           // 보스 이름을 입력했는지 여부
+        private bool _isImageLoaded = false;     // 이미지 로드 여부
+        private bool _hasGeneratedImage = false; // 보스 이미지를 생성했는지 여부
+
+        private Sprite bossSprite;
+        private string bossName = "";
+
         private void Awake()
         {
-            // Inspector에 값이 없으면 Config에서 가져오기
             if (string.IsNullOrEmpty(serverUrl))
             {
-                #if UNITY_EDITOR
-                    serverUrl = ServerConfig.HUGGINGFACE_URL;
-                #else
-                    serverUrl = "http://localhost:8000"; // 빌드 시 기본값
-                #endif
+#if UNITY_EDITOR
+                serverUrl = ServerConfig.HUGGINGFACE_URL;
+#else
+                serverUrl = "http://localhost:8000"; // 빌드 시 기본값
+#endif
             }
         }
-        
+
         private void Start()
         {
             selectImageButton.onClick.AddListener(SelectImage);
             generateButton.onClick.AddListener(GenerateBossImage);
             rerollButton.onClick.AddListener(GenerateBossImage);
-            
-            generateButton.interactable = false;
-            rerollButton.interactable = false;
+
+            bossNameField.onValueChanged.AddListener(OnBossNameChanged);
+
             if (loadingIndicator) loadingIndicator.SetActive(false);
-            
+
+            // 초기 UI 상태 설정 (처음엔 이미지X -> generate만 보이되 disable, reroll은 숨김)
+            _isImageLoaded = false;
+            _hasGeneratedImage = false;
+            UpdateUIState();
+
             UpdateStatus("Click 'Select Image' to start");
             Debug.Log($"Server URL: {serverUrl}");
-            
-            // 서버 웜업
+
             StartCoroutine(WarmupServer());
         }
-        
-        /// <summary>
-        /// 서버 웜업 - Cold Start 문제 해결
-        /// </summary>
+
+        private void OnBossNameChanged(string inputValue)
+        {
+            bossName = inputValue;
+            _hasName = !string.IsNullOrWhiteSpace(inputValue);
+
+            UpdateUIState();
+        }
+
         private IEnumerator WarmupServer()
         {
             UpdateStatus("Waking up server...");
-            
+
             using (UnityWebRequest www = UnityWebRequest.Get($"{serverUrl}/warmup"))
             {
-                www.timeout = 60; // Cold start는 시간이 더 걸림
+                www.timeout = 60;
                 yield return www.SendWebRequest();
-                
+
                 if (www.result == UnityWebRequest.Result.Success)
                 {
                     UpdateStatus("Server is ready! Select an image to start.");
@@ -120,39 +141,73 @@ namespace AI
                 }
             }
         }
-        
+
         /// <summary>
-        /// 이미지 선택 (간단한 테스트용)
+        /// UI 상태를 갱신:
+        ///  1) generateButton과 rerollButton은 SetActive로 “하나만” 보이도록  
+        ///  2) 나머지 버튼은 항상 보이되, 서버 요청 중이면 interactable만 꺼서 클릭 불가
+        ///  3) generateButton은 이미지가 로드되지 않았으면 비활성화, 로드되면 활성화
         /// </summary>
+        private void UpdateUIState()
+        {
+            // 1) selectImageButton / confirmBossButton / returnButton 은 항상 보임
+            selectImageButton.interactable = !isProcessing; 
+            returnButton.interactable       = !isProcessing; 
+            confirmBossButton.interactable  = (!isProcessing && _hasName && _hasGeneratedImage);
+
+            // 2) 보스 이미지 생성 전/후에 따라 generate <-> reroll 전환
+            if (_hasGeneratedImage)
+            {
+                // 보스가 이미 생성됨 → reroll 모드
+                generateButton.gameObject.SetActive(false);
+                rerollButton.gameObject.SetActive(true);
+                // 요청 중이면 클릭 막기
+                rerollButton.interactable = !isProcessing;
+            }
+            else
+            {
+                // 보스가 아직 미생성 → generate 모드
+                generateButton.gameObject.SetActive(true);
+                rerollButton.gameObject.SetActive(false);
+
+                // 이미지가 아직 없으면 generateButton은 비활성화
+                // 이미 있으면(업로드 후) 비활성화 해제
+                generateButton.interactable = (!isProcessing && _isImageLoaded);
+            }
+        }
+
         private void SelectImage()
         {
             if (isProcessing) return;
-            
-            // Unity 에디터에서 테스트용
-            #if UNITY_EDITOR
+
+#if UNITY_EDITOR
             string path = UnityEditor.EditorUtility.OpenFilePanel("Select Image", "", "png,jpg,jpeg");
             if (!string.IsNullOrEmpty(path))
             {
                 StartCoroutine(LoadImage(path));
             }
-            #else
-            // 빌드에서는 다른 방법 필요 (플러그인 사용 등)
+#else
             UpdateStatus("File selection not implemented for this platform");
-            #endif
+#endif
         }
-        
+
         private IEnumerator LoadImage(string path)
         {
             using (UnityWebRequest www = UnityWebRequestTexture.GetTexture("file://" + path))
             {
                 yield return www.SendWebRequest();
-                
+
                 if (www.result == UnityWebRequest.Result.Success)
                 {
                     uploadedTexture = DownloadHandlerTexture.GetContent(www);
                     originalImage.texture = uploadedTexture;
-                    generateButton.interactable = true;
+
+                    // 새 이미지를 불러왔으므로, 보스 이미지는 아직 없는 상태로 리셋
+                    _isImageLoaded = true;
+                    _hasGeneratedImage = false;
+
                     UpdateStatus("Image loaded! Click 'Generate' to create boss");
+                    UpdateUIState();
                 }
                 else
                 {
@@ -161,53 +216,44 @@ namespace AI
                 }
             }
         }
-        
-        /// <summary>
-        /// AI 서버에 이미지 생성 요청
-        /// </summary>
+
         private void GenerateBossImage()
         {
             if (uploadedTexture == null || isProcessing) return;
-            
             StartCoroutine(GenerateImageCoroutine());
         }
-        
+
         private IEnumerator GenerateImageCoroutine()
         {
             isProcessing = true;
+            UpdateUIState();
+
             if (loadingIndicator) loadingIndicator.SetActive(true);
-            generateButton.interactable = false;
-            selectImageButton.interactable = false;
-            returnButton.interactable = false;
-            rerollButton.interactable = false;
-    
+
             float startTime = Time.time;
             UpdateStatus("Connecting to server...");
 
-            // 이미지를 Base64로 인코딩
             byte[] imageBytes = uploadedTexture.EncodeToJPG(85);
             string base64Image = Convert.ToBase64String(imageBytes);
 
-            // 요청 데이터 생성
             var request = new BossGenerationRequest
             {
                 data = new string[] { $"data:image/jpeg;base64,{base64Image}" },
-                parameters = parameters  // Inspector에서 설정한 parameters 객체 그대로 사용
+                parameters = parameters
             };
-    
+
             var settings = new JsonSerializerSettings
             {
                 FloatFormatHandling = FloatFormatHandling.String,
                 FloatParseHandling = FloatParseHandling.Decimal,
-                Formatting = Formatting.None  // 압축된 JSON
+                Formatting = Formatting.None
             };
-    
+
             string json = JsonConvert.SerializeObject(request, settings);
-            Debug.Log($"Request JSON: {json}"); // 디버깅용
-    
+            Debug.Log($"Request JSON: {json}");
+
             byte[] jsonBytes = System.Text.Encoding.UTF8.GetBytes(json);
 
-            // API 호출
             using (UnityWebRequest www = new UnityWebRequest($"{serverUrl}/api/predict", "POST"))
             {
                 www.uploadHandler = new UploadHandlerRaw(jsonBytes);
@@ -216,9 +262,9 @@ namespace AI
                 www.timeout = 120;
 
                 Coroutine progressCoroutine = StartCoroutine(ShowProgress(startTime));
-        
+
                 yield return www.SendWebRequest();
-        
+
                 if (progressCoroutine != null)
                     StopCoroutine(progressCoroutine);
 
@@ -234,49 +280,38 @@ namespace AI
             }
 
             if (loadingIndicator) loadingIndicator.SetActive(false);
-            generateButton.interactable = true;
-            selectImageButton.interactable = true;
-            returnButton.interactable = true;
-            rerollButton.interactable = true;
+
             isProcessing = false;
+            UpdateUIState();
         }
-        
-        /// <summary>
-        /// 진행 시간 표시
-        /// </summary>
+
         private IEnumerator ShowProgress(float startTime)
         {
             int dotCount = 0;
-    
+
             while (true)
             {
                 float elapsed = Time.time - startTime;
-        
-                // 점 생성 (0~3개 반복)
                 string dots = new string('.', dotCount);
                 UpdateStatus($"Processing{dots}");
-        
-                // 0, 1, 2, 3, 0, 1, 2, 3... 반복
+
                 dotCount = (dotCount + 1) % 4;
-        
+
                 yield return new WaitForSeconds(0.5f);
             }
         }
-        
-        /// <summary>
-        /// 에러 처리 개선
-        /// </summary>
+
         private void HandleError(UnityWebRequest www)
         {
             if (www.responseCode == 0)
             {
                 UpdateStatus("Connection failed. Server might be starting up. Please try again in 30 seconds.");
-                Debug.LogError("No response from server - it might be sleeping or starting up");
+                Debug.LogError("No response from server");
             }
-            else if (www.error.Contains("timeout"))
+            else if (www.error != null && www.error.Contains("timeout"))
             {
                 UpdateStatus("Request timed out. The server might be busy. Please try again.");
-                Debug.LogError("Request timeout - server is taking too long");
+                Debug.LogError("Request timeout");
             }
             else if (www.responseCode >= 500)
             {
@@ -288,29 +323,22 @@ namespace AI
                 UpdateStatus($"Error: {www.error} (Code: {www.responseCode})");
                 Debug.LogError($"HTTP Status: {www.responseCode}");
             }
-            
+
             if (!string.IsNullOrEmpty(www.downloadHandler?.text))
             {
                 Debug.LogError("Response: " + www.downloadHandler.text);
             }
         }
-        
-        /// <summary>
-        /// Gradio 응답 처리
-        /// </summary>
+
         private void ProcessGradioResponse(string jsonResponse)
         {
             try
             {
-                // Gradio 응답 파싱
                 var response = JsonConvert.DeserializeObject<GradioResponse>(jsonResponse);
-                
+
                 if (response.data != null && response.data.Length >= 2)
                 {
-                    // 첫 번째 데이터: 이미지 (base64)
                     string imageData = response.data[0];
-                    
-                    // "data:image/png;base64," 프리픽스 제거
                     if (imageData.StartsWith("data:"))
                     {
                         int commaIndex = imageData.IndexOf(',');
@@ -319,39 +347,40 @@ namespace AI
                             imageData = imageData.Substring(commaIndex + 1);
                         }
                     }
-                    
-                    // Base64 디코딩
+
                     byte[] imageBytes = Convert.FromBase64String(imageData);
-                    Texture2D generatedTexture = new Texture2D(2, 2);
-                    generatedTexture.LoadImage(imageBytes);
-                    
-                    // 생성된 이미지 표시
-                    generatedImage.texture = generatedTexture;
-                    
-                    // 두 번째 데이터: 타입
+                    Texture2D generatedTexture2D = new Texture2D(2, 2);
+                    generatedTexture2D.LoadImage(imageBytes);
+
+                    generatedImage.texture = generatedTexture2D;
+
                     string elementType = response.data[1];
-                    
-                    // BLIP 설명 로그 출력
+
+                    // 디버깅용 로그들
                     if (!string.IsNullOrEmpty(response.blip_description))
                     {
                         Debug.Log($"<color=cyan>[BLIP Description]</color> {response.blip_description}");
                     }
-            
-                    // 사용된 프롬프트도 출력
                     if (!string.IsNullOrEmpty(response.prompt_used))
                     {
                         Debug.Log($"<color=yellow>[Generated Prompt]</color> {response.prompt_used}");
                     }
-            
-                    // 세 번째 데이터가 있으면 BLIP 설명 (하위 호환성)
                     if (response.data.Length >= 3)
                     {
                         string blipDesc = response.data[2];
                         Debug.Log($"<color=green>[BLIP from data array]</color> {blipDesc}");
                     }
-                    
-                    UpdateStatus($"Boss generated! Type: {elementType}");
+
+                    UpdateStatus("Boss generated!");
                     Debug.Log($"Generation took {response.duration:F2} seconds");
+
+                    bossSprite = Sprite.Create(
+                        generatedTexture2D,
+                        new Rect(0, 0, generatedTexture2D.width, generatedTexture2D.height),
+                        new Vector2(0.5f, 0.5f)
+                    );
+
+                    _hasGeneratedImage = true;
                 }
                 else
                 {
@@ -362,21 +391,27 @@ namespace AI
             catch (Exception e)
             {
                 UpdateStatus($"Failed to process response: {e.Message}");
-                Debug.LogError("Parse error: " + e);
-                Debug.LogError("Response was: " + jsonResponse);
+                Debug.LogError($"Parse error: {e}");
+                Debug.LogError($"Response was: {jsonResponse}");
             }
         }
-        
+
+        private void ConfirmBoss()
+        {
+            confirmBossButton.interactable = false;
+
+            // 임시로 Blaze 설정
+            BossContainer.Instance.CurrentBossSprite = bossSprite;
+            BossContainer.Instance.CurrentBossType   = ElementType.Blaze;
+            BossContainer.Instance.CurrentBossName   = bossName;
+        }
+
         private void UpdateStatus(string message)
         {
             if (statusText) statusText.text = message;
-            // Debug.Log($"[BossImageGenerator] {message}");
         }
     }
-    
-    /// <summary>
-    /// Gradio API 응답 구조
-    /// </summary>
+
     [Serializable]
     public class GradioResponse
     {
@@ -384,7 +419,7 @@ namespace AI
         public bool is_generating;
         public float duration;
         public float average_duration;
-        public string blip_description;  // 추가
-        public string prompt_used;       // 추가
+        public string blip_description;
+        public string prompt_used;
     }
 }

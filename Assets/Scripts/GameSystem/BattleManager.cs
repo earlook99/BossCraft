@@ -28,6 +28,7 @@ namespace GameSystem
         private BattleState _currentState;
 
         [SerializeField] private BattleEntity[] _entities = new BattleEntity[5];
+        
         public BattleEntity[] Entities => _entities;
 
         private const int PlayerCount = 4; 
@@ -43,6 +44,11 @@ namespace GameSystem
         private void Start()
         {
             _currentPlayerIndex = 0;
+
+            //_entities[4].EntityName = bossData.BossName;
+            // _entities[4].SpriteRenderer.sprite = bossData.BossSprite;
+            //_entities[4].ElementType = bossData.BossType;
+            
             OnEntitiesInitialized?.Invoke();
 
             ChangeBattleState(BattleState.PlayerChoice);

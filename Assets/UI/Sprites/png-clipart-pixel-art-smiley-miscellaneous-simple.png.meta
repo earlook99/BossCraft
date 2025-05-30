@@ -134,7 +134,8 @@ TextureImporter:
     secondaryTextures: []
     spriteCustomMetadata:
       entries: []
-    nameFileIdTable: {}
+    nameFileIdTable:
+      png-clipart-pixel-art-smiley-miscellaneous-simple_0: 990604036595623381
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 
