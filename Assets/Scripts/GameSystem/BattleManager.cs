@@ -96,6 +96,14 @@ namespace GameSystem
             SetSpriteAlphaExclusive(_currentPlayerIndex);
 
             var currentEntity = _entities[_currentPlayerIndex];
+            
+            if (currentEntity.IsStunned)
+            {
+                currentEntity.ReduceStunDuration();
+                StartCoroutine(ShowStunnedAndContinue(currentEntity));
+                return;
+            }
+            
             if (currentEntity.IsCharging)
             {
                 // 차지 공격
@@ -121,9 +129,28 @@ namespace GameSystem
 
         private IEnumerator ExecutePlayerAction(ActionData action)
         {
-            if (action.Action == ActionType.Move)
+            var source = _entities[(int)action.Source];
+    
+            if (source.IsGuarding)
             {
-                yield return StartCoroutine(PerformMove(action));
+                source.SetGuardState(false);
+            }
+    
+            switch (action.Action)
+            {
+                case ActionType.Move:
+                    yield return StartCoroutine(PerformMove(action));
+                    break;
+            
+                case ActionType.Guard:
+                    source.SetGuardState(true);
+                    yield return _uiManager.ShowBattleMessage($"{source.EntityName} takes a defensive stance!", 1f);
+                    break;
+            
+                case ActionType.Taunt:
+                    // TODO: Taunt 구현
+                    yield return _uiManager.ShowBattleMessage($"{source.EntityName} taunts the enemy!", 1f);
+                    break;
             }
 
             if (CheckBattleEnd()) 
@@ -132,7 +159,6 @@ namespace GameSystem
             _currentPlayerIndex++;
             if (_currentPlayerIndex >= PlayerCount)
             {
-                // 플레이어 4명 행동 종료 -> 보스
                 _currentPlayerIndex = 0;
                 _cameraManager.SwitchCameraTo(CineCamType.ZoomOut);
                 SetSpriteAlphaExclusive(-1);
@@ -193,8 +219,7 @@ namespace GameSystem
             var boss = _entities[(int)EntityType.Boss];
             var move = boss.GetMoveInstance(bossAction.ActionIndex);
             if (move == null) yield break;
-
-            move.UsageLeft--;
+            
             move.CooldownLeft = move.Data.Cooldown;
 
             yield return StartCoroutine(PerformMove(bossAction));
@@ -260,6 +285,24 @@ namespace GameSystem
             if (source.IsCharging)
             {
                 source.SetChargingState(false);
+            }
+        }
+        
+        private IEnumerator ShowStunnedAndContinue(BattleEntity entity)
+        {
+            yield return _uiManager.ShowBattleMessage($"{entity.EntityName} is stunned!", 1f);
+    
+            _currentPlayerIndex++;
+            if (_currentPlayerIndex >= PlayerCount)
+            {
+                _currentPlayerIndex = 0;
+                _cameraManager.SwitchCameraTo(CineCamType.ZoomOut);
+                SetSpriteAlphaExclusive(-1);
+                ChangeBattleState(BattleState.BossAction);
+            }
+            else
+            {
+                ChangeBattleState(BattleState.PlayerChoice);
             }
         }
 

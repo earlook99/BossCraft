@@ -35,7 +35,7 @@ namespace GameSystem
                 ref readonly MoveInstance move = ref moves[i];
 
                 // 사용 불가 상태면 스킵
-                if (move.CooldownLeft > 0 || move.UsageLeft == 0)
+                if (move.CooldownLeft > 0)
                     continue;
 
                 // MoveData를 평가: (스킬 유틸리티 + 최적의 타겟)
