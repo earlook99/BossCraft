@@ -45,6 +45,7 @@ namespace GameSystem
         
         private void Awake()
         {
+            Debug.Log("=== [UIManager] Awake ===");
             if (_battleManager == null)
             {
                 _battleManager = FindAnyObjectByType<BattleManager>();
@@ -78,13 +79,23 @@ namespace GameSystem
             { 
                 _battleMessageTextComponent = _battleInfo.GetComponentInChildren<TextMeshProUGUI>(); 
             }
-            
-            SetupBattleUI();
         }
         
         private void Start()
         {
+            Debug.Log("=== [UIManager] Start BEGIN ===");
             _currentPlayerIndex = 0;
+            
+            SetupBattleUI();
+    
+            // 추가 디버그
+            Debug.Log($"[UIManager] Start - _battleEntities set: {_battleEntities != null}");
+            if (_battleEntities != null)
+            {
+                Debug.Log($"[UIManager] Battle entities count: {_battleEntities.Length}");
+            }
+            
+            Debug.Log("=== [UIManager] Start END ===");
         }
         
         public void SetupBattleUI()
@@ -152,15 +163,34 @@ namespace GameSystem
         public void ShowActionMenuForCurrentPlayer(int currentPlayerIndex)
         {
             _currentPlayerIndex = currentPlayerIndex;
-            
+    
+            // null 체크 추가
+            if (_battleEntities == null)
+            {
+                Debug.LogError("_battleEntities is null! SetupBattleUI might not have been called.");
+                return;
+            }
+    
+            if (_currentPlayerIndex >= _battleEntities.Length)
+            {
+                Debug.LogError($"Invalid player index: {_currentPlayerIndex} >= {_battleEntities.Length}");
+                return;
+            }
+    
+            var playerEntity = _battleEntities[_currentPlayerIndex];
+            if (playerEntity == null)
+            {
+                Debug.LogError($"Player entity at index {_currentPlayerIndex} is null!");
+                return;
+            }
+    
             if (_actionMenuPanel)
             {
                 _actionMenuPanel.SetActive(true);
             }
-            
+    
             if (_actionMenuUI)
             {
-                var playerEntity = _battleEntities[_currentPlayerIndex];
                 _actionMenuUI.Setup(this, playerEntity, _currentPlayerIndex);
             }
         }

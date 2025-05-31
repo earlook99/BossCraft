@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Linq;
+using AI;
 using CameraSystem;
 using Data;
 using Entity;
@@ -41,17 +42,51 @@ namespace GameSystem
 
         [SerializeField] private GameObject _testEffect;
 
+        private void Awake()
+        {
+            Debug.Log("=== [BattleManager] Awake ===");
+        }
+
+        // BattleManager.cs의 Start() 메서드를 디버그 버전으로 수정
         private void Start()
         {
             _currentPlayerIndex = 0;
 
-            //_entities[4].EntityName = bossData.BossName;
-            // _entities[4].SpriteRenderer.sprite = bossData.BossSprite;
-            //_entities[4].ElementType = bossData.BossType;
-            
+            if (BossContainer.Instance != null && _entities[4] != null)
+            {
+                var boss = _entities[4];
+        
+                // byte array에서 텍스처와 스프라이트 생성
+                if (BossContainer.Instance.CurrentBossImageData != null)
+                {
+                    Texture2D bossTexture = new Texture2D(2, 2);
+                    if (bossTexture.LoadImage(BossContainer.Instance.CurrentBossImageData))
+                    {
+                        var newSprite = Sprite.Create(
+                            bossTexture,
+                            new Rect(0, 0, bossTexture.width, bossTexture.height),
+                            new Vector2(0.5f, 0.5f),
+                            0.7f
+                        );
+                
+                        var spriteRenderer = boss.GetComponentInChildren<SpriteRenderer>();
+                        if (spriteRenderer != null)
+                        {
+                            spriteRenderer.sprite = newSprite;
+                            spriteRenderer.enabled = true;
+                            spriteRenderer.color = Color.white;
+                            Debug.Log("[BattleManager] Sprite created from image data");
+                        }
+                    }
+                }
+        
+                if (!string.IsNullOrEmpty(BossContainer.Instance.CurrentBossName))
+                {
+                    boss.EntityName = BossContainer.Instance.CurrentBossName;
+                }
+            }
+    
             OnEntitiesInitialized?.Invoke();
-
-            ChangeBattleState(BattleState.PlayerChoice);
         }
 
         private void ChangeBattleState(BattleState newState)

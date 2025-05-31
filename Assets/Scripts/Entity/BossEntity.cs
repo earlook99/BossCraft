@@ -1,3 +1,6 @@
+using System;
+using System.Collections;
+using AI;
 using GameSystem;
 using UnityEngine;
 using Data;
@@ -18,10 +21,16 @@ namespace Entity
         public int ShieldStacks => _shieldStacks;
         public int MaxShieldStacks => _maxShieldStacks;
         public ShieldPattern ShieldPattern => _shieldPattern;
-        
+
+        private void Awake()
+        {
+            Debug.Log("=== [BossEntity] Awake ===");
+        }
+
         protected override void Start()
         {
             base.Start();
+    
             if (_shieldPattern != null)
             {
                 _shieldPattern.ResetTriggers();

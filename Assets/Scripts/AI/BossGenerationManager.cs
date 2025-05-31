@@ -110,9 +110,12 @@ namespace AI
         private bool _isImageLoaded = false;
         private bool _hasGeneratedImage = false;
         private bool _isServerReady = false; // 서버 준비 완료 상태 플래그 추가
+        private bool _hasConfirmedBoss = false;
 
         private Sprite bossSprite;
         private string bossName = "";
+        
+        private byte[] _tempImageData;
 
         private void Awake()
         {
@@ -224,24 +227,32 @@ namespace AI
         {
             bool canInteractWithServer = _isServerReady && !isProcessing;
 
-            selectImageButton.interactable = canInteractWithServer; // 서버 준비 전에는 이미지 선택도 막기 (선택 사항)
-                                                                // 또는 selectImageButton.interactable = !isProcessing; 로 유지 가능
-            returnButton.interactable       = !isProcessing;
-            confirmBossButton.interactable  = (canInteractWithServer && _hasName && _hasGeneratedImage);
+            selectImageButton.interactable = canInteractWithServer && !_hasConfirmedBoss;
+            returnButton.interactable = !isProcessing;
+    
+            // 보스 확정 후에는 confirm 버튼 비활성화
+            confirmBossButton.interactable = (canInteractWithServer && _hasName && _hasGeneratedImage && !_hasConfirmedBoss);
 
             if (_hasGeneratedImage)
             {
                 generateButton.gameObject.SetActive(false);
                 rerollButton.gameObject.SetActive(true);
-                rerollButton.interactable = canInteractWithServer;
+                rerollButton.interactable = canInteractWithServer && !_hasConfirmedBoss;
                 downloadButton.gameObject.SetActive(true);
+                downloadButton.interactable = true;  // 항상 활성화
             }
             else
             {
                 generateButton.gameObject.SetActive(true);
                 rerollButton.gameObject.SetActive(false);
-                generateButton.interactable = (canInteractWithServer && _isImageLoaded);
+                generateButton.interactable = (canInteractWithServer && _isImageLoaded && !_hasConfirmedBoss);
                 downloadButton.gameObject.SetActive(false);
+            }
+    
+            // 보스 확정 후 이름 필드도 비활성화
+            if (bossNameField != null)
+            {
+                bossNameField.interactable = !_hasConfirmedBoss;
             }
         }
         
@@ -455,7 +466,6 @@ namespace AI
             }
         }
 
-        // 메소드 이름을 ProcessServerResponse로 변경하고, GradioResponse 대신 실제 FastAPI 응답 구조에 맞는 클래스 사용
         private void ProcessServerResponse(string jsonResponse)
         {
             try
@@ -482,6 +492,9 @@ namespace AI
 
 
                     byte[] imageBytes = Convert.FromBase64String(imageData);
+
+                    _tempImageData = imageBytes;
+                    
                     Texture2D generatedTexture2D = new Texture2D(2, 2); // 초기 크기는 중요하지 않음, LoadImage가 실제 크기로 변경
                     if (!generatedTexture2D.LoadImage(imageBytes))
                     {
@@ -508,11 +521,12 @@ namespace AI
                     if (response.duration > 0) Debug.Log($"Generation took {response.duration:F2} seconds");
 
 
-                    if (bossSprite != null) Destroy(bossSprite.texture); // 이전 스프라이트의 텍스처도 해제
+                    if (bossSprite != null) Destroy(bossSprite.texture);
                     bossSprite = Sprite.Create(
                         generatedTexture2D,
                         new Rect(0, 0, generatedTexture2D.width, generatedTexture2D.height),
-                        new Vector2(0.5f, 0.5f)
+                        new Vector2(0.5f, 0.5f),
+                        0.7f  // pixelsPerUnit을 0.7로 설정
                     );
 
                     _hasGeneratedImage = true;
@@ -538,21 +552,22 @@ namespace AI
                 return;
             }
 
-            // confirmBossButton.interactable = false; // UpdateUIState에서 관리
-
-            // BossContainer는 예시이며, 실제 프로젝트의 GameManager나 데이터 저장소로 대체 필요
             if (BossContainer.Instance != null)
             {
-                BossContainer.Instance.CurrentBossSprite = bossSprite;
-                // BossContainer.Instance.CurrentBossType = ElementType.Blaze; // 실제 파싱된 타입으로 설정 필요
-                BossContainer.Instance.CurrentBossName   = bossName;
-                Debug.Log($"Boss {bossName} confirmed with sprite and type.");
-                // 씬 전환 또는 다음 단계 로직
-                // UnityEngine.SceneManagement.SceneManager.LoadScene("NextSceneName");
+                BossContainer.Instance.CurrentBossImageData = _tempImageData;
+                BossContainer.Instance.CurrentBossName = bossName;
+        
+                Debug.Log($"Boss {bossName} confirmed with sprite.");
+        
+                UpdateStatus($"Boss '{bossName}' has been created! Return to main menu and start the game.");
+        
+                _hasConfirmedBoss = true;
+                UpdateUIState();
             }
             else
             {
                 Debug.LogError("BossContainer.Instance is null. Cannot save boss data.");
+                UpdateStatus("Error: Failed to save boss data.");
             }
         }
 

@@ -16,7 +16,6 @@ namespace Entity
         [Header("Basic Information")]
         public string EntityName;
         public ElementType ElementType;
-        public Sprite EntitySprite;
 
         private SpriteRenderer _spriteRenderer;
         public SpriteRenderer SpriteRenderer => _spriteRenderer;
@@ -54,24 +53,38 @@ namespace Entity
         
         protected virtual void Start()
         {
+            Debug.Log($"=== [BattleEntity] Start - {EntityName} ===");
             Initialize();
         }
         
         public void Initialize()
         {
+            Debug.Log($"=== [BattleEntity] Initialize BEGIN - {EntityName} ===");
             CurrentHP = MaxHP;
 
             _moveInstances = MoveSet
                 .Select(so => new MoveInstance(so))
                 .ToArray();
 
-            _spriteRenderer = GetComponent<SpriteRenderer>();
+            // GetComponent가 아닌 GetComponentInChildren 사용!
+            _spriteRenderer = GetComponentInChildren<SpriteRenderer>();
+    
+            // 디버그 로그 추가
+            Debug.Log($"[{EntityName}] SpriteRenderer found: {_spriteRenderer != null}");
+    
             if (_spriteRenderer && this is not BossEntity)
             {
                 var newColor = _spriteRenderer.color;
                 newColor.a = 0.1f;
                 _spriteRenderer.color = newColor;
             }
+    
+            // BossEntity인 경우 스프라이트 확인
+            if (_spriteRenderer && this is BossEntity)
+            {
+                Debug.Log($"[Boss] Sprite assigned: {_spriteRenderer.sprite != null}");
+            }
+            Debug.Log($"=== [BattleEntity] Initialize END - SpriteRenderer: {_spriteRenderer != null}, Sprite: {_spriteRenderer?.sprite != null} ===");
         }
         
         public ref MoveInstance GetMoveInstance(int index)
