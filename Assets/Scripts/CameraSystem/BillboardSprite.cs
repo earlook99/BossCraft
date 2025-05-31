@@ -16,8 +16,6 @@ namespace CameraSystem
 
         private void LateUpdate()
         {
-            // transform.LookAt(transform.position + camTransform.forward, camTransform.up);
-            
             transform.forward = _camTransform.forward;
         }
     }

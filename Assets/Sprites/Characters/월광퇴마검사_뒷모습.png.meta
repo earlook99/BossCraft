@@ -37,7 +37,7 @@ TextureImporter:
   maxTextureSize: 2048
   textureSettings:
     serializedVersion: 2
-    filterMode: 1
+    filterMode: 0
     aniso: 1
     mipBias: 0
     wrapU: 1
@@ -75,7 +75,7 @@ TextureImporter:
     maxTextureSize: 2048
     resizeAlgorithm: 0
     textureFormat: -1
-    textureCompression: 1
+    textureCompression: 0
     compressionQuality: 50
     crunchedCompression: 0
     allowsAlphaSplitting: 0
@@ -108,12 +108,49 @@ TextureImporter:
         width: 1024
         height: 1470
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
-      outline: []
+      outline:
+      - - {x: -32, y: -603}
+        - {x: -77, y: -527}
+        - {x: 3, y: -169}
+        - {x: 12, y: -377}
+        - {x: 54, y: -643}
+        - {x: 253, y: -643}
+        - {x: 276, y: -603}
+        - {x: 168, y: -493}
+        - {x: 169, y: -77}
+        - {x: 217, y: -83}
+        - {x: 249, y: -41}
+        - {x: 235, y: 145}
+        - {x: 271, y: 161}
+        - {x: 262, y: 213}
+        - {x: 428, y: 563}
+        - {x: 428, y: 699}
+        - {x: 370, y: 699}
+        - {x: 366, y: 697}
+        - {x: 188, y: 381}
+        - {x: 159, y: 413}
+        - {x: 173, y: 639}
+        - {x: 134, y: 699}
+        - {x: -56, y: 699}
+        - {x: -82, y: 676}
+        - {x: -143, y: 501}
+        - {x: -179, y: 510}
+        - {x: -218, y: 433}
+        - {x: -218, y: 287}
+        - {x: -164, y: 145}
+        - {x: -191, y: -66}
+        - {x: -173, y: -87}
+        - {x: -130, y: -223}
+        - {x: -160, y: -285}
+        - {x: -202, y: -517}
+        - {x: -185, y: -641}
+        - {x: -179, y: -643}
+        - {x: -129, y: -643}
       physicsShape: []
-      tessellationDetail: -1
+      tessellationDetail: 0.033
       bones: []
       spriteID: b4a09d90d6e51bb10800000000000000
       internalID: 1995479932311505483
@@ -125,7 +162,7 @@ TextureImporter:
     customData: 
     physicsShape: []
     bones: []
-    spriteID: 
+    spriteID: 3359bd682deb9ec40bbc31ceac25845f
     internalID: 0
     vertices: []
     indices: 

@@ -1,10 +1,13 @@
 fileFormatVersion: 2
-guid: 43639a109f4290943a665cc221baf0c3
+guid: a26d944772173f047b23d04213f1150f
 TextureImporter:
   internalIDToNameTable:
   - first:
-      213: 4381782728895302776
-    second: "\uD0DC\uC591\uC758\uBB34\uC2B9_\uC804\uC2E0_0"
+      213: 2208283401970347595
+    second: pixel-art-download-set-icon_735839-38-removebg-preview (1)_0
+  - first:
+      213: 5114422075597731692
+    second: pixel-art-download-set-icon_735839-38-removebg-preview (1)_1
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -37,7 +40,7 @@ TextureImporter:
   maxTextureSize: 2048
   textureSettings:
     serializedVersion: 2
-    filterMode: 0
+    filterMode: 1
     aniso: 1
     mipBias: 0
     wrapU: 1
@@ -46,7 +49,7 @@ TextureImporter:
   nPOTScale: 0
   lightmap: 0
   compressionQuality: 50
-  spriteMode: 2
+  spriteMode: 1
   spriteExtrude: 1
   spriteMeshType: 1
   alignment: 0
@@ -75,7 +78,7 @@ TextureImporter:
     maxTextureSize: 2048
     resizeAlgorithm: 0
     textureFormat: -1
-    textureCompression: 0
+    textureCompression: 1
     compressionQuality: 50
     crunchedCompression: 0
     allowsAlphaSplitting: 0
@@ -100,13 +103,13 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: "\uD0DC\uC591\uC758\uBB34\uC2B9_\uC804\uC2E0_0"
+      name: pixel-art-download-set-icon_735839-38-removebg-preview (1)_0
       rect:
         serializedVersion: 2
-        x: 0
-        y: 0
-        width: 1024
-        height: 1531
+        x: 8
+        y: 48
+        width: 113
+        height: 122
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -115,8 +118,30 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 87c0fbe1d283fcc30800000000000000
-      internalID: 4381782728895302776
+      spriteID: b4e65d9dd0665ae10800000000000000
+      internalID: 2208283401970347595
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: pixel-art-download-set-icon_735839-38-removebg-preview (1)_1
+      rect:
+        serializedVersion: 2
+        x: 16
+        y: 6
+        width: 106
+        height: 37
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c673b67c7c31af640800000000000000
+      internalID: 5114422075597731692
       vertices: []
       indices: 
       edges: []
@@ -125,7 +150,7 @@ TextureImporter:
     customData: 
     physicsShape: []
     bones: []
-    spriteID: 
+    spriteID: 5e97eb03825dee720800000000000000
     internalID: 0
     vertices: []
     indices: 
@@ -135,7 +160,8 @@ TextureImporter:
     spriteCustomMetadata:
       entries: []
     nameFileIdTable:
-      "\uD0DC\uC591\uC758\uBB34\uC2B9_\uC804\uC2E0_0": 4381782728895302776
+      pixel-art-download-set-icon_735839-38-removebg-preview (1)_0: 2208283401970347595
+      pixel-art-download-set-icon_735839-38-removebg-preview (1)_1: 5114422075597731692
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

@@ -1,10 +1,10 @@
 fileFormatVersion: 2
-guid: 43639a109f4290943a665cc221baf0c3
+guid: 3c4a4e1044819c0489f9e85c5e469b40
 TextureImporter:
   internalIDToNameTable:
   - first:
-      213: 4381782728895302776
-    second: "\uD0DC\uC591\uC758\uBB34\uC2B9_\uC804\uC2E0_0"
+      213: 5082080497050073770
+    second: pixel-art-circle-and-filled-circle-icon-vector-removebg-preview (1)_0
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -37,7 +37,7 @@ TextureImporter:
   maxTextureSize: 2048
   textureSettings:
     serializedVersion: 2
-    filterMode: 0
+    filterMode: 1
     aniso: 1
     mipBias: 0
     wrapU: 1
@@ -75,7 +75,7 @@ TextureImporter:
     maxTextureSize: 2048
     resizeAlgorithm: 0
     textureFormat: -1
-    textureCompression: 0
+    textureCompression: 1
     compressionQuality: 50
     crunchedCompression: 0
     allowsAlphaSplitting: 0
@@ -100,13 +100,13 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: "\uD0DC\uC591\uC758\uBB34\uC2B9_\uC804\uC2E0_0"
+      name: pixel-art-circle-and-filled-circle-icon-vector-removebg-preview (1)_0
       rect:
         serializedVersion: 2
-        x: 0
-        y: 0
-        width: 1024
-        height: 1531
+        x: 3
+        y: 8
+        width: 213
+        height: 187
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -115,8 +115,8 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 87c0fbe1d283fcc30800000000000000
-      internalID: 4381782728895302776
+      spriteID: aaa3c9a394d278640800000000000000
+      internalID: 5082080497050073770
       vertices: []
       indices: 
       edges: []
@@ -134,8 +134,7 @@ TextureImporter:
     secondaryTextures: []
     spriteCustomMetadata:
       entries: []
-    nameFileIdTable:
-      "\uD0DC\uC591\uC758\uBB34\uC2B9_\uC804\uC2E0_0": 4381782728895302776
+    nameFileIdTable: {}
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

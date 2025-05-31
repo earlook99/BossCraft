@@ -25,10 +25,8 @@ namespace CameraSystem
     public class CameraManager : MonoBehaviour
     {
         [SerializeField] private UnityEngine.Camera mainCamera;
-        [SerializeField] private UnityEngine.Camera bossCamera;
 
         public UnityEngine.Camera MainCamera => mainCamera;
-        public UnityEngine.Camera BossCamera => bossCamera;
         
         [SerializeField] private List<CamMapping> camMappings;
         
