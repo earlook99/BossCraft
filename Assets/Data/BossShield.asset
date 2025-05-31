@@ -10,17 +10,17 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: c7080a18dee88af47baae11fd18048d9, type: 3}
-  m_Name: TestMove 1
+  m_Name: BossShield
   m_EditorClassIdentifier: 
-  Name: TestMove1
+  Name: Shield
   Category: 0
-  AllowedTargetSide: 3
+  AllowedTargetSide: 0
   Type: 0
-  Cooldown: 2
+  Cooldown: 0
   RequiresCharge: 0
   Effects:
-  - EffectType: 0
-    Power: 8
+  - EffectType: 7
+    Power: 1
     BuffsType: 0
     Accuracy: 1
     CritChance: 0

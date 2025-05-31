@@ -46,8 +46,8 @@ namespace Data
         Debuff,
         ClearOppBuff,
         ClearSelfDebuff,
-        Stun
-        // ... 추가 가능
+        Stun,
+        Shield
     }
 
     public enum BuffsType

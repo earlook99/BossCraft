@@ -24,6 +24,22 @@ namespace GameSystem
         /// </summary>
         public MoveDecision Decide()
         {
+            if (_boss is BossEntity bossEntity)
+            {
+                var trigger = bossEntity.GetAvailableShieldTrigger(
+                    UnityEngine.Object.FindObjectOfType<BattleManager>()?.TurnCount ?? 0
+                );
+        
+                if (trigger != null && !bossEntity.HasShield)
+                {
+                    int shieldMoveIndex = GetShieldMoveIndex();
+                    if (shieldMoveIndex >= 0)
+                    {
+                        return new MoveDecision(shieldMoveIndex, EntityType.Boss, 1000f);
+                    }
+                }
+            }
+            
             MoveDecision best = default;
             MoveDecision second = default;
             MoveDecision third = default;
@@ -59,6 +75,26 @@ namespace GameSystem
                 return second;
             else
                 return third;
+        }
+        
+        private int GetShieldMoveIndex()
+        {
+            ReadOnlySpan<MoveInstance> moves = _boss.MoveInstances;
+            for (int i = 0; i < moves.Length; i++)
+            {
+                var effects = moves[i].Data.Effects;
+                for (int j = 0; j < effects.Length; j++)
+                {
+                    if (effects[j].EffectType == MoveEffectType.Shield)
+                    {
+                        if (moves[i].CooldownLeft <= 0)
+                        {
+                            return i;
+                        }
+                    }
+                }
+            }
+            return -1;
         }
 
         /// <summary>

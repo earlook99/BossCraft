@@ -52,7 +52,7 @@ namespace Entity
         public float AtkBuffMultiplier = 1f;
         public float DefBuffMultiplier = 1f;
         
-        void Start()
+        protected virtual void Start()
         {
             Initialize();
         }
@@ -97,7 +97,7 @@ namespace Entity
             return damage;
         }
         
-        public void TakeDamage(ElementType moveType, int damage)
+        public virtual void TakeDamage(ElementType moveType, int damage)
         {
             int finalDamage = Mathf.RoundToInt(damage * GetDefenseFactor() * GetWeaknessFactor(moveType));
             finalDamage = Mathf.Max(finalDamage, 1);

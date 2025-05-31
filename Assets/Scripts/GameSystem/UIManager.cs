@@ -10,38 +10,35 @@ using Data;
 
 namespace GameSystem
 {
-    /// <summary>
-    /// Manages the user interface for the battle system.
-    /// This includes displaying character statuses, action menus, and battle messages.
-    /// </summary>
     public class UIManager : MonoBehaviour
     {
         [Header("References")]
         [SerializeField] private BattleManager _battleManager;
 
         [Header("UI Containers")]
-        [SerializeField] private RectTransform _bossArea; // Parent transform for boss status UI
-        [SerializeField] private RectTransform _partyArea; // Parent transform for player party status UIs
+        [SerializeField] private RectTransform _bossArea;
+        [SerializeField] private RectTransform _partyArea;
 
         [Header("Action Menu")]
-        [SerializeField] private GameObject _actionMenuPanel; // The panel GameObject holding the action menu
-        [SerializeField] private ActionMenuUI _actionMenuUI; // The script component for the action menu
+        [SerializeField] private GameObject _actionMenuPanel;
+        [SerializeField] private ActionMenuUI _actionMenuUI;
 
         [Header("Target Selection")]
-        [SerializeField] private TargetSelectionUI _targetSelectionUI; // 타겟 선택 UI
+        [SerializeField] private TargetSelectionUI _targetSelectionUI;
 
         [Header("Other UI")]
-        [SerializeField] private GameObject _battleInfo; // GameObject used to display battle messages. Battle messages, etc.
+        [SerializeField] private GameObject _battleInfo;
         [SerializeField] private BattleEndUI _battleEndUI;
 
         [Header("Prefabs")]
-        [SerializeField] private CharacterStatusUI _characterStatusPrefab; // Prefab for character status UI elements
+        [SerializeField] private CharacterStatusUI _playerStatusPrefab; // 플레이어용 프리팹
+        [SerializeField] private CharacterStatusUI _bossStatusPrefab;   // 보스용 프리팹
 
-        private Dictionary<int, CharacterStatusUI> _entityStatusUIs = new Dictionary<int, CharacterStatusUI>(); // Cache for instantiated status UIs
-        private BattleEntity[] _battleEntities; // Cache for battle entities
-        private TextMeshProUGUI _battleMessageTextComponent; // Cached TextMeshProUGUI component for battle messages
+        private Dictionary<int, CharacterStatusUI> _entityStatusUIs = new Dictionary<int, CharacterStatusUI>();
+        private BattleEntity[] _battleEntities;
+        private TextMeshProUGUI _battleMessageTextComponent;
 
-        private int _currentPlayerIndex; // Index of the player character whose turn it is to act
+        private int _currentPlayerIndex;
         
         private ActionType _pendingActionType;
         private int _pendingActionIndex;
@@ -53,18 +50,15 @@ namespace GameSystem
                 _battleManager = FindAnyObjectByType<BattleManager>();
             }
             
-            // TargetSelectionUI가 없으면 생성
             if (_targetSelectionUI == null)
             {
                 _targetSelectionUI = GetComponentInChildren<TargetSelectionUI>(true);
             
                 if (_targetSelectionUI == null)
                 {
-                    // 자식에 없으면 생성
                     var targetSelectionGO = new GameObject("TargetSelectionUI");
                     targetSelectionGO.transform.SetParent(transform, false);
                 
-                    // RectTransform 설정
                     var rect = targetSelectionGO.AddComponent<RectTransform>();
                     rect.anchorMin = Vector2.zero;
                     rect.anchorMax = Vector2.one;
@@ -75,7 +69,6 @@ namespace GameSystem
                 }
             }
             
-            // Deactivate action menu initially
             if (_actionMenuPanel != null)
             {
                 _actionMenuPanel.SetActive(false);
@@ -86,32 +79,27 @@ namespace GameSystem
                 _battleMessageTextComponent = _battleInfo.GetComponentInChildren<TextMeshProUGUI>(); 
             }
             
-            // Initial setup for battle UI
             SetupBattleUI();
         }
         
         private void Start()
         {
             _currentPlayerIndex = 0;
-            
-            // TargetSelectionUI 초기화
-            if (_targetSelectionUI != null && _battleEntities != null)
-            {
-                _targetSelectionUI.Setup(this, _battleEntities);
-            }
         }
         
         public void SetupBattleUI()
         {
             CleanupExistingUI();
 
-            // Get entity array from BattleManager
             _battleEntities = _battleManager.Entities;
             
-            // Create Boss UI
             CreateBossStatusUI();
-            // Create Player Party UI
             CreatePartyStatusUIs();
+            
+            if (_targetSelectionUI != null && _battleEntities != null)
+            {
+                _targetSelectionUI.Setup(this, _battleEntities);
+            }
         }
         
         private void CleanupExistingUI()
@@ -129,13 +117,13 @@ namespace GameSystem
         private void CreateBossStatusUI()
         {
             var bossEntity = _battleEntities[(int)EntityType.Boss];
-            if (bossEntity == null || _bossArea == null || _characterStatusPrefab == null)
+            if (bossEntity == null || _bossArea == null || _bossStatusPrefab == null)
             {
+                Debug.LogError("Boss setup failed: Entity, Area, or Prefab is missing!");
                 return;
             }
 
-            // Instantiate Prefab -> Attach to Boss Area
-            var statusUI = Instantiate(_characterStatusPrefab, _bossArea);
+            var statusUI = Instantiate(_bossStatusPrefab, _bossArea);
             statusUI.Setup(bossEntity, (int)EntityType.Boss);
 
             _entityStatusUIs.Add((int)EntityType.Boss, statusUI);
@@ -143,18 +131,18 @@ namespace GameSystem
         
         private void CreatePartyStatusUIs()
         {
-            if (_partyArea == null || _characterStatusPrefab == null)
+            if (_partyArea == null || _playerStatusPrefab == null)
             {
+                Debug.LogError("Party setup failed: Area or Prefab is missing!");
                 return;
             }
 
-            // 4 characters (Character1~4)
             for (int i = 0; i < 4; i++)
             {
                 var entity = _battleEntities[i];
                 if (entity == null) continue;
 
-                var statusUI = Instantiate(_characterStatusPrefab, _partyArea);
+                var statusUI = Instantiate(_playerStatusPrefab, _partyArea);
                 statusUI.Setup(entity, i);
 
                 _entityStatusUIs.Add(i, statusUI);
@@ -173,15 +161,12 @@ namespace GameSystem
             if (_actionMenuUI)
             {
                 var playerEntity = _battleEntities[_currentPlayerIndex];
-                
-                // turnCount, etc., are examples
                 _actionMenuUI.Setup(this, playerEntity, _currentPlayerIndex);
             }
         }
         
         public void OnActionSelect(ActionType actionType, int actionIndex)
         {
-            // 액션 메뉴를 일단 숨김
             if (_actionMenuPanel != null)
             {
                 _actionMenuPanel.SetActive(false);
@@ -190,7 +175,6 @@ namespace GameSystem
             _pendingActionType = actionType;
             _pendingActionIndex = actionIndex;
             
-            // Move 타입이면 타겟 선택이 필요할 수 있음
             if (actionType == ActionType.Move)
             {
                 var playerEntity = _battleEntities[_currentPlayerIndex];
@@ -198,14 +182,12 @@ namespace GameSystem
                 
                 if (moveData != null)
                 {
-                    // AOE는 타겟 선택 없이 바로 실행
                     if (moveData.Category == MoveCategory.AOE)
                     {
-                        CompleteActionWithTarget(EntityType.Boss); // 더미 타겟
+                        CompleteActionWithTarget(EntityType.Boss);
                     }
                     else
                     {
-                        // 타겟 선택 시작
                         StartTargetSelection(moveData);
                     }
                 }
@@ -216,8 +198,7 @@ namespace GameSystem
             }
             else
             {
-                // Guard, Taunt 등은 타겟 선택 없이 바로 실행
-                CompleteActionWithTarget(EntityType.Boss); // 더미 타겟
+                CompleteActionWithTarget(EntityType.Boss);
             }
         }
         
@@ -239,7 +220,6 @@ namespace GameSystem
         
         private void OnTargetSelectionCancelled()
         {
-            // 액션 메뉴로 돌아가기
             ShowActionMenuForCurrentPlayer(_currentPlayerIndex);
         }
         
@@ -254,23 +234,13 @@ namespace GameSystem
             _battleManager.ReceivePlayerChoice(newAction);
         }
         
-        private void StartBossTurn()
-        {
-            // Hide player action menu
-            if (_actionMenuPanel != null)
-            {
-                _actionMenuPanel.SetActive(false);
-            }
-        }
-        
         public IEnumerator ShowBattleMessage(string message, float duration = 2f)
         {
             if (_battleMessageTextComponent != null)
             {
                 _battleMessageTextComponent.text = message;
-                if (_battleInfo != null) _battleInfo.SetActive(true); // Show the parent GameObject
+                if (_battleInfo != null) _battleInfo.SetActive(true);
                 yield return new WaitForSeconds(duration);
-                // if (_battleInfo != null) _battleInfo.SetActive(false); // Hide after duration
             }
         }
         
@@ -288,6 +258,22 @@ namespace GameSystem
             }
 
             _entityStatusUIs[entityIndex].UpdateHP(endHP);
+        }
+        
+        public void UpdateShieldUI(BossEntity boss)
+        {
+            if (_entityStatusUIs.TryGetValue((int)EntityType.Boss, out var statusUI))
+            {
+                statusUI.UpdateShield(boss.ShieldStacks, boss.MaxShieldStacks, boss.ShieldHP);
+            }
+        }
+        
+        public void AnimateShieldConversion(BossEntity boss, int previousHP)
+        {
+            if (_entityStatusUIs.TryGetValue((int)EntityType.Boss, out var statusUI))
+            {
+                statusUI.AnimateShieldConversion(previousHP, boss.CurrentHP, boss.ShieldHP);
+            }
         }
         
         public void ShowBattleEndScreen(bool isVictory)

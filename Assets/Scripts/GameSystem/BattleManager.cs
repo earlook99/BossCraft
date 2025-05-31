@@ -381,6 +381,9 @@ namespace GameSystem
                 case MoveEffectType.Debuff:
                     yield return ApplyDebuffEffect(source, target, eff);
                     break;
+                case MoveEffectType.Shield:
+                    yield return ApplyShieldEffect(source, target, eff);
+                    break;
                 // Add more if needed: Stun, ClearBuff, etc.
                 default:
                     Debug.Log($"Unhandled effect: {eff.EffectType}");
@@ -471,6 +474,31 @@ namespace GameSystem
             }
 
             yield return SpawnMoveVFX(source, target, 2f);
+        }
+        
+        private IEnumerator ApplyShieldEffect(BattleEntity source, BattleEntity target, MoveEffect eff)
+        {
+            if (target is BossEntity boss)
+            {
+                int previousHP = boss.CurrentHP;
+                var trigger = boss.GetAvailableShieldTrigger(_turnCount);
+        
+                if (trigger != null)
+                {
+                    boss.ActivateShield(trigger);
+            
+                    yield return _uiManager.ShowBattleMessage(
+                        $"{boss.EntityName} activates shield!", 
+                        1.5f
+                    );
+            
+                    // UIManager를 통해 애니메이션 호출
+                    _uiManager.AnimateShieldConversion(boss, previousHP);
+                    yield return new WaitForSeconds(0.5f);
+            
+                    yield return SpawnMoveVFX(source, target, 2f);
+                }
+            }
         }
 
         // ------------------ UI & ETC. ------------------ //
