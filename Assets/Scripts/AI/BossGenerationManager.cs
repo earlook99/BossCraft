@@ -57,27 +57,31 @@ namespace AI
         [JsonProperty("seed")]
         public int seed = -1;
     }
+    
+    [Serializable]
+    public class ParametersUsed // 서버가 반환하는 parameters_used 필드를 위한 클래스
+    {
+        public float strength;
+        public float guidance_scale;
+        public int inference_steps;
+        public float lora_weight;
+        public int seed;
+        public string intended_type_pass1; // 👈 1단계 의도된 타입
+        public string observed_type_pass2; // 👈 2단계 관찰된 타입
+        public string final_type_decision; // 👈 최종 결정된 타입
+    }
 
     // 서버의 /api/predict 경로 응답을 위한 클래스 (기존 유지, 필요시 FastAPI 응답과 정확히 일치하도록 검토)
     [Serializable]
-    public class GradioResponse // 클래스 이름이 GradioResponse로 되어 있으나, 실제 FastAPI 응답 구조에 맞게 필드 조정 필요
+    public class ServerPredictResponse // GradioResponse 대신 좀 더 명확한 이름으로 변경 (선택 사항)
     {
-        public string[] data;
-        // is_generating, average_duration, blip_description, prompt_used 등은
-        // FastAPI 서버의 실제 응답에 맞춰 추가/제거/수정해야 합니다.
-        // 예시: public string caption; public string pokemon_type;
+        public string[] data; // [0]: base64 image, [1]: type string for display, [2]: original caption from GPT pass 1
+        public string caption; // The keyword caption from GPT Pass 1
+        public string pokemon_type; // The final decided type
         public float duration;
-
-        // FastAPI 응답에 맞게 추가/수정 필요한 필드들 (예시)
-        public string caption; // FastAPI 응답에 있는 'caption' 필드
-        public string pokemon_type; // FastAPI 응답에 있는 'pokemon_type' 필드
-        // public bool is_generating; // FastAPI 응답에 없다면 제거 또는 주석 처리
-        // public float average_duration; // FastAPI 응답에 없다면 제거 또는 주석 처리
-        // public string blip_description; // FastAPI 응답에 없다면 제거 또는 주석 처리
-        // public string prompt_used; // FastAPI 응답에 없다면 제거 또는 주석 처리
+        public ParametersUsed parameters_used; // 👈 추가된 필드
     }
-
-
+    
     public class BossGenerationManager : MonoBehaviour
     {
         [Header("UI References")]
@@ -465,86 +469,80 @@ namespace AI
                 Debug.LogError($"Error Response Body from {www.url}: {www.downloadHandler.text}");
             }
         }
-
+        
         private void ProcessServerResponse(string jsonResponse)
         {
             try
             {
-                // FastAPI 응답에 맞춘 GradioResponse 클래스 사용 (필드 확인 및 조정 필요)
-                var response = JsonConvert.DeserializeObject<GradioResponse>(jsonResponse);
+                Debug.Log($"[RAW SERVER RESPONSE] /api/predict: {jsonResponse}"); // 전체 JSON 로깅 (디버깅용)
+                var response = JsonConvert.DeserializeObject<ServerPredictResponse>(jsonResponse); // 클래스 이름 변경 적용
 
-                if (response?.data != null && response.data.Length >= 1) // 최소 이미지 데이터는 있어야 함
+                if (response?.data != null && response.data.Length >= 1)
                 {
+                    // ... (이미지 처리 로직은 기존과 동일) ...
                     string imageData = response.data[0];
-                    if (imageData.StartsWith("data:image/", StringComparison.OrdinalIgnoreCase)) // MIME 타입 유연하게 체크
+                    if (imageData.StartsWith("data:image/", StringComparison.OrdinalIgnoreCase)) 
                     {
                         int commaIndex = imageData.IndexOf(',');
-                        if (commaIndex > 0)
-                        {
-                            imageData = imageData.Substring(commaIndex + 1);
-                        }
+                        if (commaIndex > 0) imageData = imageData.Substring(commaIndex + 1);
                     }
-                    else
-                    {
-                        // data:image/... 형식이 아니면 순수 base64로 간주 (또는 오류 처리)
-                        Debug.LogWarning("Image data does not start with 'data:image/', assuming raw base64.");
-                    }
-
-
+                    else { Debug.LogWarning("Image data does not start with 'data:image/', assuming raw base64."); }
+                    
                     byte[] imageBytes = Convert.FromBase64String(imageData);
                     _tempImageData = imageBytes;
                     
-                    Texture2D generatedTexture2D = new Texture2D(2, 2); // 초기 크기는 중요하지 않음, LoadImage가 실제 크기로 변경
+                    Texture2D generatedTexture2D = new Texture2D(2, 2);
                     if (!generatedTexture2D.LoadImage(imageBytes))
                     {
                         UpdateStatus("Failed to load generated image data.");
-                        Debug.LogError("Failed to load image data from base64 string. Data might be corrupted or not an image.");
-                        Destroy(generatedTexture2D); // 실패 시 텍스처 정리
-                        return;
+                        Debug.LogError("Failed to load image data from base64. Data might be corrupted.");
+                        Destroy(generatedTexture2D); return;
                     }
-                    
-                    // 이 부분이 핵심!
-                    generatedTexture2D.alphaIsTransparency = true;
-                    generatedTexture2D.Apply();
-                    
-                    // 알파 채널 체크
-                    Color[] pixels = generatedTexture2D.GetPixels();
-                    bool hasTransparency = false;
-                    for (int i = 0; i < Mathf.Min(pixels.Length, 100); i++) // 처음 100픽셀만 체크
-                    {
-                        if (pixels[i].a < 1f)
-                        {
-                            hasTransparency = true;
-                            break;
-                        }
-                    }
-                    Debug.Log($"[DEBUG] Image has transparency: {hasTransparency}");
+                    generatedTexture2D.alphaIsTransparency = true; generatedTexture2D.Apply();
 
-                    if (generatedImage.texture != null) Destroy(generatedImage.texture); // 이전 텍스처 해제
+                    // 알파 채널 존재 여부 간단히 확인 (디버깅용)
+                    // Color[] pixels = generatedTexture2D.GetPixels(0, 0, Mathf.Min(generatedTexture2D.width, 10), Mathf.Min(generatedTexture2D.height, 10)); // 샘플 영역
+                    // bool hasTransparency = false;
+                    // foreach (Color pixel in pixels) { if (pixel.a < 1.0f) { hasTransparency = true; break; } }
+                    // Debug.Log($"[DEBUG] Generated image has transparency: {hasTransparency}");
+
+
+                    if (generatedImage.texture != null) Destroy(generatedImage.texture);
                     generatedImage.texture = generatedTexture2D;
+                    FitAndCrop(generatedImage); // FitAndCrop 추가 (만약 필요하다면)
 
-                    // FastAPI 응답 구조에 따라 추가 정보 파싱
-                    // 예: response.data[1] (보스 타입 문자열), response.data[2] (캡션)
-                    // 또는 response.caption, response.pokemon_type 필드 직접 사용 (GradioResponse 클래스에 해당 필드 정의 필요)
-                    string bossTypeInfo = response.data.Length > 1 ? response.data[1] : "Unknown Type";
-                    string serverCaption = response.caption ?? (response.data.Length > 2 ? response.data[2] : "No caption");
 
-                    Debug.Log($"Generated Boss Type Info: {bossTypeInfo}");
-                    Debug.Log($"Generated Boss Caption from Server: {serverCaption}");
-                    // 여기서 파싱한 bossTypeInfo에서 실제 ElementType을 추출하는 로직 필요
+                    // --- 타입 추론 과정 로깅 ---
+                    if (response.parameters_used != null)
+                    {
+                        Debug.Log($"[Type Inference] Intended Type (Pass 1): {response.parameters_used.intended_type_pass1}");
+                        Debug.Log($"[Type Inference] Observed Type (Pass 2): {response.parameters_used.observed_type_pass2}");
+                        Debug.Log($"[Type Inference] Final Type Decision: {response.parameters_used.final_type_decision}");
+                    }
+                    else
+                    {
+                        Debug.LogWarning("[Type Inference] 'parameters_used' field not found in server response.");
+                    }
+                    // --- 타입 추론 로깅 끝 ---
 
+                    // 서버에서 최종 결정된 타입을 사용하여 BossTypeInfo 구성
+                    string bossTypeInfo = response.data.Length > 1 ? response.data[1] : $"{response.pokemon_type} Type Boss"; // data[1] 또는 pokemon_type 사용
+                                                                                                                             // 서버 응답의 data[1]도 최종 타입을 반영하도록 수정 필요
+                    string serverCaption = response.caption; // GPT Pass 1의 키워드 캡션
+
+                    Debug.Log($"Generated Boss Display Info: {bossTypeInfo}"); // 최종 타입이 반영된 이름
+                    Debug.Log($"Generated Keyword Caption from Server: {serverCaption}");
+                    
                     UpdateStatus("Boss generated!");
                     if (response.duration > 0) Debug.Log($"Generation took {response.duration:F2} seconds");
 
-
-                    if (bossSprite != null) Destroy(bossSprite.texture);
+                    if (bossSprite != null && bossSprite.texture != null) Destroy(bossSprite.texture); // 이전 스프라이트 텍스처 해제
                     bossSprite = Sprite.Create(
                         generatedTexture2D,
                         new Rect(0, 0, generatedTexture2D.width, generatedTexture2D.height),
-                        new Vector2(0.5f, 0.5f),
-                        1f
+                        new Vector2(0.5f, 0.5f)
+                        // pixelsPerUnit은 필요에 따라 설정 (기본값 100)
                     );
-
                     _hasGeneratedImage = true;
                 }
                 else
