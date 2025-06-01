@@ -24,3 +24,4 @@ MonoBehaviour:
     BuffsType: 0
     Accuracy: 1
     CritChance: 0
+  VFXPrefab: {fileID: 2659604122979068415, guid: ead2db590821d59448e17e35ed38dcda, type: 3}

@@ -5,6 +5,7 @@ using AI;
 using CameraSystem;
 using Data;
 using Entity;
+using Effect;
 using Unity.Cinemachine;
 using UnityEngine;
 using Random = UnityEngine.Random;
@@ -42,12 +43,6 @@ namespace GameSystem
 
         [SerializeField] private GameObject _testEffect;
 
-        private void Awake()
-        {
-            Debug.Log("=== [BattleManager] Awake ===");
-        }
-
-        // BattleManager.cs의 Start() 메서드를 디버그 버전으로 수정
         private void Start()
         {
             _currentPlayerIndex = 0;
@@ -56,7 +51,6 @@ namespace GameSystem
             {
                 var boss = _entities[4];
         
-                // byte array에서 텍스처와 스프라이트 생성
                 if (BossContainer.Instance.CurrentBossImageData != null)
                 {
                     Texture2D bossTexture = new Texture2D(2, 2);
@@ -75,7 +69,6 @@ namespace GameSystem
                             spriteRenderer.sprite = newSprite;
                             spriteRenderer.enabled = true;
                             spriteRenderer.color = Color.white;
-                            Debug.Log("[BattleManager] Sprite created from image data");
                         }
                     }
                 }
@@ -87,6 +80,8 @@ namespace GameSystem
             }
     
             OnEntitiesInitialized?.Invoke();
+            
+            ChangeBattleState(BattleState.PlayerChoice);
         }
 
         private void ChangeBattleState(BattleState newState)
@@ -118,7 +113,6 @@ namespace GameSystem
 
         private void BeginPlayerTurn()
         {
-            // 죽은 플레이어는 스킵
             while (_currentPlayerIndex < PlayerCount && _entities[_currentPlayerIndex].CurrentHP <= 0)
             {
                 _currentPlayerIndex++;
@@ -126,7 +120,6 @@ namespace GameSystem
             
             _turnCount++;
             
-            // 카메라
             _cameraManager.SwitchCameraTo((CineCamType)_currentPlayerIndex);
             SetSpriteAlphaExclusive(_currentPlayerIndex);
 
@@ -141,7 +134,6 @@ namespace GameSystem
             
             if (currentEntity.IsCharging)
             {
-                // 차지 공격
                 ActionData autoChargeAction = new ActionData(
                     ActionType.Move,
                     currentEntity.ChargingMoveIndex,
@@ -183,7 +175,6 @@ namespace GameSystem
                     break;
             
                 case ActionType.Taunt:
-                    // TODO: Taunt 구현
                     yield return _uiManager.ShowBattleMessage($"{source.EntityName} taunts the enemy!", 1f);
                     break;
             }
@@ -212,7 +203,6 @@ namespace GameSystem
 
             if (boss.IsCharging)
             {
-                // 차지
                 ActionData autoChargeAction = new ActionData(
                     ActionType.Move,
                     boss.ChargingMoveIndex,
@@ -223,7 +213,6 @@ namespace GameSystem
             }
             else
             {
-                // 보스 AI
                 var players = new BattleEntity[4];
                 for (int i = 0; i < 4; i++)
                 {
@@ -261,19 +250,12 @@ namespace GameSystem
             if (CheckBattleEnd()) yield break;
         }
 
-        /// <summary>
-        /// Move 실행
-        /// 1) 차지 체크
-        /// 2) 메시지
-        /// 3) 카테고리 따라 타겟 선정 -> ApplyEffects
-        /// </summary>
         private IEnumerator PerformMove(ActionData action)
         {
             var source = _entities[(int)action.Source];
             var moveInst = source.GetMoveInstance(action.ActionIndex);
             if (moveInst == null) yield break;
 
-            // 차지 필요?
             if (moveInst.Data.RequiresCharge && !source.IsCharging)
             {
                 source.SetChargingState(true, action.ActionIndex, action.Target);
@@ -281,10 +263,8 @@ namespace GameSystem
                 yield break;
             }
 
-            // 스킬 사용 메시지
             yield return ShowActionMessage(source, moveInst.Data);
 
-            // 카테고리 분기
             switch (moveInst.Data.Category)
             {
                 case MoveCategory.Single:
@@ -311,12 +291,8 @@ namespace GameSystem
                 case MoveCategory.MultiRandom:
                     yield return ApplyEffectsMultiRandom(source, moveInst);
                     break;
-                default:
-                    Debug.LogWarning($"Unrecognized category: {moveInst.Data.Category}");
-                    break;
             }
 
-            // 차지 해제
             if (source.IsCharging)
             {
                 source.SetChargingState(false);
@@ -373,7 +349,7 @@ namespace GameSystem
 
         private IEnumerator ApplyEffectsMultiRandom(BattleEntity source, MoveInstance moveInst)
         {
-            int repeat = Random.Range(2,5); // 2~4회
+            int repeat = Random.Range(2,5);
             for (int i=0;i<repeat;i++)
             {
                 var validTargets = (source is BossEntity)
@@ -384,7 +360,6 @@ namespace GameSystem
                 int pick = validTargets[Random.Range(0, validTargets.Length)];
                 var target = _entities[pick];
 
-                // 예: Damage만 N번 중첩 (버프 중첩은 비정상)
                 foreach (var eff in moveInst.Data.Effects)
                 {
                     if (eff.EffectType == MoveEffectType.Damage)
@@ -397,9 +372,6 @@ namespace GameSystem
             }
         }
 
-        /// <summary>
-        /// 각각의 이펙트를 처리
-        /// </summary>
         private IEnumerator ApplyEffect(BattleEntity source, BattleEntity target, MoveInstance moveInst, MoveEffect eff)
         {
             switch (eff.EffectType)
@@ -408,29 +380,22 @@ namespace GameSystem
                     yield return ApplyDamageEffect(source, target, moveInst, eff);
                     break;
                 case MoveEffectType.Heal:
-                    yield return ApplyHealEffect(source, target, eff);
+                    yield return ApplyHealEffect(source, target, moveInst, eff);
                     break;
                 case MoveEffectType.Buff:
-                    yield return ApplyBuffEffect(source, target, eff);
+                    yield return ApplyBuffEffect(source, target, moveInst, eff);
                     break;
                 case MoveEffectType.Debuff:
-                    yield return ApplyDebuffEffect(source, target, eff);
+                    yield return ApplyDebuffEffect(source, target, moveInst, eff);
                     break;
                 case MoveEffectType.Shield:
-                    yield return ApplyShieldEffect(source, target, eff);
-                    break;
-                // Add more if needed: Stun, ClearBuff, etc.
-                default:
-                    Debug.Log($"Unhandled effect: {eff.EffectType}");
+                    yield return ApplyShieldEffect(source, target, moveInst, eff);
                     break;
             }
         }
 
-        // ------------------ 아래부터 이펙트별 메서드 ------------------ //
-
         private IEnumerator ApplyDamageEffect(BattleEntity source, BattleEntity target, MoveInstance moveInst, MoveEffect eff)
         {
-            // 이펙트별 파워, 명중률, 크리 확률
             var raw = DamageFormula.GetRawHit(
                 source,
                 eff.Power,
@@ -438,7 +403,7 @@ namespace GameSystem
                 eff.CritChance
             );
 
-            yield return SpawnMoveVFX(source, target, 2f);
+            yield return SpawnMoveVFX(source, target, moveInst.Data, 2f);
 
             if (!raw.IsHit)
             {
@@ -451,9 +416,9 @@ namespace GameSystem
             yield return _uiManager.AnimateHPBarUpdate(Array.IndexOf(_entities, target), prevHP, target.CurrentHP);
         }
 
-        private IEnumerator ApplyHealEffect(BattleEntity source, BattleEntity target, MoveEffect eff)
+        private IEnumerator ApplyHealEffect(BattleEntity source, BattleEntity target, MoveInstance moveInst, MoveEffect eff)
         {
-            yield return SpawnMoveVFX(source, target, 2f);
+            yield return SpawnMoveVFX(source, target, moveInst.Data, 2f);
 
             int prevHP = target.CurrentHP;
             target.CurrentHP += eff.Power;
@@ -462,10 +427,9 @@ namespace GameSystem
             yield return _uiManager.AnimateHPBarUpdate(Array.IndexOf(_entities, target), prevHP, target.CurrentHP);
         }
 
-        private IEnumerator ApplyBuffEffect(BattleEntity source, BattleEntity target, MoveEffect eff)
+        private IEnumerator ApplyBuffEffect(BattleEntity source, BattleEntity target, MoveInstance moveInst, MoveEffect eff)
         {
             float addVal = eff.Power / 100f; 
-            // Clamp
             const float MIN_BUFF = 0.6f, MAX_BUFF = 1.4f;
 
             switch (eff.BuffsType)
@@ -479,15 +443,12 @@ namespace GameSystem
                     target.DefBuffMultiplier += Mathf.Abs(addVal);
                     target.DefBuffMultiplier = Mathf.Clamp(target.DefBuffMultiplier, MIN_BUFF, MAX_BUFF);
                     break;
-                
-                default:
-                    break;
             }
 
-            yield return SpawnMoveVFX(source, target, 2f);
+            yield return SpawnMoveVFX(source, target, moveInst.Data, 2f);
         }
 
-        private IEnumerator ApplyDebuffEffect(BattleEntity source, BattleEntity target, MoveEffect eff)
+        private IEnumerator ApplyDebuffEffect(BattleEntity source, BattleEntity target, MoveInstance moveInst, MoveEffect eff)
         {
             float minusVal = eff.Power / 100f;
             const float MIN_BUFF = 0.6f, MAX_BUFF = 1.4f;
@@ -503,15 +464,12 @@ namespace GameSystem
                     target.DefBuffMultiplier -= Mathf.Abs(minusVal);
                     target.DefBuffMultiplier = Mathf.Clamp(target.DefBuffMultiplier, MIN_BUFF, MAX_BUFF);
                     break;
-                
-                default:
-                    break;
             }
 
-            yield return SpawnMoveVFX(source, target, 2f);
+            yield return SpawnMoveVFX(source, target, moveInst.Data, 2f);
         }
         
-        private IEnumerator ApplyShieldEffect(BattleEntity source, BattleEntity target, MoveEffect eff)
+        private IEnumerator ApplyShieldEffect(BattleEntity source, BattleEntity target, MoveInstance moveInst, MoveEffect eff)
         {
             if (target is BossEntity boss)
             {
@@ -527,25 +485,32 @@ namespace GameSystem
                         1.5f
                     );
             
-                    // UIManager를 통해 애니메이션 호출
                     _uiManager.AnimateShieldConversion(boss, previousHP);
                     yield return new WaitForSeconds(0.5f);
             
-                    yield return SpawnMoveVFX(source, target, 2f);
+                    yield return SpawnMoveVFX(source, target, moveInst.Data, 2f);
                 }
             }
         }
-
-        // ------------------ UI & ETC. ------------------ //
 
         private IEnumerator ShowActionMessage(BattleEntity source, MoveData data)
         {
             yield return _uiManager.ShowBattleMessage($"{source.EntityName} used {data.Name}!", 1f);
         }
 
-        private IEnumerator SpawnMoveVFX(BattleEntity source, BattleEntity target, float duration=1f)
+        private IEnumerator SpawnMoveVFX(BattleEntity source, BattleEntity target, MoveData moveData, float duration = 1f)
         {
-            var fx = Instantiate(_testEffect, target.transform.position, Quaternion.identity);
+            GameObject vfxPrefab = moveData.VFXPrefab != null ? moveData.VFXPrefab : _testEffect;
+            
+            if (vfxPrefab == null) yield break;
+            
+            var fx = Instantiate(vfxPrefab, target.transform.position, Quaternion.identity);
+            
+            if (fx.GetComponent<AnimationEventHandler>() == null)
+            {
+                fx.AddComponent<AnimationEventHandler>();
+            }
+            
             if (source is BossEntity)
             {
                 // boss layer
@@ -554,21 +519,24 @@ namespace GameSystem
             {
                 fx.layer = LayerMask.NameToLayer("BossEffect");
             }
+            
             yield return new WaitForSeconds(duration);
+            
+            if (fx != null)
+            {
+                Destroy(fx);
+            }
         }
 
         private bool CheckBattleEnd()
         {
-            // 보스 죽음?
             var boss = _entities[4];
             if (boss.CurrentHP <= 0)
             {
-                Debug.Log("Battle End: Players Win!");
                 ChangeBattleState(BattleState.BattleEnded);
                 return true;
             }
 
-            // 플레이어 전원 사망?
             bool allDead = true;
             for (int i=0;i<PlayerCount;i++)
             {
@@ -580,7 +548,6 @@ namespace GameSystem
             }
             if (allDead)
             {
-                Debug.Log("Battle End: Boss Wins!");
                 ChangeBattleState(BattleState.BattleEnded);
                 return true;
             }

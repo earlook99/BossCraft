@@ -492,7 +492,6 @@ namespace AI
 
 
                     byte[] imageBytes = Convert.FromBase64String(imageData);
-
                     _tempImageData = imageBytes;
                     
                     Texture2D generatedTexture2D = new Texture2D(2, 2); // 초기 크기는 중요하지 않음, LoadImage가 실제 크기로 변경
@@ -503,6 +502,23 @@ namespace AI
                         Destroy(generatedTexture2D); // 실패 시 텍스처 정리
                         return;
                     }
+                    
+                    // 이 부분이 핵심!
+                    generatedTexture2D.alphaIsTransparency = true;
+                    generatedTexture2D.Apply();
+                    
+                    // 알파 채널 체크
+                    Color[] pixels = generatedTexture2D.GetPixels();
+                    bool hasTransparency = false;
+                    for (int i = 0; i < Mathf.Min(pixels.Length, 100); i++) // 처음 100픽셀만 체크
+                    {
+                        if (pixels[i].a < 1f)
+                        {
+                            hasTransparency = true;
+                            break;
+                        }
+                    }
+                    Debug.Log($"[DEBUG] Image has transparency: {hasTransparency}");
 
                     if (generatedImage.texture != null) Destroy(generatedImage.texture); // 이전 텍스처 해제
                     generatedImage.texture = generatedTexture2D;
@@ -526,7 +542,7 @@ namespace AI
                         generatedTexture2D,
                         new Rect(0, 0, generatedTexture2D.width, generatedTexture2D.height),
                         new Vector2(0.5f, 0.5f),
-                        0.7f  // pixelsPerUnit을 0.7로 설정
+                        1f
                     );
 
                     _hasGeneratedImage = true;

@@ -185,6 +185,10 @@ TextureImporter:
         - {x: -221, y: 642.5}
         - {x: -273, y: 536.5}
         - {x: -265, y: 433.5}
+      - - {x: 186, y: 138.5}
+        - {x: 401, y: 138.5}
+        - {x: 401, y: 401.5}
+        - {x: 186, y: 401.5}
       physicsShape: []
       tessellationDetail: 0.033
       bones: []

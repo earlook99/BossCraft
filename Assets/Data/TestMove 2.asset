@@ -17,11 +17,11 @@ MonoBehaviour:
   AllowedTargetSide: 3
   Type: 0
   Cooldown: 2
-  UsageLimit: 99
-  RequiresCharge: 1
+  RequiresCharge: 0
   Effects:
   - EffectType: 0
     Power: 5
     BuffsType: 0
     Accuracy: 1
     CritChance: 0
+  VFXPrefab: {fileID: 1780023157926200721, guid: c32dfe6bdf3deb749890acd3d26e4222, type: 3}

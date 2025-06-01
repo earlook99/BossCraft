@@ -24,6 +24,8 @@ namespace Data
         public bool RequiresCharge = false;
 
         public MoveEffect[] Effects;
+
+        public GameObject VFXPrefab;
     }
 
     /// <summary>

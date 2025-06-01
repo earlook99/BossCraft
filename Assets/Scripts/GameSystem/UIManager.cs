@@ -15,6 +15,9 @@ namespace GameSystem
         [Header("References")]
         [SerializeField] private BattleManager _battleManager;
 
+        [Header("Battle Entities")]
+        [SerializeField] private BattleEntity[] _battleEntities = new BattleEntity[5];
+
         [Header("UI Containers")]
         [SerializeField] private RectTransform _bossArea;
         [SerializeField] private RectTransform _partyArea;
@@ -31,26 +34,21 @@ namespace GameSystem
         [SerializeField] private BattleEndUI _battleEndUI;
 
         [Header("Prefabs")]
-        [SerializeField] private CharacterStatusUI _playerStatusPrefab; // 플레이어용 프리팹
-        [SerializeField] private CharacterStatusUI _bossStatusPrefab;   // 보스용 프리팹
+        [SerializeField] private CharacterStatusUI _playerStatusPrefab;
+        [SerializeField] private CharacterStatusUI _bossStatusPrefab;
 
         private Dictionary<int, CharacterStatusUI> _entityStatusUIs = new Dictionary<int, CharacterStatusUI>();
-        private BattleEntity[] _battleEntities;
         private TextMeshProUGUI _battleMessageTextComponent;
 
         private int _currentPlayerIndex;
-        
         private ActionType _pendingActionType;
         private int _pendingActionIndex;
         
         private void Awake()
         {
-            Debug.Log("=== [UIManager] Awake ===");
             if (_battleManager == null)
-            {
                 _battleManager = FindAnyObjectByType<BattleManager>();
-            }
-            
+
             if (_targetSelectionUI == null)
             {
                 _targetSelectionUI = GetComponentInChildren<TargetSelectionUI>(true);
@@ -71,46 +69,26 @@ namespace GameSystem
             }
             
             if (_actionMenuPanel != null)
-            {
                 _actionMenuPanel.SetActive(false);
-            }
 
             if (_battleInfo != null) 
-            { 
-                _battleMessageTextComponent = _battleInfo.GetComponentInChildren<TextMeshProUGUI>(); 
-            }
+                _battleMessageTextComponent = _battleInfo.GetComponentInChildren<TextMeshProUGUI>();
         }
         
         private void Start()
         {
-            Debug.Log("=== [UIManager] Start BEGIN ===");
             _currentPlayerIndex = 0;
-            
             SetupBattleUI();
-    
-            // 추가 디버그
-            Debug.Log($"[UIManager] Start - _battleEntities set: {_battleEntities != null}");
-            if (_battleEntities != null)
-            {
-                Debug.Log($"[UIManager] Battle entities count: {_battleEntities.Length}");
-            }
-            
-            Debug.Log("=== [UIManager] Start END ===");
         }
         
         public void SetupBattleUI()
         {
             CleanupExistingUI();
-
-            _battleEntities = _battleManager.Entities;
-            
             CreateBossStatusUI();
             CreatePartyStatusUIs();
             
             if (_targetSelectionUI != null && _battleEntities != null)
-            {
                 _targetSelectionUI.Setup(this, _battleEntities);
-            }
         }
         
         private void CleanupExistingUI()
@@ -118,9 +96,7 @@ namespace GameSystem
             foreach (var kv in _entityStatusUIs)
             {
                 if (kv.Value != null && kv.Value.gameObject != null)
-                {
                     Destroy(kv.Value.gameObject);
-                }
             }
             _entityStatusUIs.Clear();
         }
@@ -129,24 +105,17 @@ namespace GameSystem
         {
             var bossEntity = _battleEntities[(int)EntityType.Boss];
             if (bossEntity == null || _bossArea == null || _bossStatusPrefab == null)
-            {
-                Debug.LogError("Boss setup failed: Entity, Area, or Prefab is missing!");
                 return;
-            }
 
             var statusUI = Instantiate(_bossStatusPrefab, _bossArea);
             statusUI.Setup(bossEntity, (int)EntityType.Boss);
-
             _entityStatusUIs.Add((int)EntityType.Boss, statusUI);
         }
         
         private void CreatePartyStatusUIs()
         {
             if (_partyArea == null || _playerStatusPrefab == null)
-            {
-                Debug.LogError("Party setup failed: Area or Prefab is missing!");
                 return;
-            }
 
             for (int i = 0; i < 4; i++)
             {
@@ -155,7 +124,6 @@ namespace GameSystem
 
                 var statusUI = Instantiate(_playerStatusPrefab, _partyArea);
                 statusUI.Setup(entity, i);
-
                 _entityStatusUIs.Add(i, statusUI);
             }
         }
@@ -164,43 +132,24 @@ namespace GameSystem
         {
             _currentPlayerIndex = currentPlayerIndex;
     
-            // null 체크 추가
-            if (_battleEntities == null)
-            {
-                Debug.LogError("_battleEntities is null! SetupBattleUI might not have been called.");
+            if (_battleEntities == null || _currentPlayerIndex >= _battleEntities.Length)
                 return;
-            }
-    
-            if (_currentPlayerIndex >= _battleEntities.Length)
-            {
-                Debug.LogError($"Invalid player index: {_currentPlayerIndex} >= {_battleEntities.Length}");
-                return;
-            }
     
             var playerEntity = _battleEntities[_currentPlayerIndex];
             if (playerEntity == null)
-            {
-                Debug.LogError($"Player entity at index {_currentPlayerIndex} is null!");
                 return;
-            }
     
             if (_actionMenuPanel)
-            {
                 _actionMenuPanel.SetActive(true);
-            }
     
             if (_actionMenuUI)
-            {
                 _actionMenuUI.Setup(this, playerEntity, _currentPlayerIndex);
-            }
         }
         
         public void OnActionSelect(ActionType actionType, int actionIndex)
         {
             if (_actionMenuPanel != null)
-            {
                 _actionMenuPanel.SetActive(false);
-            }
             
             _pendingActionType = actionType;
             _pendingActionIndex = actionIndex;
@@ -213,17 +162,9 @@ namespace GameSystem
                 if (moveData != null)
                 {
                     if (moveData.Category == MoveCategory.AOE)
-                    {
                         CompleteActionWithTarget(EntityType.Boss);
-                    }
                     else
-                    {
                         StartTargetSelection(moveData);
-                    }
-                }
-                else
-                {
-                    Debug.LogError($"Move data not found for index {actionIndex}");
                 }
             }
             else
@@ -261,7 +202,9 @@ namespace GameSystem
                 (EntityType)_currentPlayerIndex, 
                 target
             );
-            _battleManager.ReceivePlayerChoice(newAction);
+            
+            if (_battleManager != null)
+                _battleManager.ReceivePlayerChoice(newAction);
         }
         
         public IEnumerator ShowBattleMessage(string message, float duration = 2f)
@@ -293,25 +236,19 @@ namespace GameSystem
         public void UpdateShieldUI(BossEntity boss)
         {
             if (_entityStatusUIs.TryGetValue((int)EntityType.Boss, out var statusUI))
-            {
                 statusUI.UpdateShield(boss.ShieldStacks, boss.MaxShieldStacks, boss.ShieldHP);
-            }
         }
         
         public void AnimateShieldConversion(BossEntity boss, int previousHP)
         {
             if (_entityStatusUIs.TryGetValue((int)EntityType.Boss, out var statusUI))
-            {
                 statusUI.AnimateShieldConversion(previousHP, boss.CurrentHP, boss.ShieldHP);
-            }
         }
         
         public void ShowBattleEndScreen(bool isVictory)
         {
             if (_battleEndUI != null)
-            {
                 _battleEndUI.ShowBattleEnd(isVictory);
-            }
         }
     }
 }
