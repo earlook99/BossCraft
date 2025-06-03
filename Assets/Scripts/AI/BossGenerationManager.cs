@@ -1,8 +1,10 @@
 using System;
-using System.Collections;
+using System.Threading;
+using System.Threading.Tasks;
 using System.IO;
 using Data;
 using GameSystem;
+using GameSystem.Utils;
 using TMPro;
 using UI;
 using UnityEngine;
@@ -105,6 +107,7 @@ namespace AI
         private Sprite bossSprite;
         private string bossName = "";
         private byte[] _tempImageData;
+        private CancellationTokenSource _cts;
 
         private const int REQUEST_TIMEOUT = 60;
         private const int GENERATION_TIMEOUT = 180;
@@ -119,6 +122,7 @@ namespace AI
         private void Awake()
         {
             InitializeServerUrl();
+            _cts = new CancellationTokenSource();
         }
 
         private void InitializeServerUrl()
@@ -128,18 +132,28 @@ namespace AI
                 : ServerConfig.HUGGINGFACE_URL;
         }
 
-        private void Start()
+        private async void Start()
         {
             InitializeButtons();
             InitializeUI();
-            StartCoroutine(WarmupServer());
+            await WarmupServerAsync(_cts.Token);
+        }
+
+        private void OnDestroy()
+        {
+            _cts?.Cancel();
+            _cts?.Dispose();
+            
+            if (uploadedTexture != null) Destroy(uploadedTexture);
+            if (generatedImage.texture != null) Destroy(generatedImage.texture);
+            if (bossSprite != null && bossSprite.texture != null) Destroy(bossSprite.texture);
         }
 
         private void InitializeButtons()
         {
             selectImageButton.onClick.AddListener(SelectImage);
-            generateButton.onClick.AddListener(GenerateBossImage);
-            rerollButton.onClick.AddListener(GenerateBossImage);
+            generateButton.onClick.AddListener(() => _ = GenerateBossImageAsync());
+            rerollButton.onClick.AddListener(() => _ = GenerateBossImageAsync());
             confirmBossButton.onClick.AddListener(ConfirmBoss);
             returnButton.onClick.AddListener(ReturnToPreviousScene);
             downloadButton.onClick.AddListener(DownloadGeneratedImage);
@@ -162,7 +176,7 @@ namespace AI
             UpdateUIState();
         }
 
-        private IEnumerator WarmupServer()
+        private async Task WarmupServerAsync(CancellationToken ct)
         {
             _isServerReady = false;
             UpdateUIState();
@@ -170,20 +184,36 @@ namespace AI
 
             string statusUrl = $"{activeServerUrl}{STATUS_ENDPOINT}";
 
-            using (UnityWebRequest www = UnityWebRequest.Get(statusUrl))
+            try
             {
-                www.timeout = REQUEST_TIMEOUT;
-                yield return www.SendWebRequest();
+                using (UnityWebRequest www = UnityWebRequest.Get(statusUrl))
+                {
+                    www.timeout = REQUEST_TIMEOUT;
+                    
+                    var operation = www.SendWebRequest();
+                    while (!operation.isDone && !ct.IsCancellationRequested)
+                    {
+                        await AsyncUtilities.NextFrameAsync(ct);
+                    }
 
-                if (www.result == UnityWebRequest.Result.Success)
-                {
-                    ProcessServerStatus(www.downloadHandler.text);
-                }
-                else
-                {
-                    HandleError(www, "Server status check failed");
+                    if (ct.IsCancellationRequested) return;
+
+                    if (www.result == UnityWebRequest.Result.Success)
+                    {
+                        ProcessServerStatus(www.downloadHandler.text);
+                    }
+                    else
+                    {
+                        HandleError(www, "Server status check failed");
+                    }
                 }
             }
+            catch (Exception e)
+            {
+                UpdateStatus($"Server check failed: {e.Message}");
+                Debug.LogError($"Warmup error: {e}");
+            }
+            
             UpdateUIState();
         }
 
@@ -259,8 +289,8 @@ namespace AI
 #if UNITY_EDITOR
             SelectImageInEditor();
 #elif UNITY_WEBGL
-            WebGLFileUploader.OpenFilePicker((base64Data) => {
-                StartCoroutine(LoadImageFromBase64(base64Data));
+            WebGLFileUploader.OpenFilePicker(async (base64Data) => {
+                await LoadImageFromBase64Async(base64Data);
             });
 #else
             UpdateStatus("File selection not implemented for this platform.");
@@ -268,26 +298,31 @@ namespace AI
         }
 
 #if UNITY_EDITOR
-        private void SelectImageInEditor()
+        private async void SelectImageInEditor()
         {
             string path = UnityEditor.EditorUtility.OpenFilePanel("Select Image", "", "png,jpg,jpeg");
             if (!string.IsNullOrEmpty(path))
             {
-                StartCoroutine(LoadImage(path));
+                await LoadImageAsync(path);
             }
         }
 #endif
 
-        private IEnumerator LoadImage(string path)
+        private async Task LoadImageAsync(string path)
         {
             UpdateStatus("Loading image...");
             isProcessing = true;
             UpdateUIState();
 
             string url = path.StartsWith("file://") ? path : "file://" + path;
+            
             using (UnityWebRequest www = UnityWebRequestTexture.GetTexture(url))
             {
-                yield return www.SendWebRequest();
+                var operation = www.SendWebRequest();
+                while (!operation.isDone && !_cts.Token.IsCancellationRequested)
+                {
+                    await AsyncUtilities.NextFrameAsync(_cts.Token);
+                }
 
                 if (www.result == UnityWebRequest.Result.Success)
                 {
@@ -299,11 +334,12 @@ namespace AI
                     _isImageLoaded = false;
                 }
             }
+            
             isProcessing = false;
             UpdateUIState();
         }
         
-        private IEnumerator LoadImageFromBase64(string base64Data)
+        private async Task LoadImageFromBase64Async(string base64Data)
         {
             UpdateStatus("Loading image...");
             isProcessing = true;
@@ -327,7 +363,8 @@ namespace AI
 
             isProcessing = false;
             UpdateUIState();
-            yield return null;
+            
+            await Task.Yield();
         }
 
         private string ExtractBase64Data(string base64Data)
@@ -353,7 +390,7 @@ namespace AI
             UpdateStatus("Image loaded! Enter boss name and click 'Generate'.");
         }
 
-        private void GenerateBossImage()
+        private async Task GenerateBossImageAsync()
         {
             if (uploadedTexture == null || isProcessing || !_isServerReady)
             {
@@ -361,10 +398,11 @@ namespace AI
                 if (uploadedTexture == null) UpdateStatus("Please select an image first.");
                 return;
             }
-            StartCoroutine(GenerateImageCoroutine());
+            
+            await GenerateImageAsync(_cts.Token);
         }
 
-        private IEnumerator GenerateImageCoroutine()
+        private async Task GenerateImageAsync(CancellationToken ct)
         {
             isProcessing = true;
             UpdateUIState();
@@ -373,24 +411,30 @@ namespace AI
             float startTime = Time.time;
 
             UpdateStatus("Encoding image...");
-            yield return null;
+            await AsyncUtilities.NextFrameAsync(ct);
 
             string requestJson = CreateGenerationRequest();
 
-            using (UnityWebRequest www = CreatePredictRequest(requestJson))
+            using (var www = CreatePredictRequest(requestJson))
             {
-                Coroutine progressCoroutine = StartCoroutine(ShowProgress(startTime, "Generating boss"));
-                yield return www.SendWebRequest();
-
-                if (progressCoroutine != null) StopCoroutine(progressCoroutine);
-
-                if (www.result == UnityWebRequest.Result.Success)
+                var progressTask = ShowProgressAsync(startTime, "Generating boss", ct);
+                
+                var operation = www.SendWebRequest();
+                while (!operation.isDone && !ct.IsCancellationRequested)
                 {
-                    ProcessServerResponse(www.downloadHandler.text);
+                    await AsyncUtilities.NextFrameAsync(ct);
                 }
-                else
+
+                if (!ct.IsCancellationRequested)
                 {
-                    HandleError(www, "Image generation failed");
+                    if (www.result == UnityWebRequest.Result.Success)
+                    {
+                        ProcessServerResponse(www.downloadHandler.text);
+                    }
+                    else
+                    {
+                        HandleError(www, "Image generation failed");
+                    }
                 }
             }
 
@@ -426,17 +470,17 @@ namespace AI
             return www;
         }
 
-        private IEnumerator ShowProgress(float startTime, string prefix = "Processing")
+        private async Task ShowProgressAsync(float startTime, string prefix, CancellationToken ct)
         {
             int dotCount = 0;
-            while (isProcessing)
+            while (isProcessing && !ct.IsCancellationRequested)
             {
                 float elapsed = Time.time - startTime;
                 string dots = new string('.', dotCount);
                 UpdateStatus($"{prefix}{dots} ({Mathf.FloorToInt(elapsed)}s)");
 
                 dotCount = (dotCount + 1) % 4;
-                yield return new WaitForSeconds(PROGRESS_UPDATE_INTERVAL);
+                await AsyncUtilities.WaitForSecondsAsync(PROGRESS_UPDATE_INTERVAL, ct);
             }
         }
 
@@ -720,13 +764,6 @@ namespace AI
                 float offsetY = (1f - wantedHeight) * 0.5f;
                 img.uvRect = new Rect(0f, offsetY, 1f, wantedHeight);
             }
-        }
-
-        private void OnDestroy()
-        {
-            if (uploadedTexture != null) Destroy(uploadedTexture);
-            if (generatedImage.texture != null) Destroy(generatedImage.texture);
-            if (bossSprite != null && bossSprite.texture != null) Destroy(bossSprite.texture);
         }
     }
 }

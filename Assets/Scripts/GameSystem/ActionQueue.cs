@@ -1,15 +1,18 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
+using System.Threading;
+using System.Threading.Tasks;
 using UnityEngine;
 using Entity;
+using GameSystem.Utils;
 
 namespace GameSystem
 {
     public class ActionQueue : MonoBehaviour
     {
         private Queue<QueuedAction> _actionQueue = new Queue<QueuedAction>();
-        private Coroutine _processCoroutine;
+        private CancellationTokenSource _processCts;
+        private Task _processTask;
         private bool _isProcessing = false;
         private bool _isPaused = false;
         
@@ -26,24 +29,24 @@ namespace GameSystem
             public string ActionId { get; }
             public ActionData Data { get; }
             public float Priority { get; }
-            public Func<IEnumerator> Executor { get; }
+            public Func<Task> AsyncExecutor { get; }
             public Action<bool> Callback { get; }
             public float QueueTime { get; }
             
-            public QueuedAction(ActionData data, Func<IEnumerator> executor, float priority = 0f, Action<bool> callback = null)
+            public QueuedAction(ActionData data, Func<Task> asyncExecutor, float priority = 0f, Action<bool> callback = null)
             {
                 ActionId = Guid.NewGuid().ToString();
                 Data = data;
-                Executor = executor;
+                AsyncExecutor = asyncExecutor;
                 Priority = priority;
                 Callback = callback;
                 QueueTime = Time.time;
             }
         }
         
-        public void EnqueueAction(ActionData action, Func<IEnumerator> executor, float priority = 0f, Action<bool> callback = null)
+        public void EnqueueActionAsync(ActionData action, Func<Task> asyncExecutor, float priority = 0f, Action<bool> callback = null)
         {
-            var queuedAction = new QueuedAction(action, executor, priority, callback);
+            var queuedAction = new QueuedAction(action, asyncExecutor, priority, callback);
             
             if (priority > 0)
             {
@@ -56,7 +59,7 @@ namespace GameSystem
             
             if (!_isProcessing && !_isPaused)
             {
-                StartProcessing();
+                StartProcessingAsync();
             }
         }
         
@@ -82,11 +85,11 @@ namespace GameSystem
             }
         }
         
-        public void EnqueueImmediate(ActionData action, Func<IEnumerator> executor, Action<bool> callback = null)
+        public void EnqueueImmediate(ActionData action, Func<Task> asyncExecutor, Action<bool> callback = null)
         {
             StopProcessing();
             
-            var immediateAction = new QueuedAction(action, executor, float.MaxValue, callback);
+            var immediateAction = new QueuedAction(action, asyncExecutor, float.MaxValue, callback);
             
             var tempQueue = new Queue<QueuedAction>();
             tempQueue.Enqueue(immediateAction);
@@ -97,70 +100,73 @@ namespace GameSystem
             }
             
             _actionQueue = tempQueue;
-            StartProcessing();
+            StartProcessingAsync();
         }
         
-        private void StartProcessing()
+        private async void StartProcessingAsync()
         {
-            if (_processCoroutine != null)
-            {
-                StopCoroutine(_processCoroutine);
-            }
+            StopProcessing();
             
-            _processCoroutine = StartCoroutine(ProcessQueue());
+            _processCts = new CancellationTokenSource();
+            _processTask = ProcessQueueAsync(_processCts.Token);
+            
+            try
+            {
+                await _processTask;
+            }
+            catch (OperationCanceledException)
+            {
+                // Expected when cancelled
+            }
         }
         
         private void StopProcessing()
         {
-            if (_processCoroutine != null)
-            {
-                StopCoroutine(_processCoroutine);
-                _processCoroutine = null;
-            }
+            _processCts?.Cancel();
+            _processCts?.Dispose();
+            _processCts = null;
+            _processTask = null;
             _isProcessing = false;
         }
         
-        private IEnumerator ProcessQueue()
+        private async Task ProcessQueueAsync(CancellationToken ct)
         {
             _isProcessing = true;
             
-            while (_actionQueue.Count > 0 && !_isPaused)
+            while (_actionQueue.Count > 0 && !_isPaused && !ct.IsCancellationRequested)
             {
                 var action = _actionQueue.Dequeue();
                 
                 OnActionStarted?.Invoke(action);
                 
                 bool success = false;
-                IEnumerator executorCoroutine = null;
                 
                 try
                 {
-                    if (action.Executor != null)
+                    if (action.AsyncExecutor != null)
                     {
-                        executorCoroutine = action.Executor();
+                        await action.AsyncExecutor();
                         success = true;
                     }
                 }
-                catch (Exception e)
+                catch (Exception e) when (!(e is OperationCanceledException))
                 {
                     Debug.LogError($"Error executing action: {e.Message}");
                     success = false;
                 }
                 
-                if (executorCoroutine != null && success)
+                if (!ct.IsCancellationRequested)
                 {
-                    yield return executorCoroutine;
+                    action.Callback?.Invoke(success);
+                    OnActionCompleted?.Invoke(action);
                 }
                 
-                action.Callback?.Invoke(success);
-                OnActionCompleted?.Invoke(action);
-                
-                yield return null;
+                await AsyncUtilities.NextFrameAsync(ct);
             }
             
             _isProcessing = false;
             
-            if (_actionQueue.Count == 0)
+            if (_actionQueue.Count == 0 && !ct.IsCancellationRequested)
             {
                 OnQueueEmpty?.Invoke();
             }
@@ -177,7 +183,7 @@ namespace GameSystem
             
             if (!_isProcessing && _actionQueue.Count > 0)
             {
-                StartProcessing();
+                StartProcessingAsync();
             }
         }
         

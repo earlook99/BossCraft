@@ -1,23 +1,30 @@
 using System;
-using System.Collections;
+using System.Threading;
+using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
+using GameSystem.Utils;
 
 namespace GameSystem.Pooling
 {
     public abstract class PoolableUI : MonoBehaviour
     {
         protected bool _isActive = false;
+        protected CancellationTokenSource _cts;
         
         public virtual void OnSpawned()
         {
             _isActive = true;
+            _cts = new CancellationTokenSource();
         }
         
         public virtual void OnDespawned()
         {
             _isActive = false;
+            _cts?.Cancel();
+            _cts?.Dispose();
+            _cts = null;
         }
         
         public virtual void ResetUI()
@@ -28,6 +35,12 @@ namespace GameSystem.Pooling
         public void ReturnToPool()
         {
             UIPoolManager.Instance?.ReturnUI(this);
+        }
+        
+        protected virtual void OnDestroy()
+        {
+            _cts?.Cancel();
+            _cts?.Dispose();
         }
     }
     
@@ -40,7 +53,6 @@ namespace GameSystem.Pooling
         
         private RectTransform _rectTransform;
         private CanvasGroup _canvasGroup;
-        private Coroutine _animationCoroutine;
         
         private void Awake()
         {
@@ -66,19 +78,15 @@ namespace GameSystem.Pooling
             
             _canvasGroup.alpha = 1f;
             
-            if (_animationCoroutine != null)
-            {
-                StopCoroutine(_animationCoroutine);
-            }
-            _animationCoroutine = StartCoroutine(AnimateDamageText());
+            _ = AnimateDamageTextAsync(_cts.Token);
         }
         
-        private IEnumerator AnimateDamageText()
+        private async Task AnimateDamageTextAsync(CancellationToken ct)
         {
             float elapsed = 0f;
             Vector2 startPosition = _rectTransform.anchoredPosition;
             
-            while (elapsed < _lifetime)
+            while (elapsed < _lifetime && !ct.IsCancellationRequested)
             {
                 elapsed += Time.deltaTime;
                 float progress = elapsed / _lifetime;
@@ -91,21 +99,18 @@ namespace GameSystem.Pooling
                     _canvasGroup.alpha = 1f - fadeProgress;
                 }
                 
-                yield return null;
+                await AsyncUtilities.NextFrameAsync(ct);
             }
             
-            ReturnToPool();
+            if (!ct.IsCancellationRequested)
+            {
+                ReturnToPool();
+            }
         }
         
         public override void OnDespawned()
         {
             base.OnDespawned();
-            
-            if (_animationCoroutine != null)
-            {
-                StopCoroutine(_animationCoroutine);
-                _animationCoroutine = null;
-            }
         }
         
         public override void ResetUI()
@@ -178,8 +183,9 @@ namespace GameSystem.Pooling
             }
         }
         
-        private void OnDestroy()
+        protected override void OnDestroy()
         {
+            base.OnDestroy();
             if (_button != null)
             {
                 _button.onClick.RemoveListener(HandleClick);
@@ -194,7 +200,6 @@ namespace GameSystem.Pooling
         [SerializeField] private float _fadeInDuration = 0.3f;
         
         private CanvasGroup _canvasGroup;
-        private Coroutine _fadeCoroutine;
         
         private void Awake()
         {
@@ -225,26 +230,25 @@ namespace GameSystem.Pooling
                 }
             }
             
-            if (_fadeCoroutine != null)
-            {
-                StopCoroutine(_fadeCoroutine);
-            }
-            _fadeCoroutine = StartCoroutine(FadeIn());
+            _ = FadeInAsync(_cts.Token);
         }
         
-        private IEnumerator FadeIn()
+        private async Task FadeInAsync(CancellationToken ct)
         {
             float elapsed = 0f;
             _canvasGroup.alpha = 0f;
             
-            while (elapsed < _fadeInDuration)
+            while (elapsed < _fadeInDuration && !ct.IsCancellationRequested)
             {
                 elapsed += Time.deltaTime;
                 _canvasGroup.alpha = elapsed / _fadeInDuration;
-                yield return null;
+                await AsyncUtilities.NextFrameAsync(ct);
             }
             
-            _canvasGroup.alpha = 1f;
+            if (!ct.IsCancellationRequested)
+            {
+                _canvasGroup.alpha = 1f;
+            }
         }
         
         public void UpdateDuration(int duration)
@@ -258,12 +262,6 @@ namespace GameSystem.Pooling
         public override void OnDespawned()
         {
             base.OnDespawned();
-            
-            if (_fadeCoroutine != null)
-            {
-                StopCoroutine(_fadeCoroutine);
-                _fadeCoroutine = null;
-            }
         }
         
         public override void ResetUI()

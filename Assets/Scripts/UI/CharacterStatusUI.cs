@@ -2,8 +2,10 @@ using Entity;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
-using System.Collections;
+using System.Threading;
+using System.Threading.Tasks;
 using System.Collections.Generic;
+using GameSystem.Utils;
 
 namespace UI
 {
@@ -29,7 +31,7 @@ namespace UI
         
         private BattleEntity _linkedEntity;
         private BossEntity _linkedBoss;
-        private Coroutine _transitionCoroutine;
+        private CancellationTokenSource _transitionCts;
         private List<GameObject> _stackDividers = new List<GameObject>();
 
         private const float HP_FLASH_DURATION = 0.2f;
@@ -39,6 +41,12 @@ namespace UI
         private const float DIVIDER_WIDTH = 4f;
         private const float DIVIDER_FADE_TIME = 0.1f;
         private const float DIVIDER_DELAY = 0.05f;
+
+        private void OnDestroy()
+        {
+            _transitionCts?.Cancel();
+            _transitionCts?.Dispose();
+        }
 
         public void Setup(BattleEntity entity, int index)
         {
@@ -238,28 +246,35 @@ namespace UI
             _stackDividers.Add(divider);
         }
         
-        public void AnimateShieldConversion(int hpBefore, int hpAfter, int shieldAmount)
+        public async void AnimateShieldConversion(int hpBefore, int hpAfter, int shieldAmount)
         {
-            if (_transitionCoroutine != null)
-                StopCoroutine(_transitionCoroutine);
-                
-            _transitionCoroutine = StartCoroutine(ShieldConversionAnimation(hpBefore, hpAfter, shieldAmount));
+            _transitionCts?.Cancel();
+            _transitionCts = new CancellationTokenSource();
+            
+            try
+            {
+                await ShieldConversionAnimationAsync(hpBefore, hpAfter, shieldAmount, _transitionCts.Token);
+            }
+            catch (TaskCanceledException)
+            {
+                // Animation was cancelled, this is expected
+            }
         }
         
-        private IEnumerator ShieldConversionAnimation(int hpBefore, int hpAfter, int shieldAmount)
+        private async Task ShieldConversionAnimationAsync(int hpBefore, int hpAfter, int shieldAmount, CancellationToken ct)
         {
-            if (_shieldFillImage == null || _hpFillImage == null) yield break;
+            if (_shieldFillImage == null || _hpFillImage == null) return;
             
             SetupShieldAnimation(hpAfter, shieldAmount);
             
-            yield return AnimateHPFlash();
-            yield return AnimateShieldAppear();
+            await AnimateHPFlashAsync(ct);
+            await AnimateShieldAppearAsync(ct);
             
             UpdateCombinedBar(hpAfter, shieldAmount, _linkedEntity.MaxHP);
             
             if (_linkedBoss.ShieldStacks > 1)
             {
-                yield return FadeInDividersSequentially();
+                await FadeInDividersSequentiallyAsync(ct);
             }
         }
 
@@ -279,25 +294,27 @@ namespace UI
             _shieldFillImage.transform.localScale = new Vector3(SHIELD_INITIAL_SCALE, SHIELD_INITIAL_SCALE, 1f);
         }
 
-        private IEnumerator AnimateHPFlash()
+        private async Task AnimateHPFlashAsync(CancellationToken ct)
         {
             float elapsed = 0f;
             
-            while (elapsed < HP_FLASH_DURATION)
+            while (elapsed < HP_FLASH_DURATION && !ct.IsCancellationRequested)
             {
                 elapsed += Time.deltaTime;
                 float t = elapsed / HP_FLASH_DURATION;
                 _hpFillImage.color = Color.Lerp(_hpColor, Color.white, Mathf.Sin(t * Mathf.PI));
-                yield return null;
+                await AsyncUtilities.NextFrameAsync(ct);
             }
-            _hpFillImage.color = _hpColor;
+            
+            if (!ct.IsCancellationRequested)
+                _hpFillImage.color = _hpColor;
         }
 
-        private IEnumerator AnimateShieldAppear()
+        private async Task AnimateShieldAppearAsync(CancellationToken ct)
         {
             float elapsed = 0f;
             
-            while (elapsed < SHIELD_ANIM_DURATION)
+            while (elapsed < SHIELD_ANIM_DURATION && !ct.IsCancellationRequested)
             {
                 elapsed += Time.deltaTime;
                 float t = elapsed / SHIELD_ANIM_DURATION;
@@ -308,39 +325,42 @@ namespace UI
                 float scale = 1f + (0.3f * Mathf.Pow(1f - t, 3f));
                 _shieldFillImage.transform.localScale = new Vector3(scale, scale, 1f);
                 
-                yield return null;
+                await AsyncUtilities.NextFrameAsync(ct);
             }
             
-            _shieldFillImage.color = _shieldColor;
-            _shieldFillImage.transform.localScale = Vector3.one;
+            if (!ct.IsCancellationRequested)
+            {
+                _shieldFillImage.color = _shieldColor;
+                _shieldFillImage.transform.localScale = Vector3.one;
+            }
         }
         
-        private IEnumerator FadeInDividersSequentially()
+        private async Task FadeInDividersSequentiallyAsync(CancellationToken ct)
         {
             foreach (var divider in _stackDividers)
             {
-                if (divider == null) continue;
+                if (divider == null || ct.IsCancellationRequested) continue;
                 
                 var image = divider.GetComponent<Image>();
                 if (image == null) continue;
                 
-                yield return FadeDivider(image);
-                yield return new WaitForSeconds(DIVIDER_DELAY);
+                await FadeDividerAsync(image, ct);
+                await AsyncUtilities.WaitForSecondsAsync(DIVIDER_DELAY, ct);
             }
         }
 
-        private IEnumerator FadeDivider(Image image)
+        private async Task FadeDividerAsync(Image image, CancellationToken ct)
         {
             Color originalColor = image.color;
             image.color = new Color(originalColor.r, originalColor.g, originalColor.b, 0f);
             
             float elapsed = 0f;
-            while (elapsed < DIVIDER_FADE_TIME)
+            while (elapsed < DIVIDER_FADE_TIME && !ct.IsCancellationRequested)
             {
                 elapsed += Time.deltaTime;
                 float alpha = elapsed / DIVIDER_FADE_TIME;
                 image.color = new Color(originalColor.r, originalColor.g, originalColor.b, alpha);
-                yield return null;
+                await AsyncUtilities.NextFrameAsync(ct);
             }
         }
         

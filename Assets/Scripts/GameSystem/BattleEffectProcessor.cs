@@ -1,10 +1,12 @@
 using System;
-using System.Collections;
+using System.Threading;
+using System.Threading.Tasks;
 using UnityEngine;
 using Entity;
 using Data;
 using Effect;
 using GameSystem.Events;
+using GameSystem.Utils;
 
 namespace GameSystem
 {
@@ -27,41 +29,41 @@ namespace GameSystem
             _defaultEffectPrefab = defaultEffectPrefab;
         }
         
-        public IEnumerator ProcessEffect(BattleEntity source, BattleEntity target, MoveInstance moveInst, MoveEffect effect)
+        public async Task ProcessEffectAsync(BattleEntity source, BattleEntity target, MoveInstance moveInst, MoveEffect effect, CancellationToken ct)
         {
             switch (effect.EffectType)
             {
                 case MoveEffectType.Damage:
-                    yield return ProcessDamage(source, target, moveInst, effect);
+                    await ProcessDamageAsync(source, target, moveInst, effect, ct);
                     break;
                 case MoveEffectType.Heal:
-                    yield return ProcessHeal(source, target, moveInst, effect);
+                    await ProcessHealAsync(source, target, moveInst, effect, ct);
                     break;
                 case MoveEffectType.Buff:
-                    yield return ProcessBuff(source, target, moveInst, effect);
+                    await ProcessBuffAsync(source, target, moveInst, effect, ct);
                     break;
                 case MoveEffectType.Debuff:
-                    yield return ProcessDebuff(source, target, moveInst, effect);
+                    await ProcessDebuffAsync(source, target, moveInst, effect, ct);
                     break;
                 case MoveEffectType.Shield:
-                    yield return ProcessShield(source, target, moveInst, effect);
+                    await ProcessShieldAsync(source, target, moveInst, effect, ct);
                     break;
                 case MoveEffectType.Stun:
-                    yield return ProcessStun(source, target, moveInst, effect);
+                    await ProcessStunAsync(source, target, moveInst, effect, ct);
                     break;
             }
         }
         
-        private IEnumerator ProcessDamage(BattleEntity source, BattleEntity target, MoveInstance moveInst, MoveEffect effect)
+        private async Task ProcessDamageAsync(BattleEntity source, BattleEntity target, MoveInstance moveInst, MoveEffect effect, CancellationToken ct)
         {
             var hit = DamageFormula.GetRawHit(source, effect.Power, effect.Accuracy, effect.CritChance);
             
-            yield return SpawnEffect(target, moveInst.Data);
+            await SpawnEffectAsync(target, moveInst.Data, ct);
             
             if (!hit.IsHit)
             {
                 UIEvents.RaiseShowMessage("Miss!", 1f);
-                yield break;
+                return;
             }
             
             int prevHP = target.CurrentHP;
@@ -69,7 +71,7 @@ namespace GameSystem
             
             BattleEvents.RaiseDamageDealt(source, target, hit.Damage, moveInst.Data.Type);
             
-            yield return AnimateHPChange(target, prevHP, target.CurrentHP);
+            await AnimateHPChangeAsync(target, prevHP, target.CurrentHP, ct);
             
             if (target.CurrentHP <= 0)
             {
@@ -77,33 +79,33 @@ namespace GameSystem
             }
         }
         
-        private IEnumerator ProcessHeal(BattleEntity source, BattleEntity target, MoveInstance moveInst, MoveEffect effect)
+        private async Task ProcessHealAsync(BattleEntity source, BattleEntity target, MoveInstance moveInst, MoveEffect effect, CancellationToken ct)
         {
-            yield return SpawnEffect(target, moveInst.Data);
+            await SpawnEffectAsync(target, moveInst.Data, ct);
             
             int prevHP = target.CurrentHP;
             target.CurrentHP = Mathf.Min(target.CurrentHP + effect.Power, target.MaxHP);
             
             BattleEvents.RaiseHealingReceived(source, target, effect.Power);
             
-            yield return AnimateHPChange(target, prevHP, target.CurrentHP);
+            await AnimateHPChangeAsync(target, prevHP, target.CurrentHP, ct);
         }
         
-        private IEnumerator ProcessBuff(BattleEntity source, BattleEntity target, MoveInstance moveInst, MoveEffect effect)
+        private async Task ProcessBuffAsync(BattleEntity source, BattleEntity target, MoveInstance moveInst, MoveEffect effect, CancellationToken ct)
         {
             ApplyStatModifier(target, effect, true);
             BattleEvents.RaiseStatusEffectApplied(source, target, effect.EffectType);
-            yield return SpawnEffect(target, moveInst.Data);
+            await SpawnEffectAsync(target, moveInst.Data, ct);
         }
         
-        private IEnumerator ProcessDebuff(BattleEntity source, BattleEntity target, MoveInstance moveInst, MoveEffect effect)
+        private async Task ProcessDebuffAsync(BattleEntity source, BattleEntity target, MoveInstance moveInst, MoveEffect effect, CancellationToken ct)
         {
             ApplyStatModifier(target, effect, false);
             BattleEvents.RaiseStatusEffectApplied(source, target, effect.EffectType);
-            yield return SpawnEffect(target, moveInst.Data);
+            await SpawnEffectAsync(target, moveInst.Data, ct);
         }
         
-        private IEnumerator ProcessShield(BattleEntity source, BattleEntity target, MoveInstance moveInst, MoveEffect effect)
+        private async Task ProcessShieldAsync(BattleEntity source, BattleEntity target, MoveInstance moveInst, MoveEffect effect, CancellationToken ct)
         {
             if (target is BossEntity boss)
             {
@@ -119,19 +121,19 @@ namespace GameSystem
                     BattleEvents.RaiseShieldActivated(boss, boss.ShieldHP);
                     UIEvents.RaiseShowMessage($"{boss.EntityName} activates shield!", 1.5f);
                     
-                    yield return new WaitForSeconds(0.5f);
-                    yield return SpawnEffect(target, moveInst.Data);
+                    await AsyncUtilities.WaitForSecondsAsync(0.5f, ct);
+                    await SpawnEffectAsync(target, moveInst.Data, ct);
                 }
             }
         }
         
-        private IEnumerator ProcessStun(BattleEntity source, BattleEntity target, MoveInstance moveInst, MoveEffect effect)
+        private async Task ProcessStunAsync(BattleEntity source, BattleEntity target, MoveInstance moveInst, MoveEffect effect, CancellationToken ct)
         {
             if (DamageFormula.CheckStun(effect.Accuracy))
             {
                 target.ApplyStun(SHIELD_BREAK_STUN_DURATION);
                 BattleEvents.RaiseStatusEffectApplied(source, target, effect.EffectType);
-                yield return SpawnEffect(target, moveInst.Data);
+                await SpawnEffectAsync(target, moveInst.Data, ct);
             }
         }
         
@@ -159,26 +161,36 @@ namespace GameSystem
             }
         }
         
-        private IEnumerator SpawnEffect(BattleEntity target, MoveData moveData)
+        private async Task SpawnEffectAsync(BattleEntity target, MoveData moveData, CancellationToken ct)
         {
             var effectPoolManager = Pooling.EffectPoolManager.Instance;
             if (effectPoolManager != null && moveData.VFXPrefab != null)
             {
                 string poolName = moveData.VFXPrefab.name;
-                yield return effectPoolManager.PlayEffectForDuration(poolName, target.transform.position, EFFECT_DURATION);
+                var effect = effectPoolManager.GetEffect(poolName, target.transform.position, Quaternion.identity);
+                if (effect != null)
+                {
+                    await AsyncUtilities.WaitForSecondsAsync(EFFECT_DURATION, ct);
+                    effectPoolManager.ReturnEffect(effect);
+                }
             }
-            else if (_defaultEffectPrefab != null)
+            else if (_defaultEffectPrefab != null && effectPoolManager != null)
             {
-                yield return Pooling.EffectPoolManager.Instance?.PlayEffectForDuration("DefaultEffect", target.transform.position, EFFECT_DURATION);
+                var effect = effectPoolManager.GetEffect("DefaultEffect", target.transform.position, Quaternion.identity);
+                if (effect != null)
+                {
+                    await AsyncUtilities.WaitForSecondsAsync(EFFECT_DURATION, ct);
+                    effectPoolManager.ReturnEffect(effect);
+                }
             }
         }
         
-        private IEnumerator AnimateHPChange(BattleEntity target, int startHP, int endHP)
+        private async Task AnimateHPChangeAsync(BattleEntity target, int startHP, int endHP, CancellationToken ct)
         {
             int entityIndex = Array.IndexOf(_entities, target);
             float elapsed = 0f;
             
-            while (elapsed < HP_ANIMATION_DURATION)
+            while (elapsed < HP_ANIMATION_DURATION && !ct.IsCancellationRequested)
             {
                 elapsed += Time.deltaTime;
                 float t = elapsed / HP_ANIMATION_DURATION;
@@ -186,10 +198,13 @@ namespace GameSystem
                 
                 UIEvents.RaiseUpdateHPBar(entityIndex, currentHP, target.MaxHP);
                 
-                yield return null;
+                await AsyncUtilities.NextFrameAsync(ct);
             }
             
-            UIEvents.RaiseUpdateHPBar(entityIndex, endHP, target.MaxHP);
+            if (!ct.IsCancellationRequested)
+            {
+                UIEvents.RaiseUpdateHPBar(entityIndex, endHP, target.MaxHP);
+            }
         }
     }
 }

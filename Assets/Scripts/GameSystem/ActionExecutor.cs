@@ -1,8 +1,10 @@
-using System.Collections;
+using System.Threading;
+using System.Threading.Tasks;
 using UnityEngine;
 using Entity;
 using Data;
 using GameSystem.Events;
+using GameSystem.Utils;
 using System.Linq;
 
 namespace GameSystem
@@ -24,7 +26,7 @@ namespace GameSystem
             _entities = entities;
         }
         
-        public IEnumerator ExecuteAction(ActionData action)
+        public async Task ExecuteActionAsync(ActionData action, CancellationToken ct)
         {
             var source = _entities[(int)action.Source];
             
@@ -38,35 +40,35 @@ namespace GameSystem
             switch (action.Action)
             {
                 case ActionType.Move:
-                    yield return ExecuteMove(action);
+                    await ExecuteMoveAsync(action, ct);
                     break;
                 case ActionType.Guard:
-                    yield return ExecuteGuard(source);
+                    await ExecuteGuardAsync(source, ct);
                     break;
                 case ActionType.Taunt:
-                    yield return ExecuteTaunt(source);
+                    await ExecuteTauntAsync(source, ct);
                     break;
             }
         }
         
-        private IEnumerator ExecuteMove(ActionData action)
+        private async Task ExecuteMoveAsync(ActionData action, CancellationToken ct)
         {
             var source = _entities[(int)action.Source];
             var moveInst = source.GetMoveInstance(action.ActionIndex);
-            if (moveInst == null) yield break;
+            if (moveInst == null) return;
             
             if (moveInst.Data.RequiresCharge && !source.IsCharging)
             {
                 source.SetChargingState(true, action.ActionIndex, action.Target);
                 UIEvents.RaiseShowMessage($"{source.EntityName} is charging up!", MESSAGE_DURATION);
-                yield return new WaitForSeconds(MESSAGE_DURATION);
-                yield break;
+                await AsyncUtilities.WaitForSecondsAsync(MESSAGE_DURATION, ct);
+                return;
             }
             
             UIEvents.RaiseShowMessage($"{source.EntityName} used {moveInst.Data.Name}!", MESSAGE_DURATION);
-            yield return new WaitForSeconds(MESSAGE_DURATION);
+            await AsyncUtilities.WaitForSecondsAsync(MESSAGE_DURATION, ct);
             
-            yield return ApplyMoveEffects(source, action.Target, moveInst);
+            await ApplyMoveEffectsAsync(source, action.Target, moveInst, ct);
             
             if (source.IsCharging)
             {
@@ -76,31 +78,31 @@ namespace GameSystem
             moveInst.CooldownLeft = moveInst.Data.Cooldown;
         }
         
-        private IEnumerator ExecuteGuard(BattleEntity source)
+        private async Task ExecuteGuardAsync(BattleEntity source, CancellationToken ct)
         {
             source.SetGuardState(true);
             UIEvents.RaiseShowMessage($"{source.EntityName} takes a defensive stance!", MESSAGE_DURATION);
-            yield return new WaitForSeconds(MESSAGE_DURATION);
+            await AsyncUtilities.WaitForSecondsAsync(MESSAGE_DURATION, ct);
         }
         
-        private IEnumerator ExecuteTaunt(BattleEntity source)
+        private async Task ExecuteTauntAsync(BattleEntity source, CancellationToken ct)
         {
             UIEvents.RaiseShowMessage($"{source.EntityName} taunts the enemy!", MESSAGE_DURATION);
-            yield return new WaitForSeconds(MESSAGE_DURATION);
+            await AsyncUtilities.WaitForSecondsAsync(MESSAGE_DURATION, ct);
         }
         
-        private IEnumerator ApplyMoveEffects(BattleEntity source, EntityType targetType, MoveInstance moveInst)
+        private async Task ApplyMoveEffectsAsync(BattleEntity source, EntityType targetType, MoveInstance moveInst, CancellationToken ct)
         {
             switch (moveInst.Data.Category)
             {
                 case MoveCategory.Single:
-                    yield return ApplyToSingleTarget(source, _entities[(int)targetType], moveInst);
+                    await ApplyToSingleTargetAsync(source, _entities[(int)targetType], moveInst, ct);
                     break;
                 case MoveCategory.AOE:
-                    yield return ApplyToMultipleTargets(source, GetAOETargets(source), moveInst);
+                    await ApplyToMultipleTargetsAsync(source, GetAOETargets(source), moveInst, ct);
                     break;
                 case MoveCategory.MultiRandom:
-                    yield return ApplyToRandomTargets(source, moveInst);
+                    await ApplyToRandomTargetsAsync(source, moveInst, ct);
                     break;
             }
         }
@@ -117,17 +119,17 @@ namespace GameSystem
             }
         }
         
-        private IEnumerator ApplyToSingleTarget(BattleEntity source, BattleEntity target, MoveInstance moveInst)
+        private async Task ApplyToSingleTargetAsync(BattleEntity source, BattleEntity target, MoveInstance moveInst, CancellationToken ct)
         {
-            if (target.CurrentHP <= 0) yield break;
+            if (target.CurrentHP <= 0) return;
             
             foreach (var effect in moveInst.Data.Effects)
             {
-                yield return ApplyEffect(source, target, moveInst, effect);
+                await ApplyEffectAsync(source, target, moveInst, effect, ct);
             }
         }
         
-        private IEnumerator ApplyToMultipleTargets(BattleEntity source, int[] targetIndices, MoveInstance moveInst)
+        private async Task ApplyToMultipleTargetsAsync(BattleEntity source, int[] targetIndices, MoveInstance moveInst, CancellationToken ct)
         {
             foreach (int idx in targetIndices)
             {
@@ -136,12 +138,12 @@ namespace GameSystem
                 
                 foreach (var effect in moveInst.Data.Effects)
                 {
-                    yield return ApplyEffect(source, target, moveInst, effect);
+                    await ApplyEffectAsync(source, target, moveInst, effect, ct);
                 }
             }
         }
         
-        private IEnumerator ApplyToRandomTargets(BattleEntity source, MoveInstance moveInst)
+        private async Task ApplyToRandomTargetsAsync(BattleEntity source, MoveInstance moveInst, CancellationToken ct)
         {
             int hitCount = Random.Range(MIN_MULTI_HITS, MAX_MULTI_HITS);
             
@@ -156,11 +158,11 @@ namespace GameSystem
                 {
                     if (effect.EffectType == MoveEffectType.Damage)
                     {
-                        yield return ApplyEffect(source, target, moveInst, effect);
+                        await ApplyEffectAsync(source, target, moveInst, effect, ct);
                     }
                 }
                 
-                yield return new WaitForSeconds(MULTI_HIT_DELAY);
+                await AsyncUtilities.WaitForSecondsAsync(MULTI_HIT_DELAY, ct);
             }
         }
         
@@ -176,7 +178,7 @@ namespace GameSystem
             }
         }
         
-        private IEnumerator ApplyEffect(BattleEntity source, BattleEntity target, MoveInstance moveInst, MoveEffect effect)
+        private async Task ApplyEffectAsync(BattleEntity source, BattleEntity target, MoveInstance moveInst, MoveEffect effect, CancellationToken ct)
         {
             var processor = GetComponent<BattleEffectProcessor>();
             if (processor == null)
@@ -185,7 +187,7 @@ namespace GameSystem
                 processor.Initialize(_entities, _defaultEffectPrefab);
             }
             
-            yield return processor.ProcessEffect(source, target, moveInst, effect);
+            await processor.ProcessEffectAsync(source, target, moveInst, effect, ct);
         }
     }
 }
