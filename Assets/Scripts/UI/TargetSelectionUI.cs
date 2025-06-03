@@ -5,12 +5,13 @@ using UnityEngine;
 using Data;
 using Entity;
 using GameSystem;
+using GameSystem.UI;
 
 namespace UI
 {
     public class TargetSelectionUI : MonoBehaviour
     {
-        private UIManager _uiManager;
+        private BattleUIController _uiController;
         private BattleEntity[] _allEntities;
         private List<int> _validTargetIndices = new List<int>();
         private int _currentTargetIndex = 0;
@@ -24,9 +25,9 @@ namespace UI
         private const int PLAYER_COUNT = 4;
         private const int BOSS_INDEX = 4;
 
-        public void Setup(UIManager uiManager, BattleEntity[] entities)
+        public void Setup(BattleUIController uiController, BattleEntity[] entities)  // 파라미터 타입 변경
         {
-            _uiManager = uiManager;
+            _uiController = uiController;
             _allEntities = entities;
         }
 

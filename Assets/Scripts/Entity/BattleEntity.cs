@@ -75,7 +75,7 @@ namespace Entity
         public string Name => EntityName;
         public bool IsAlive => _currentHP > 0;
         public bool CanBeTargeted => IsAlive && !IsStunned;
-        public EntityType EntityType => (EntityType)Array.IndexOf(GameObject.FindObjectsOfType<BattleEntity>(), this);
+        public EntityType EntityType => (EntityType)Array.IndexOf(GameObject.FindObjectsByType<BattleEntity>(FindObjectsSortMode.None), this);
         public float AttackMultiplier => AtkBuffMultiplier;
         public float DefenseMultiplier => DefBuffMultiplier;
         public bool CanBeHealed => IsAlive && _currentHP < _maxHP;

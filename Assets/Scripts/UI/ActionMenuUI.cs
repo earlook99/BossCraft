@@ -4,6 +4,7 @@ using Data;
 using UnityEngine;
 using GameSystem;
 using Entity;
+using GameSystem.UI;
 using TMPro;
 
 namespace UI
@@ -20,16 +21,16 @@ namespace UI
         [SerializeField] private Transform _buttonsContainer;
         [SerializeField] private GameObject _buttonPrefab;
 
-        private UIManager _uiManager;
+        private BattleUIController _uiController;
         private BattleEntity _currentEntity;
         private int _playerIndex;
         private MenuState _currentState;
 
         private const float ACTION_MESSAGE_DURATION = 1f;
 
-        public void Setup(UIManager manager, BattleEntity entity, int playerIndex)
+        public void Setup(BattleUIController controller, BattleEntity entity, int playerIndex)
         {
-            _uiManager = manager;
+            _uiController = controller;
             _currentEntity = entity;
             _playerIndex = playerIndex;
             _currentState = MenuState.Main;
@@ -50,7 +51,7 @@ namespace UI
 
         private void CreateActionButtons()
         {
-            StartCoroutine(_uiManager.ShowBattleMessage($"What will {_currentEntity.EntityName} do?", ACTION_MESSAGE_DURATION));
+            GameSystem.Events.UIEvents.RaiseShowMessage($"What will {_currentEntity.EntityName} do?", ACTION_MESSAGE_DURATION);
             
             CreateButton("Fight", () => SwitchMenuState(MenuState.Moves));
             CreateButton("Item",  () => SwitchMenuState(MenuState.Items));
@@ -106,7 +107,7 @@ namespace UI
 
         private void HandleActionSelect(ActionType actionType, int actionIndex)
         {
-            _uiManager.OnActionSelect(actionType, actionIndex);
+            _uiController.OnActionSelect(actionType, actionIndex);
         }
     }
 }

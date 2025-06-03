@@ -198,7 +198,7 @@ namespace GameSystem.UI
         {
             UIEvents.RaiseActionSelected(_pendingActionType, _pendingActionIndex, _currentPlayerIndex);
             
-            var battleManager = FindObjectOfType<BattleManager>();
+            var battleManager = FindAnyObjectByType<BattleManager>();
             if (battleManager != null)
             {
                 battleManager.OnTargetSelected(target);

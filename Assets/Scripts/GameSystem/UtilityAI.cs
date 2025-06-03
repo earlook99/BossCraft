@@ -52,7 +52,7 @@ namespace GameSystem
                 return false;
 
             var trigger = bossEntity.GetAvailableShieldTrigger(
-                UnityEngine.Object.FindObjectOfType<BattleManager>()?.TurnCount ?? 0
+                BattleContext.Instance?.GetCurrentTurn() ?? 0
             );
 
             if (trigger == null)

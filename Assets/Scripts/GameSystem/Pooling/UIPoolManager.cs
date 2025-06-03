@@ -61,7 +61,7 @@ namespace GameSystem.Pooling
                 _uiCanvas = GetComponentInParent<Canvas>();
                 if (_uiCanvas == null)
                 {
-                    _uiCanvas = FindObjectOfType<Canvas>();
+                    _uiCanvas = FindAnyObjectByType<Canvas>();
                 }
             }
             

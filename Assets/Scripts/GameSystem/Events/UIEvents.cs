@@ -1,6 +1,7 @@
 using System;
 using Entity;
 using Data;
+using UI;
 
 namespace GameSystem.Events
 {
@@ -60,7 +61,7 @@ namespace GameSystem.Events
             OnUpdateShield?.Invoke(new UpdateShieldEventArgs { Boss = boss });
         }
 
-        public static void RaiseMenuStateChanged(UI.MenuState newState, int playerIndex)
+        public static void RaiseMenuStateChanged(MenuState newState, int playerIndex)
         {
             OnMenuStateChanged?.Invoke(new MenuStateChangedEventArgs 
             { 
@@ -113,7 +114,7 @@ namespace GameSystem.Events
 
     public class MenuStateChangedEventArgs : EventArgs
     {
-        public UI.MenuState NewState { get; set; }
+        public MenuState NewState { get; set; }
         public int PlayerIndex { get; set; }
     }
 }
