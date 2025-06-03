@@ -11,21 +11,21 @@ public class SceneScaleDebugger : MonoBehaviour
         Debug.Log("=== SCENE SCALE CHECK ===");
         
         // 카메라 체크
-        var cameras = FindObjectsOfType<Camera>();
+        var cameras = FindObjectsByType<Camera>(FindObjectsSortMode.None);
         foreach (var cam in cameras)
         {
             Debug.Log($"Camera '{cam.name}': Ortho Size = {cam.orthographicSize}, Position Z = {cam.transform.position.z}");
         }
         
         // Virtual Camera 체크
-        var vcams = FindObjectsOfType<CinemachineCamera>();
+        var vcams = FindObjectsByType<CinemachineCamera>(FindObjectsSortMode.None);
         foreach (var vcam in vcams)
         {
             Debug.Log($"VCam '{vcam.name}': Ortho Size = {vcam.Lens.OrthographicSize}, Position Z = {vcam.transform.position.z}");
         }
         
         // 스프라이트 체크 - Z값 포함!
-        var sprites = FindObjectsOfType<SpriteRenderer>();
+        var sprites = FindObjectsByType<SpriteRenderer>(FindObjectsSortMode.None);
         foreach (var sprite in sprites)
         {
             var pos = sprite.transform.position;
@@ -48,7 +48,7 @@ public class SceneScaleDebugger : MonoBehaviour
         }
         
         // Canvas 체크
-        var canvases = FindObjectsOfType<Canvas>();
+        var canvases = FindObjectsByType<Canvas>(FindObjectsSortMode.None);
         foreach (var canvas in canvases)
         {
             Debug.Log($"Canvas '{canvas.name}': Render Mode = {canvas.renderMode}, Plane Distance = {canvas.planeDistance}");
