@@ -8,7 +8,6 @@ namespace AI
         private static BossContainer _instance;
         public static BossContainer Instance => _instance;
 
-        // 텍스처 대신 byte array 저장
         public byte[] CurrentBossImageData;
         public string CurrentBossName;
         public ElementType CurrentBossType;

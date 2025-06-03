@@ -16,7 +16,10 @@ namespace CameraSystem
 
         private void LateUpdate()
         {
-            transform.forward = _camTransform.forward;
+            if (_camTransform != null)
+            {
+                transform.forward = _camTransform.forward;
+            }
         }
     }
 }

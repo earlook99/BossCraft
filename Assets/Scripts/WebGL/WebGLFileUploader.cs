@@ -32,11 +32,7 @@ namespace WebGL
         
         public static void OpenFilePicker(Action<string> callback)
         {
-            if (_instance == null)
-            {
-                GameObject go = new GameObject("WebGLFileUploader");
-                _instance = go.AddComponent<WebGLFileUploader>();
-            }
+            EnsureInstance();
             
             _instance._onFileSelected = callback;
             
@@ -54,6 +50,15 @@ namespace WebGL
 #else
             Debug.LogError("Download is only supported in WebGL builds!");
 #endif
+        }
+        
+        private static void EnsureInstance()
+        {
+            if (_instance == null)
+            {
+                GameObject go = new GameObject("WebGLFileUploader");
+                _instance = go.AddComponent<WebGLFileUploader>();
+            }
         }
         
         public void OnFileSelected(string base64Data)

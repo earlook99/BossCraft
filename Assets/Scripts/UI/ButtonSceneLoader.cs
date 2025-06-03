@@ -6,7 +6,7 @@ namespace UI
 {
     public class ButtonSceneLoader : MonoBehaviour
     {
-        [SerializeField] private string sceneName; // Object 대신 string 사용
+        [SerializeField] private string sceneName;
     
         void Start()
         {

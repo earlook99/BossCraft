@@ -20,43 +20,42 @@ namespace GameSystem
 
     public static class DamageFormula
     {
+        private const float CRITICAL_MULTIPLIER = 1.5f;
+        private const int MINIMUM_DAMAGE = 1;
+
         public static RawHit GetRawHit(BattleEntity source, int effectPower, float effectAcc, float effectCrit)
         {
             if (Random.value > effectAcc)
             {
-                return new RawHit(0, false, false); // miss
+                return new RawHit(0, false, false);
             }
+            
             float raw = effectPower * source.Attack;
-            bool isCrit = (Random.value < effectCrit);
-            if (isCrit) raw *= 1.5f;
+            bool isCrit = Random.value < effectCrit;
+            
+            if (isCrit) 
+                raw *= CRITICAL_MULTIPLIER;
 
-            int dmg = Mathf.Max(1, Mathf.RoundToInt(raw));
-            return new RawHit(dmg, true, isCrit);
+            int damage = Mathf.Max(MINIMUM_DAMAGE, Mathf.RoundToInt(raw));
+            return new RawHit(damage, true, isCrit);
         }
 
-        // 스턴 등 상태이상 판정
         public static bool CheckStun(float chance)
         {
-            return (Random.value < chance);
+            return Random.value < chance;
         }
         
         public static float GetExpectedRawDamage(BattleEntity source, MoveData data)
         {
             float totalExpectedDamage = 0f;
     
-            foreach (var eff in data.Effects)
+            foreach (var effect in data.Effects)
             {
-                if (eff.EffectType == MoveEffectType.Damage)
+                if (effect.EffectType == MoveEffectType.Damage)
                 {
-                    float effPower = eff.Power;
-                    float effAcc = eff.Accuracy;
-                    float effCrit = eff.CritChance;
-                    
-                    float raw = effPower * source.Attack;
-                    
-                    raw *= (1f + effCrit * 0.5f);
-                    
-                    raw *= effAcc;
+                    float raw = effect.Power * source.Attack;
+                    raw *= (1f + effect.CritChance * (CRITICAL_MULTIPLIER - 1f));
+                    raw *= effect.Accuracy;
                     
                     totalExpectedDamage += raw;
                 }

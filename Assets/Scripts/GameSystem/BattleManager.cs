@@ -1,576 +1,391 @@
-using System;
 using System.Collections;
-using System.Linq;
-using AI;
-using CameraSystem;
-using Data;
-using Entity;
-using Effect;
-using Unity.Cinemachine;
 using UnityEngine;
-using Random = UnityEngine.Random;
+using Entity;
+using AI;
+using Data;
+using CameraSystem;
+using GameSystem.Events;
+using GameSystem.Factory;
+using GameSystem.Pooling;
 
 namespace GameSystem
 {
-    public enum BattleState
-    {
-        PlayerChoice,
-        BossAction,
-        CheckBattleEnd,
-        BattleEnded
-    }
-
     public class BattleManager : MonoBehaviour
     {
-        [SerializeField] private UIManager _uiManager;
-        [SerializeField] private CameraManager _cameraManager;
-
-        public AIWeights Weights;
-
-        private BattleState _currentState;
-
-        [SerializeField] private BattleEntity[] _entities = new BattleEntity[5];
+        [Header("Settings")]
+        [SerializeField] private BattleSettings _battleSettings;
         
-        public BattleEntity[] Entities => _entities;
-
-        private const int PlayerCount = 4; 
-        private int _turnCount;
-        public int TurnCount => _turnCount;
-
-        private int _currentPlayerIndex;
-
-        public event Action OnEntitiesInitialized;
-
-        [SerializeField] private GameObject _testEffect;
-
+        [Header("Components")]
+        [SerializeField] private CameraManager _cameraManager;
+        [SerializeField] private AIWeights _aiWeights;
+        
+        [Header("Entity Configuration")]
+        [SerializeField] private string[] _playerEntityNames;
+        [SerializeField] private Transform[] _playerSpawnPoints;
+        [SerializeField] private Transform _bossSpawnPoint;
+        
+        private BattleStateMachine _stateMachine;
+        private TurnManager _turnManager;
+        private ActionExecutor _actionExecutor;
+        private BattleEffectProcessor _effectProcessor;
+        private ActionQueue _actionQueue;
+        private BattleContext _battleContext;
+        
+        private BattleEntity[] _entities;
+        private ActionData _pendingAction;
+        
+        private void Awake()
+        {
+            InitializeComponents();
+            SubscribeToEvents();
+        }
+        
         private void Start()
         {
-            _currentPlayerIndex = 0;
-
-            if (BossContainer.Instance != null && _entities[4] != null)
-            {
-                var boss = _entities[4];
-        
-                if (BossContainer.Instance.CurrentBossImageData != null)
-                {
-                    Texture2D bossTexture = new Texture2D(2, 2);
-                    if (bossTexture.LoadImage(BossContainer.Instance.CurrentBossImageData))
-                    {
-                        var newSprite = Sprite.Create(
-                            bossTexture,
-                            new Rect(0, 0, bossTexture.width, bossTexture.height),
-                            new Vector2(0.5f, 0.5f),
-                            0.7f
-                        );
-                
-                        var spriteRenderer = boss.GetComponentInChildren<SpriteRenderer>();
-                        if (spriteRenderer != null)
-                        {
-                            spriteRenderer.sprite = newSprite;
-                            spriteRenderer.enabled = true;
-                            spriteRenderer.color = Color.white;
-                        }
-                    }
-                }
-        
-                if (!string.IsNullOrEmpty(BossContainer.Instance.CurrentBossName))
-                {
-                    boss.EntityName = BossContainer.Instance.CurrentBossName;
-                }
-            }
-    
-            OnEntitiesInitialized?.Invoke();
-            
-            ChangeBattleState(BattleState.PlayerChoice);
+            StartCoroutine(InitializeBattle());
         }
-
-        private void ChangeBattleState(BattleState newState)
+        
+        private void OnDestroy()
         {
-            _currentState = newState;
-            switch (_currentState)
+            UnsubscribeFromEvents();
+            CleanupBattle();
+        }
+        
+        private void InitializeComponents()
+        {
+            _battleContext = GetComponent<BattleContext>();
+            if (_battleContext == null)
+            {
+                _battleContext = gameObject.AddComponent<BattleContext>();
+            }
+            
+            _stateMachine = gameObject.AddComponent<BattleStateMachine>();
+            _turnManager = gameObject.AddComponent<TurnManager>();
+            _actionExecutor = gameObject.AddComponent<ActionExecutor>();
+            _effectProcessor = gameObject.AddComponent<BattleEffectProcessor>();
+            _actionQueue = gameObject.AddComponent<ActionQueue>();
+        }
+        
+        private void SubscribeToEvents()
+        {
+            _stateMachine.OnStateChanged += HandleStateChanged;
+            _actionQueue.OnQueueEmpty += HandleQueueEmpty;
+            
+            BattleEvents.OnEntityDefeated += HandleEntityDefeated;
+            UIEvents.OnActionSelected += HandleActionSelected;
+        }
+        
+        private void UnsubscribeFromEvents()
+        {
+            if (_stateMachine != null)
+                _stateMachine.OnStateChanged -= HandleStateChanged;
+                
+            if (_actionQueue != null)
+                _actionQueue.OnQueueEmpty -= HandleQueueEmpty;
+                
+            BattleEvents.OnEntityDefeated -= HandleEntityDefeated;
+            UIEvents.OnActionSelected -= HandleActionSelected;
+            
+            BattleEvents.ClearAllListeners();
+            UIEvents.ClearAllListeners();
+        }
+        
+        private IEnumerator InitializeBattle()
+        {
+            yield return new WaitForSeconds(0.1f);
+            
+            CreateEntities();
+            
+            if (_entities == null || _entities.Length == 0)
+            {
+                Debug.LogError("Failed to create entities");
+                yield break;
+            }
+            
+            _battleContext.Initialize(_entities, _stateMachine, _turnManager);
+            _turnManager.Initialize(_entities);
+            _actionExecutor.Initialize(_entities);
+            _effectProcessor.Initialize(_entities, null);
+            
+            BattleEvents.RaiseBattleStarted(_entities);
+            
+            yield return new WaitForSeconds(_battleSettings.TurnStartDelay);
+            
+            _stateMachine.TransitionTo(BattleState.PlayerChoice);
+        }
+        
+        private void CreateEntities()
+        {
+            var entityFactory = EntityFactory.Instance;
+            if (entityFactory == null)
+            {
+                Debug.LogError("EntityFactory not found");
+                return;
+            }
+            
+            Vector3[] playerPositions = new Vector3[GameConstants.Battle.PLAYER_COUNT];
+            for (int i = 0; i < _playerSpawnPoints.Length && i < playerPositions.Length; i++)
+            {
+                playerPositions[i] = _playerSpawnPoints[i].position;
+            }
+            
+            Vector3 bossPosition = _bossSpawnPoint != null ? _bossSpawnPoint.position : Vector3.zero;
+            
+            _entities = entityFactory.CreateBattleEntities(_playerEntityNames, playerPositions, bossPosition);
+        }
+        
+        private void HandleStateChanged(BattleState previousState, BattleState newState)
+        {
+            switch (newState)
             {
                 case BattleState.PlayerChoice:
-                    BeginPlayerTurn();
+                    HandlePlayerChoice();
                     break;
-
                 case BattleState.BossAction:
-                    StartCoroutine(BeginBossTurn());
+                    _actionQueue.EnqueueAction(
+                        new ActionData(),
+                        () => HandleBossTurn(),
+                        0f
+                    );
                     break;
-
                 case BattleState.CheckBattleEnd:
-                    if (!CheckBattleEnd())
-                    {
-                        _currentPlayerIndex = 0;
-                        ChangeBattleState(BattleState.PlayerChoice);
-                    }
+                    CheckBattleEnd();
                     break;
-
                 case BattleState.BattleEnded:
                     HandleBattleEnd();
                     break;
             }
         }
-
-        private void BeginPlayerTurn()
+        
+        private void HandlePlayerChoice()
         {
-            while (_currentPlayerIndex < PlayerCount && _entities[_currentPlayerIndex].CurrentHP <= 0)
-            {
-                _currentPlayerIndex++;
-            }
+            var currentEntity = _turnManager.CurrentEntity;
+            if (currentEntity == null) return;
             
-            _turnCount++;
+            int playerIndex = _turnManager.GetCurrentPlayerIndex();
+            if (playerIndex < 0) return;
             
-            _cameraManager.SwitchCameraTo((CineCamType)_currentPlayerIndex);
-            SetSpriteAlphaExclusive(_currentPlayerIndex);
-
-            var currentEntity = _entities[_currentPlayerIndex];
+            _cameraManager.SwitchCameraTo((CineCamType)playerIndex);
+            SetSpriteAlphaExclusive(playerIndex);
             
             if (currentEntity.IsStunned)
             {
-                currentEntity.ReduceStunDuration();
-                StartCoroutine(ShowStunnedAndContinue(currentEntity));
-                return;
+                _actionQueue.EnqueueAction(
+                    new ActionData(),
+                    () => ShowStunnedMessage(currentEntity),
+                    0f,
+                    (success) => AdvanceTurn()
+                );
             }
-            
-            if (currentEntity.IsCharging)
+            else if (currentEntity.IsCharging)
             {
-                ActionData autoChargeAction = new ActionData(
+                var autoAction = new ActionData(
                     ActionType.Move,
                     currentEntity.ChargingMoveIndex,
-                    (EntityType)_currentPlayerIndex,
+                    (EntityType)playerIndex,
                     currentEntity.ChargingMoveTarget
                 );
-
-                StartCoroutine(ExecutePlayerAction(autoChargeAction));
-            }
-            else
-            {
-                _uiManager.ShowActionMenuForCurrentPlayer(_currentPlayerIndex);
+                EnqueuePlayerAction(autoAction);
             }
         }
-
-        public void ReceivePlayerChoice(ActionData newAction)
+        
+        private IEnumerator HandleBossTurn()
         {
-            StartCoroutine(ExecutePlayerAction(newAction));
-        }
-
-        private IEnumerator ExecutePlayerAction(ActionData action)
-        {
-            var source = _entities[(int)action.Source];
-    
-            if (source.IsGuarding)
-            {
-                source.SetGuardState(false);
-            }
-    
-            switch (action.Action)
-            {
-                case ActionType.Move:
-                    yield return StartCoroutine(PerformMove(action));
-                    break;
+            _cameraManager.SwitchCameraTo(CineCamType.ZoomOut);
+            SetSpriteAlphaExclusive(-1);
             
-                case ActionType.Guard:
-                    source.SetGuardState(true);
-                    yield return _uiManager.ShowBattleMessage($"{source.EntityName} takes a defensive stance!", 1f);
-                    break;
+            yield return new WaitForSeconds(_battleSettings.TurnTransitionDelay);
             
-                case ActionType.Taunt:
-                    yield return _uiManager.ShowBattleMessage($"{source.EntityName} taunts the enemy!", 1f);
-                    break;
-            }
-
-            if (CheckBattleEnd()) 
-                yield break; 
-
-            _currentPlayerIndex++;
-            if (_currentPlayerIndex >= PlayerCount)
-            {
-                _currentPlayerIndex = 0;
-                _cameraManager.SwitchCameraTo(CineCamType.ZoomOut);
-                SetSpriteAlphaExclusive(-1);
-                ChangeBattleState(BattleState.BossAction);
-            }
-            else
-            {
-                SetSpriteAlphaExclusive(_currentPlayerIndex);
-                ChangeBattleState(BattleState.PlayerChoice);
-            }
-        }
-
-        private IEnumerator BeginBossTurn()
-        {
-            var boss = _entities[4];
-
+            var boss = _turnManager.GetBoss();
+            if (boss == null) yield break;
+            
+            ActionData bossAction;
+            
             if (boss.IsCharging)
             {
-                ActionData autoChargeAction = new ActionData(
+                bossAction = new ActionData(
                     ActionType.Move,
                     boss.ChargingMoveIndex,
                     EntityType.Boss,
                     boss.ChargingMoveTarget
                 );
-                yield return StartCoroutine(ExecuteBossAction(autoChargeAction));
             }
             else
             {
-                var players = new BattleEntity[4];
-                for (int i = 0; i < 4; i++)
-                {
-                    players[i] = _entities[i];
-                }
-
-                UtilityAI bossAI = new UtilityAI(boss, players, Weights);
-                MoveDecision decision = bossAI.Decide();
-
-                if (decision.MoveIndex >= 0)
-                {
-                    ActionData bossAction = new ActionData(
-                        ActionType.Move,
-                        decision.MoveIndex,
-                        EntityType.Boss,
-                        decision.TargetEntity
-                    );
-                    yield return StartCoroutine(ExecuteBossAction(bossAction));
-                }
+                var players = _turnManager.GetRemainingPlayers().ToArray();
+                var bossAI = new UtilityAI(boss, players, _aiWeights);
+                var decision = bossAI.Decide();
+                
+                if (decision.MoveIndex < 0) yield break;
+                
+                bossAction = new ActionData(
+                    ActionType.Move,
+                    decision.MoveIndex,
+                    EntityType.Boss,
+                    decision.TargetEntity
+                );
             }
-
-            _cameraManager.SwitchCameraTo(CineCamType.Player1);
-            ChangeBattleState(BattleState.CheckBattleEnd);
-        }
-
-        private IEnumerator ExecuteBossAction(ActionData bossAction)
-        {
-            var boss = _entities[(int)EntityType.Boss];
-            var move = boss.GetMoveInstance(bossAction.ActionIndex);
-            if (move == null) yield break;
             
-            move.CooldownLeft = move.Data.Cooldown;
-
-            yield return StartCoroutine(PerformMove(bossAction));
-            if (CheckBattleEnd()) yield break;
-        }
-
-        private IEnumerator PerformMove(ActionData action)
-        {
-            var source = _entities[(int)action.Source];
-            var moveInst = source.GetMoveInstance(action.ActionIndex);
-            if (moveInst == null) yield break;
-
-            if (moveInst.Data.RequiresCharge && !source.IsCharging)
-            {
-                source.SetChargingState(true, action.ActionIndex, action.Target);
-                yield return _uiManager.ShowBattleMessage($"{source.EntityName} is charging up!",1f);
-                yield break;
-            }
-
-            yield return ShowActionMessage(source, moveInst.Data);
-
-            switch (moveInst.Data.Category)
-            {
-                case MoveCategory.Single:
-                    {
-                        var targetEntity = _entities[(int)action.Target];
-                        yield return ApplyEffectsToSingle(source, targetEntity, moveInst);
-                    }
-                    break;
-                case MoveCategory.AOE:
-                    {
-                        if (source is BossEntity)
-                        {
-                            var targetIndices = new[] {0,1,2,3}
-                                .Where(idx=>_entities[idx].CurrentHP>0).ToArray();
-                            yield return ApplyEffectsToMultiple(source, targetIndices, moveInst);
-                        }
-                        else
-                        {
-                            var targetIndices = new[] {4};
-                            yield return ApplyEffectsToMultiple(source, targetIndices, moveInst);
-                        }
-                    }
-                    break;
-                case MoveCategory.MultiRandom:
-                    yield return ApplyEffectsMultiRandom(source, moveInst);
-                    break;
-            }
-
-            if (source.IsCharging)
-            {
-                source.SetChargingState(false);
-            }
+            yield return _actionExecutor.ExecuteAction(bossAction);
+            
+            _stateMachine.TransitionTo(BattleState.CheckBattleEnd);
         }
         
-        private IEnumerator ShowStunnedAndContinue(BattleEntity entity)
+        private void HandleActionSelected(ActionSelectedEventArgs args)
         {
-            yield return _uiManager.ShowBattleMessage($"{entity.EntityName} is stunned!", 1f);
-    
-            _currentPlayerIndex++;
-            if (_currentPlayerIndex >= PlayerCount)
-            {
-                _currentPlayerIndex = 0;
-                _cameraManager.SwitchCameraTo(CineCamType.ZoomOut);
-                SetSpriteAlphaExclusive(-1);
-                ChangeBattleState(BattleState.BossAction);
-            }
-            else
-            {
-                ChangeBattleState(BattleState.PlayerChoice);
-            }
-        }
-
-        private IEnumerator ApplyEffectsToSingle(BattleEntity source, BattleEntity target, MoveInstance moveInst)
-        {
-            var effects = moveInst.Data.Effects;
-            if (effects == null || effects.Length == 0) yield break;
-
-            if (target.CurrentHP<=0) yield break;
-
-            foreach (var eff in effects)
-            {
-                yield return ApplyEffect(source, target, moveInst, eff);
-            }
-        }
-
-        private IEnumerator ApplyEffectsToMultiple(BattleEntity source, int[] targetIndices, MoveInstance moveInst)
-        {
-            var effects = moveInst.Data.Effects;
-            if (effects == null || effects.Length == 0) yield break;
-
-            foreach (int idx in targetIndices)
-            {
-                var t = _entities[idx];
-                if (t.CurrentHP<=0) continue;
-
-                foreach (var eff in effects)
-                {
-                    yield return ApplyEffect(source, t, moveInst, eff);
-                }
-            }
-        }
-
-        private IEnumerator ApplyEffectsMultiRandom(BattleEntity source, MoveInstance moveInst)
-        {
-            int repeat = Random.Range(2,5);
-            for (int i=0;i<repeat;i++)
-            {
-                var validTargets = (source is BossEntity)
-                    ? new[] {0,1,2,3}.Where(idx=>_entities[idx].CurrentHP>0).ToArray()
-                    : new[] {4}.Where(idx=>_entities[idx].CurrentHP>0).ToArray();
-                if (validTargets.Length==0) break;
-
-                int pick = validTargets[Random.Range(0, validTargets.Length)];
-                var target = _entities[pick];
-
-                foreach (var eff in moveInst.Data.Effects)
-                {
-                    if (eff.EffectType == MoveEffectType.Damage)
-                    {
-                        yield return ApplyEffect(source, target, moveInst, eff);
-                    }
-                }
-
-                yield return new WaitForSeconds(0.5f);
-            }
-        }
-
-        private IEnumerator ApplyEffect(BattleEntity source, BattleEntity target, MoveInstance moveInst, MoveEffect eff)
-        {
-            switch (eff.EffectType)
-            {
-                case MoveEffectType.Damage:
-                    yield return ApplyDamageEffect(source, target, moveInst, eff);
-                    break;
-                case MoveEffectType.Heal:
-                    yield return ApplyHealEffect(source, target, moveInst, eff);
-                    break;
-                case MoveEffectType.Buff:
-                    yield return ApplyBuffEffect(source, target, moveInst, eff);
-                    break;
-                case MoveEffectType.Debuff:
-                    yield return ApplyDebuffEffect(source, target, moveInst, eff);
-                    break;
-                case MoveEffectType.Shield:
-                    yield return ApplyShieldEffect(source, target, moveInst, eff);
-                    break;
-            }
-        }
-
-        private IEnumerator ApplyDamageEffect(BattleEntity source, BattleEntity target, MoveInstance moveInst, MoveEffect eff)
-        {
-            var raw = DamageFormula.GetRawHit(
-                source,
-                eff.Power,
-                eff.Accuracy,
-                eff.CritChance
+            _pendingAction = new ActionData(
+                args.ActionType,
+                args.ActionIndex,
+                (EntityType)args.PlayerIndex,
+                EntityType.Boss
             );
-
-            yield return SpawnMoveVFX(source, target, moveInst.Data, 2f);
-
-            if (!raw.IsHit)
-            {
-                yield return _uiManager.ShowBattleMessage("Miss!");
-                yield break;
-            }
-
-            int prevHP = target.CurrentHP;
-            target.TakeDamage(moveInst.Data.Type, raw.Damage); 
-            yield return _uiManager.AnimateHPBarUpdate(Array.IndexOf(_entities, target), prevHP, target.CurrentHP);
-        }
-
-        private IEnumerator ApplyHealEffect(BattleEntity source, BattleEntity target, MoveInstance moveInst, MoveEffect eff)
-        {
-            yield return SpawnMoveVFX(source, target, moveInst.Data, 2f);
-
-            int prevHP = target.CurrentHP;
-            target.CurrentHP += eff.Power;
-            if (target.CurrentHP > target.MaxHP) target.CurrentHP = target.MaxHP;
-
-            yield return _uiManager.AnimateHPBarUpdate(Array.IndexOf(_entities, target), prevHP, target.CurrentHP);
-        }
-
-        private IEnumerator ApplyBuffEffect(BattleEntity source, BattleEntity target, MoveInstance moveInst, MoveEffect eff)
-        {
-            float addVal = eff.Power / 100f; 
-            const float MIN_BUFF = 0.6f, MAX_BUFF = 1.4f;
-
-            switch (eff.BuffsType)
-            {
-                case BuffsType.Attack:
-                    target.AtkBuffMultiplier += addVal;
-                    target.AtkBuffMultiplier = Mathf.Clamp(target.AtkBuffMultiplier, MIN_BUFF, MAX_BUFF);
-                    break;
-                
-                case BuffsType.Defense:
-                    target.DefBuffMultiplier += Mathf.Abs(addVal);
-                    target.DefBuffMultiplier = Mathf.Clamp(target.DefBuffMultiplier, MIN_BUFF, MAX_BUFF);
-                    break;
-            }
-
-            yield return SpawnMoveVFX(source, target, moveInst.Data, 2f);
-        }
-
-        private IEnumerator ApplyDebuffEffect(BattleEntity source, BattleEntity target, MoveInstance moveInst, MoveEffect eff)
-        {
-            float minusVal = eff.Power / 100f;
-            const float MIN_BUFF = 0.6f, MAX_BUFF = 1.4f;
             
-            switch (eff.BuffsType)
+            if (args.ActionType == ActionType.Move)
             {
-                case BuffsType.Attack:
-                    target.AtkBuffMultiplier -= Mathf.Abs(minusVal);
-                    target.AtkBuffMultiplier = Mathf.Clamp(target.AtkBuffMultiplier, MIN_BUFF, MAX_BUFF);
-                    break;
+                var entity = _entities[args.PlayerIndex];
+                var moveData = entity.GetMoveData(args.ActionIndex);
                 
-                case BuffsType.Defense:
-                    target.DefBuffMultiplier -= Mathf.Abs(minusVal);
-                    target.DefBuffMultiplier = Mathf.Clamp(target.DefBuffMultiplier, MIN_BUFF, MAX_BUFF);
-                    break;
-            }
-
-            yield return SpawnMoveVFX(source, target, moveInst.Data, 2f);
-        }
-        
-        private IEnumerator ApplyShieldEffect(BattleEntity source, BattleEntity target, MoveInstance moveInst, MoveEffect eff)
-        {
-            if (target is BossEntity boss)
-            {
-                int previousHP = boss.CurrentHP;
-                var trigger = boss.GetAvailableShieldTrigger(_turnCount);
-        
-                if (trigger != null)
+                if (moveData != null && moveData.Category != MoveCategory.AOE)
                 {
-                    boss.ActivateShield(trigger);
-            
-                    yield return _uiManager.ShowBattleMessage(
-                        $"{boss.EntityName} activates shield!", 
-                        1.5f
-                    );
-            
-                    _uiManager.AnimateShieldConversion(boss, previousHP);
-                    yield return new WaitForSeconds(0.5f);
-            
-                    yield return SpawnMoveVFX(source, target, moveInst.Data, 2f);
+                    return;
                 }
             }
+            
+            EnqueuePlayerAction(_pendingAction);
         }
-
-        private IEnumerator ShowActionMessage(BattleEntity source, MoveData data)
+        
+        public void OnTargetSelected(EntityType target)
         {
-            yield return _uiManager.ShowBattleMessage($"{source.EntityName} used {data.Name}!", 1f);
+            if (_pendingAction.Source == EntityType.Boss) return;
+            
+            _pendingAction.Target = target;
+            EnqueuePlayerAction(_pendingAction);
         }
-
-        private IEnumerator SpawnMoveVFX(BattleEntity source, BattleEntity target, MoveData moveData, float duration = 1f)
+        
+        private void EnqueuePlayerAction(ActionData action)
         {
-            GameObject vfxPrefab = moveData.VFXPrefab != null ? moveData.VFXPrefab : _testEffect;
+            _actionQueue.EnqueueAction(
+                action,
+                () => ExecutePlayerAction(action),
+                0f,
+                (success) => AdvanceTurn()
+            );
+        }
+        
+        private IEnumerator ExecutePlayerAction(ActionData action)
+        {
+            _stateMachine.TransitionTo(BattleState.ExecutingAction);
+            yield return _actionExecutor.ExecuteAction(action);
+        }
+        
+        private IEnumerator ShowStunnedMessage(BattleEntity entity)
+        {
+            entity.StartTurn();
+            UIEvents.RaiseShowMessage($"{entity.EntityName} is stunned!", _battleSettings.MessageDuration);
+            yield return new WaitForSeconds(_battleSettings.MessageDuration);
+        }
+        
+        private void AdvanceTurn()
+        {
+            _turnManager.EndCurrentTurn();
             
-            if (vfxPrefab == null) yield break;
-            
-            var fx = Instantiate(vfxPrefab, target.transform.position, Quaternion.identity);
-            
-            if (fx.GetComponent<AnimationEventHandler>() == null)
+            if (!_turnManager.NextTurn())
             {
-                fx.AddComponent<AnimationEventHandler>();
-            }
-            
-            if (source is BossEntity)
-            {
-                // boss layer
+                if (_turnManager.IsRoundComplete())
+                {
+                    _turnManager.StartNewRound();
+                    _stateMachine.TransitionTo(BattleState.PlayerChoice);
+                }
+                else
+                {
+                    _stateMachine.TransitionTo(BattleState.BossAction);
+                }
             }
             else
             {
-                fx.layer = LayerMask.NameToLayer("BossEffect");
-            }
-            
-            yield return new WaitForSeconds(duration);
-            
-            if (fx != null)
-            {
-                Destroy(fx);
+                _stateMachine.TransitionTo(BattleState.PlayerChoice);
             }
         }
-
-        private bool CheckBattleEnd()
+        
+        private void HandleQueueEmpty()
         {
-            var boss = _entities[4];
-            if (boss.CurrentHP <= 0)
+            if (_stateMachine.CurrentState == BattleState.ExecutingAction)
             {
-                ChangeBattleState(BattleState.BattleEnded);
-                return true;
+                CheckBattleEnd();
             }
-
-            bool allDead = true;
-            for (int i=0;i<PlayerCount;i++)
+        }
+        
+        private void HandleEntityDefeated(EntityDefeatedEventArgs args)
+        {
+            _actionQueue.EnqueueAction(
+                new ActionData(),
+                () => WaitAndCheckBattleEnd(),
+                float.MaxValue
+            );
+        }
+        
+        private IEnumerator WaitAndCheckBattleEnd()
+        {
+            yield return new WaitForSeconds(0.5f);
+            CheckBattleEnd();
+        }
+        
+        private void CheckBattleEnd()
+        {
+            bool bossDefeated = _entities[GameConstants.Battle.BOSS_INDEX].CurrentHP <= 0;
+            bool allPlayersDefeated = true;
+            
+            for (int i = 0; i < GameConstants.Battle.PLAYER_COUNT; i++)
             {
-                if (_entities[i].CurrentHP>0)
+                if (_entities[i].CurrentHP > 0)
                 {
-                    allDead=false;
+                    allPlayersDefeated = false;
                     break;
                 }
             }
-            if (allDead)
+            
+            if (bossDefeated || allPlayersDefeated)
             {
-                ChangeBattleState(BattleState.BattleEnded);
-                return true;
+                _stateMachine.TransitionTo(BattleState.BattleEnded);
             }
-
-            return false;
+            else if (_stateMachine.CurrentState == BattleState.CheckBattleEnd)
+            {
+                _turnManager.StartNewRound();
+                _stateMachine.TransitionTo(BattleState.PlayerChoice);
+            }
         }
-
+        
         private void HandleBattleEnd()
         {
-            bool playerWon = _entities[4].CurrentHP <= 0;
-            _uiManager.ShowBattleEndScreen(playerWon);
+            _actionQueue.Clear();
+            
+            bool playerWon = _entities[GameConstants.Battle.BOSS_INDEX].CurrentHP <= 0;
+            BattleEvents.RaiseBattleEnded(playerWon);
         }
-
+        
         private void SetSpriteAlphaExclusive(int activeIndex)
         {
-            for (int i=0;i<PlayerCount;i++)
+            for (int i = 0; i < GameConstants.Battle.PLAYER_COUNT; i++)
             {
                 var sr = _entities[i].SpriteRenderer;
                 if (!sr) continue;
-
-                var c = sr.color;
-                c.a = (activeIndex<0) ? 1f : (i==activeIndex ? 1f : 0.1f);
-                sr.color = c;
+                
+                var color = sr.color;
+                color.a = (activeIndex < 0 || i == activeIndex) 
+                    ? GameConstants.UI.ACTIVE_SPRITE_ALPHA 
+                    : GameConstants.UI.INACTIVE_SPRITE_ALPHA;
+                sr.color = color;
+            }
+        }
+        
+        private void CleanupBattle()
+        {
+            _actionQueue?.Clear();
+            
+            var entityFactory = EntityFactory.Instance;
+            if (entityFactory != null)
+            {
+                entityFactory.DestroyAllEntities();
             }
         }
     }

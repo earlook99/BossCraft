@@ -25,16 +25,24 @@ namespace CameraSystem
     public class CameraManager : MonoBehaviour
     {
         [SerializeField] private UnityEngine.Camera mainCamera;
-
-        public UnityEngine.Camera MainCamera => mainCamera;
-        
         [SerializeField] private List<CamMapping> camMappings;
         
         private Dictionary<CineCamType, CinemachineCamera> camDict;
 
+        private const int DEFAULT_PRIORITY = 0;
+        private const int ACTIVE_PRIORITY = 10;
+
+        public UnityEngine.Camera MainCamera => mainCamera;
+
         private void Awake()
         {
+            InitializeCameraDictionary();
+        }
+
+        private void InitializeCameraDictionary()
+        {
             camDict = new Dictionary<CineCamType, CinemachineCamera>();
+            
             foreach (var mapping in camMappings)
             {
                 if (!camDict.ContainsKey(mapping.CamType))
@@ -43,25 +51,30 @@ namespace CameraSystem
                 }
                 else
                 {
-                    Debug.LogWarning($"중복된 CamType: {mapping.CamType}");
+                    Debug.LogWarning($"Duplicate CamType: {mapping.CamType}");
                 }
             }
         }
 
         public void SwitchCameraTo(CineCamType camType)
         {
-            foreach (var kvp in camDict)
-            {
-                kvp.Value.Priority = 0;
-            }
+            ResetAllCameraPriorities();
 
             if (camDict.TryGetValue(camType, out var virtualCam))
             {
-                virtualCam.Priority = 10;
+                virtualCam.Priority = ACTIVE_PRIORITY;
             }
             else
             {
-                Debug.LogError($"[CameraManager] {camType} 타입 카메라가 camDict에 없습니다!");
+                Debug.LogError($"[CameraManager] Camera type {camType} not found!");
+            }
+        }
+
+        private void ResetAllCameraPriorities()
+        {
+            foreach (var kvp in camDict)
+            {
+                kvp.Value.Priority = DEFAULT_PRIORITY;
             }
         }
     }
