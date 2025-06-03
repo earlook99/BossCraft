@@ -253,7 +253,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f84c5a659a95bf542be99ffca52ed0eb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  targetScene: {fileID: 102900000, guid: 7b9724b9220045c459dc34518045fe18, type: 3}
+  sceneName: BossGeneration
 --- !u!1 &111676790
 GameObject:
   m_ObjectHideFlags: 0
@@ -1467,7 +1467,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f84c5a659a95bf542be99ffca52ed0eb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  targetScene: {fileID: 102900000, guid: 2cda990e2423bbf4892e6590ba056729, type: 3}
+  sceneName: Battle
 --- !u!114 &2048882099
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1526,7 +1526,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ad1ce6b05fbc5034b9e8e44e3e22ec0c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  CurrentBossSprite: {fileID: 0}
+  CurrentBossImageData: 
   CurrentBossName: 
   CurrentBossType: 0
 --- !u!1660057539 &9223372036854775807

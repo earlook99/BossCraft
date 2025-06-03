@@ -5,10 +5,11 @@ using Data; // 사용자 정의 네임스페이스 (ElementType 등)
 using GameSystem; // 사용자 정의 네임스페이스 (ServerConfig, BossContainer 등)
 using TMPro;
 using UI;
-using Unity.Plastic.Newtonsoft.Json; // Unity 에디터용 Newtonsoft.Json
+// using Unity.Plastic.Newtonsoft.Json; // Unity 에디터용 Newtonsoft.Json
 using UnityEngine;
 using UnityEngine.Networking;
 using UnityEngine.UI;
+using WebGL;
 
 namespace AI
 {
@@ -31,30 +32,30 @@ namespace AI
     public class GenerationParameters
     {
         [Range(0.1f, 1.0f)]
-        [JsonProperty("strength")]
+        // [JsonProperty("strength")]
         public float strength = 0.85f;
 
         [Range(1.0f, 20.0f)]
-        [JsonProperty("guidance_scale")]
+        // [JsonProperty("guidance_scale")]
         public float guidance_scale = 3.0f;
 
         [Range(10, 100)]
-        [JsonProperty("inference_steps")]
+        // [JsonProperty("inference_steps")]
         public int inference_steps = 40;
 
         [Range(0.0f, 1.0f)]
-        [JsonProperty("lora_weight")]
+       //  [JsonProperty("lora_weight")]
         public float lora_weight = 0.7f;
 
         [TextArea(2, 4)]
-        [JsonProperty("prompt")]
+        // [JsonProperty("prompt")]
         public string prompt = "";
 
         [TextArea(2, 4)]
-        [JsonProperty("negative_prompt")]
+        // [JsonProperty("negative_prompt")]
         public string negative_prompt = "realistic, photograph, human, normal animal";
 
-        [JsonProperty("seed")]
+        // [JsonProperty("seed")]
         public int seed = -1;
     }
     
@@ -127,15 +128,13 @@ namespace AI
             {
                 activeServerUrl = serverUrlOverride;
             }
-            else if (string.IsNullOrEmpty(activeServerUrl)) // serverUrlOverride가 비어있고 activeServerUrl도 아직 설정 안됐으면
+            else
             {
-#if UNITY_EDITOR
-                activeServerUrl = ServerConfig.HUGGINGFACE_URL; // ServerConfig.cs에 정의된 URL 사용
-#else
-                activeServerUrl = "http://localhost:8000"; // 빌드 시 기본값
-#endif
+                // WebGL 빌드에서도 ServerConfig 사용
+                activeServerUrl = ServerConfig.HUGGINGFACE_URL;
             }
-             Debug.Log($"Active Server URL set to: {activeServerUrl}");
+    
+            Debug.Log($"Active Server URL set to: {activeServerUrl}");
         }
 
         private void Start()
@@ -190,7 +189,7 @@ namespace AI
                     try
                     {
                         Debug.Log($"Server response from {statusUrl}: {www.downloadHandler.text}");
-                        ServerStatusResponse serverStatus = JsonConvert.DeserializeObject<ServerStatusResponse>(www.downloadHandler.text);
+                        ServerStatusResponse serverStatus = JsonUtility.FromJson<ServerStatusResponse>(www.downloadHandler.text);
 
                         if (serverStatus != null && serverStatus.status == "online")
                         {
@@ -285,8 +284,7 @@ namespace AI
 
         private void SelectImage()
         {
-            // if (isProcessing || !_isServerReady) return; // 서버 미준비 시 선택 불가 (UpdateUIState에서 이미 처리)
-            if (isProcessing) return; // isProcessing만 체크해도 UI에서 이미 interactable 관리됨
+            if (isProcessing) return;
 
 #if UNITY_EDITOR
             string path = UnityEditor.EditorUtility.OpenFilePanel("Select Image", "", "png,jpg,jpeg");
@@ -294,14 +292,10 @@ namespace AI
             {
                 StartCoroutine(LoadImage(path));
             }
-#elif UNITY_ANDROID || UNITY_IOS
-            // 모바일 플랫폼용 이미지 선택 로직 (예: NativeGallery 사용)
-            // NativeGallery.GetImageFromGallery((imagePath) => {
-            //     if (!string.IsNullOrEmpty(imagePath)) {
-            //         StartCoroutine(LoadImage(imagePath));
-            //     }
-            // }, "Select Image", "image/*");
-            UpdateStatus("Image selection from gallery not yet fully implemented for mobile.");
+#elif UNITY_WEBGL
+            WebGLFileUploader.OpenFilePicker((base64Data) => {
+                StartCoroutine(LoadImageFromBase64(base64Data));
+            });
 #else
             UpdateStatus("File selection not implemented for this platform.");
 #endif
@@ -342,6 +336,45 @@ namespace AI
             isProcessing = false;
             UpdateUIState();
         }
+        
+        private IEnumerator LoadImageFromBase64(string base64Data)
+        {
+            UpdateStatus("Loading image...");
+            isProcessing = true;
+            UpdateUIState();
+
+            string base64 = base64Data;
+            if (base64.Contains(","))
+            {
+                base64 = base64.Split(',')[1];
+            }
+
+            byte[] imageBytes = Convert.FromBase64String(base64);
+    
+            if (uploadedTexture != null) Destroy(uploadedTexture);
+    
+            uploadedTexture = new Texture2D(2, 2);
+            if (uploadedTexture.LoadImage(imageBytes))
+            {
+                originalImage.texture = uploadedTexture;
+                RawImageFitter.Fit(originalImage);
+                FitAndCrop(originalImage);
+
+                _isImageLoaded = true;
+                _hasGeneratedImage = false;
+        
+                UpdateStatus("Image loaded! Enter boss name and click 'Generate'.");
+            }
+            else
+            {
+                UpdateStatus("Failed to load image.");
+                _isImageLoaded = false;
+            }
+
+            isProcessing = false;
+            UpdateUIState();
+            yield return null;
+        }
 
         private void GenerateBossImage()
         {
@@ -374,14 +407,14 @@ namespace AI
                 parameters = parameters
             };
 
-            JsonSerializerSettings settings = new JsonSerializerSettings
-            {
-                // FloatFormatHandling = FloatFormatHandling.String, // 보통 불필요
-                // FloatParseHandling = FloatParseHandling.Decimal,  // 보통 불필요
-                Formatting = Formatting.None // 압축된 JSON
-            };
+            // JsonSerializerSettings settings = new JsonSerializerSettings
+            // {
+            //     // FloatFormatHandling = FloatFormatHandling.String, // 보통 불필요
+            //     // FloatParseHandling = FloatParseHandling.Decimal,  // 보통 불필요
+            //     Formatting = Formatting.None // 압축된 JSON
+            // };
 
-            string json = JsonConvert.SerializeObject(request, settings);
+            string json = JsonUtility.ToJson(request);
             Debug.Log($"Request JSON (first 1000 chars): {json.Substring(0, Mathf.Min(json.Length, 1000))}"); // 너무 길면 자르기
 
             byte[] jsonBytes = System.Text.Encoding.UTF8.GetBytes(json);
@@ -475,8 +508,8 @@ namespace AI
             try
             {
                 Debug.Log($"[RAW SERVER RESPONSE] /api/predict: {jsonResponse}"); // 전체 JSON 로깅 (디버깅용)
-                var response = JsonConvert.DeserializeObject<ServerPredictResponse>(jsonResponse); // 클래스 이름 변경 적용
-
+                var response = JsonUtility.FromJson<ServerPredictResponse>(jsonResponse);
+                
                 if (response?.data != null && response.data.Length >= 1)
                 {
                     // ... (이미지 처리 로직은 기존과 동일) ...
@@ -498,8 +531,10 @@ namespace AI
                         Debug.LogError("Failed to load image data from base64. Data might be corrupted.");
                         Destroy(generatedTexture2D); return;
                     }
+#if UNITY_EDITOR
                     generatedTexture2D.alphaIsTransparency = true; generatedTexture2D.Apply();
-
+#endif
+                    
                     // 알파 채널 존재 여부 간단히 확인 (디버깅용)
                     // Color[] pixels = generatedTexture2D.GetPixels(0, 0, Mathf.Min(generatedTexture2D.width, 10), Mathf.Min(generatedTexture2D.height, 10)); // 샘플 영역
                     // bool hasTransparency = false;
@@ -590,7 +625,6 @@ namespace AI
             if (!_hasGeneratedImage || generatedImage.texture == null)
             {
                 UpdateStatus("No image to download.");
-                Debug.LogWarning("Download attempt failed: No generated image available.");
                 return;
             }
 
@@ -598,26 +632,23 @@ namespace AI
             if (textureToSave == null)
             {
                 UpdateStatus("Error: Generated image format is incorrect.");
-                Debug.LogError("Download attempt failed: generatedImage.texture is not a Texture2D.");
                 return;
             }
 
-            // 이미지를 PNG 바이트 배열로 인코딩
-            // PNG는 품질이 좋고 투명도를 지원합니다. JPG를 사용하려면 EncodeToJPG()를 사용하세요.
             byte[] imageBytes = textureToSave.EncodeToPNG();
             if (imageBytes == null)
             {
                 UpdateStatus("Error: Failed to encode image.");
-                Debug.LogError("Download attempt failed: EncodeToPNG returned null.");
                 return;
             }
 
-            string fileName = (!string.IsNullOrEmpty(bossName) ? bossName.Replace(" ", "_") : "GeneratedBoss") + "_" + System.DateTime.Now.ToString("yyyyMMdd_HHmmss") + ".png";
+            string fileName = (!string.IsNullOrEmpty(bossName) ? bossName.Replace(" ", "_") : "GeneratedBoss") 
+                              + "_" + System.DateTime.Now.ToString("yyyyMMdd_HHmmss") + ".png";
 
-            #if UNITY_EDITOR
+#if UNITY_EDITOR
             string path = UnityEditor.EditorUtility.SaveFilePanel(
                 "Save Generated Boss Image",
-                "", // 기본 폴더 (비워두면 마지막 사용 폴더 또는 기본값)
+                "",
                 fileName,
                 "png");
 
@@ -627,19 +658,20 @@ namespace AI
                 {
                     File.WriteAllBytes(path, imageBytes);
                     UpdateStatus($"Image saved: {Path.GetFileName(path)}");
-                    Debug.Log($"Image saved to: {path}");
                 }
                 catch (Exception e)
                 {
                     UpdateStatus("Error saving image.");
-                    Debug.LogError($"Failed to save image to {path}: {e.Message}");
+                    Debug.LogError($"Failed to save image: {e.Message}");
                 }
             }
-            else
-            {
-                UpdateStatus("Download cancelled.");
-            }
-            #endif
+#elif UNITY_WEBGL
+            string base64Data = "data:image/png;base64," + Convert.ToBase64String(imageBytes);
+            WebGLFileUploader.DownloadFile(fileName, base64Data);
+            UpdateStatus($"Image downloaded: {fileName}");
+#else
+            UpdateStatus("Download not supported on this platform.");
+#endif
         }
 
         private void ReturnToPreviousScene() // 예시 함수

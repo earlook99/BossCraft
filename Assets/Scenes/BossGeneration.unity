@@ -1829,7 +1829,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f84c5a659a95bf542be99ffca52ed0eb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  targetScene: {fileID: 102900000, guid: 120e804fb94a25e45938427ac8059eaf, type: 3}
+  sceneName: MainMenu
 --- !u!1 &816773328
 GameObject:
   m_ObjectHideFlags: 0
