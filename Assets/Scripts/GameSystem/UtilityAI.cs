@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using Data;
 using Entity;
 using Random = UnityEngine.Random;
@@ -10,6 +11,8 @@ namespace GameSystem
         private readonly BattleEntity _boss;
         private readonly BattleEntity[] _party;
         private readonly AIWeights _weights;
+        
+        private readonly List<int> _validTargetIndices = new List<int>(4);
 
         private const float BEST_CHOICE_PROBABILITY = 0.65f;
         private const float SECOND_CHOICE_PROBABILITY = 0.20f;
@@ -140,6 +143,8 @@ namespace GameSystem
             for (int i = 0; i < _party.Length; i++)
             {
                 var player = _party[i];
+                if (player == null || player.CurrentHP <= 0) continue;
+                
                 float localScore = CalculateMoveUtility(_boss, player, data) * _weights.SingleHit;
 
                 if (localScore > bestScore)
@@ -159,7 +164,11 @@ namespace GameSystem
             
             for (int i = 0; i < _party.Length; i++)
             {
-                sumScore += CalculateMoveUtility(_boss, _party[i], data);
+                var player = _party[i];
+                if (player != null && player.CurrentHP > 0)
+                {
+                    sumScore += CalculateMoveUtility(_boss, player, data);
+                }
             }
 
             return sumScore * _weights.AOE;

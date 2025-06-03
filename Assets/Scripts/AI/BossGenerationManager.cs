@@ -1,4 +1,5 @@
 using System;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.IO;
@@ -108,6 +109,36 @@ namespace AI
         private string bossName = "";
         private byte[] _tempImageData;
         private CancellationTokenSource _cts;
+        
+        private static readonly StringBuilder _stringBuilder = new StringBuilder(256);
+        
+        private const string STATUS_MSG_CHECKING = "Checking server status...";
+        private const string STATUS_MSG_READY = "Server is ready! Select an image to start.";
+        private const string STATUS_MSG_MODELS_LOADING = "Server online, but models are still loading. Please wait...";
+        private const string STATUS_MSG_NOT_ONLINE = "Server responded, but status is not 'online'.";
+        private const string STATUS_MSG_PARSE_ERROR = "Failed to parse server response.";
+        private const string STATUS_MSG_LOADING_IMAGE = "Loading image...";
+        private const string STATUS_MSG_IMAGE_LOADED = "Image loaded! Enter boss name and click 'Generate'.";
+        private const string STATUS_MSG_FAILED_LOAD = "Failed to load image.";
+        private const string STATUS_MSG_NO_IMAGE = "No image to download.";
+        private const string STATUS_MSG_ENCODING = "Encoding image...";
+        private const string STATUS_MSG_GENERATING = "Generating boss";
+        private const string STATUS_MSG_BOSS_GENERATED = "Boss generated!";
+        private const string STATUS_MSG_BOSS_CREATED_PREFIX = "Boss '";
+        private const string STATUS_MSG_BOSS_CREATED_SUFFIX = "' has been created! Return to main menu and start the game.";
+        private const string STATUS_MSG_SAVE_ERROR = "Error: Failed to save boss data.";
+        private const string STATUS_MSG_SERVER_NOT_READY = "Server is not ready. Please wait.";
+        private const string STATUS_MSG_SELECT_IMAGE = "Please select an image first.";
+        
+        private const string ERROR_MSG_CONNECTION = "Connection failed. Server might be down or network issues.";
+        private const string ERROR_MSG_TIMEOUT = "Request failed or timed out. Please try again.";
+        private const string ERROR_MSG_DOWNLOAD_FORMAT = "Error: Generated image format is incorrect.";
+        private const string ERROR_MSG_ENCODE_FAILED = "Error: Failed to encode image.";
+        private const string ERROR_MSG_SAVE_FAILED = "Error saving image.";
+        
+        private const string DATA_IMAGE_JPEG = "data:image/jpeg;base64,";
+        private const string FILE_PREFIX = "file://";
+        private const string DEFAULT_BOSS_NAME = "GeneratedBoss";
 
         private const int REQUEST_TIMEOUT = 60;
         private const int GENERATION_TIMEOUT = 180;
@@ -180,9 +211,11 @@ namespace AI
         {
             _isServerReady = false;
             UpdateUIState();
-            UpdateStatus("Checking server status...");
+            UpdateStatus(STATUS_MSG_CHECKING);
 
-            string statusUrl = $"{activeServerUrl}{STATUS_ENDPOINT}";
+            _stringBuilder.Clear();
+            _stringBuilder.Append(activeServerUrl).Append(STATUS_ENDPOINT);
+            string statusUrl = _stringBuilder.ToString();
 
             try
             {
@@ -210,7 +243,9 @@ namespace AI
             }
             catch (Exception e)
             {
-                UpdateStatus($"Server check failed: {e.Message}");
+                _stringBuilder.Clear();
+                _stringBuilder.Append("Server check failed: ").Append(e.Message);
+                UpdateStatus(_stringBuilder.ToString());
                 Debug.LogError($"Warmup error: {e}");
             }
             
@@ -228,21 +263,21 @@ namespace AI
                     if (serverStatus.models_loaded)
                     {
                         _isServerReady = true;
-                        UpdateStatus("Server is ready! Select an image to start.");
+                        UpdateStatus(STATUS_MSG_READY);
                     }
                     else
                     {
-                        UpdateStatus("Server online, but models are still loading. Please wait...");
+                        UpdateStatus(STATUS_MSG_MODELS_LOADING);
                     }
                 }
                 else
                 {
-                    UpdateStatus("Server responded, but status is not 'online'.");
+                    UpdateStatus(STATUS_MSG_NOT_ONLINE);
                 }
             }
             catch (Exception e)
             {
-                UpdateStatus("Failed to parse server response.");
+                UpdateStatus(STATUS_MSG_PARSE_ERROR);
                 Debug.LogError($"Error parsing server status: {e.Message}");
             }
         }
@@ -310,11 +345,11 @@ namespace AI
 
         private async Task LoadImageAsync(string path)
         {
-            UpdateStatus("Loading image...");
+            UpdateStatus(STATUS_MSG_LOADING_IMAGE);
             isProcessing = true;
             UpdateUIState();
 
-            string url = path.StartsWith("file://") ? path : "file://" + path;
+            string url = path.StartsWith(FILE_PREFIX) ? path : FILE_PREFIX + path;
             
             using (UnityWebRequest www = UnityWebRequestTexture.GetTexture(url))
             {
@@ -330,7 +365,9 @@ namespace AI
                 }
                 else
                 {
-                    UpdateStatus($"Failed to load image: {www.error}");
+                    _stringBuilder.Clear();
+                    _stringBuilder.Append("Failed to load image: ").Append(www.error);
+                    UpdateStatus(_stringBuilder.ToString());
                     _isImageLoaded = false;
                 }
             }
@@ -341,7 +378,7 @@ namespace AI
         
         private async Task LoadImageFromBase64Async(string base64Data)
         {
-            UpdateStatus("Loading image...");
+            UpdateStatus(STATUS_MSG_LOADING_IMAGE);
             isProcessing = true;
             UpdateUIState();
 
@@ -357,7 +394,7 @@ namespace AI
             }
             else
             {
-                UpdateStatus("Failed to load image.");
+                UpdateStatus(STATUS_MSG_FAILED_LOAD);
                 _isImageLoaded = false;
             }
 
@@ -387,15 +424,15 @@ namespace AI
             _isImageLoaded = true;
             _hasGeneratedImage = false;
 
-            UpdateStatus("Image loaded! Enter boss name and click 'Generate'.");
+            UpdateStatus(STATUS_MSG_IMAGE_LOADED);
         }
 
         private async Task GenerateBossImageAsync()
         {
             if (uploadedTexture == null || isProcessing || !_isServerReady)
             {
-                if (!_isServerReady) UpdateStatus("Server is not ready. Please wait.");
-                if (uploadedTexture == null) UpdateStatus("Please select an image first.");
+                if (!_isServerReady) UpdateStatus(STATUS_MSG_SERVER_NOT_READY);
+                if (uploadedTexture == null) UpdateStatus(STATUS_MSG_SELECT_IMAGE);
                 return;
             }
             
@@ -410,14 +447,14 @@ namespace AI
             if (loadingIndicator) loadingIndicator.SetActive(true);
             float startTime = Time.time;
 
-            UpdateStatus("Encoding image...");
+            UpdateStatus(STATUS_MSG_ENCODING);
             await AsyncUtilities.NextFrameAsync(ct);
 
             string requestJson = CreateGenerationRequest();
 
             using (var www = CreatePredictRequest(requestJson))
             {
-                var progressTask = ShowProgressAsync(startTime, "Generating boss", ct);
+                var progressTask = ShowProgressAsync(startTime, STATUS_MSG_GENERATING, ct);
                 
                 var operation = www.SendWebRequest();
                 while (!operation.isDone && !ct.IsCancellationRequested)
@@ -450,7 +487,7 @@ namespace AI
 
             var request = new BossGenerationRequest
             {
-                data = new string[] { $"data:image/jpeg;base64,{base64Image}" },
+                data = new string[] { DATA_IMAGE_JPEG + base64Image },
                 parameters = parameters
             };
 
@@ -461,7 +498,10 @@ namespace AI
         {
             byte[] jsonBytes = System.Text.Encoding.UTF8.GetBytes(json);
             
-            var www = new UnityWebRequest($"{activeServerUrl}{PREDICT_ENDPOINT}", "POST");
+            _stringBuilder.Clear();
+            _stringBuilder.Append(activeServerUrl).Append(PREDICT_ENDPOINT);
+            
+            var www = new UnityWebRequest(_stringBuilder.ToString(), "POST");
             www.uploadHandler = new UploadHandlerRaw(jsonBytes);
             www.downloadHandler = new DownloadHandlerBuffer();
             www.SetRequestHeader("Content-Type", "application/json");
@@ -476,8 +516,16 @@ namespace AI
             while (isProcessing && !ct.IsCancellationRequested)
             {
                 float elapsed = Time.time - startTime;
-                string dots = new string('.', dotCount);
-                UpdateStatus($"{prefix}{dots} ({Mathf.FloorToInt(elapsed)}s)");
+                
+                _stringBuilder.Clear();
+                _stringBuilder.Append(prefix);
+                for (int i = 0; i < dotCount; i++)
+                {
+                    _stringBuilder.Append('.');
+                }
+                _stringBuilder.Append(" (").Append(Mathf.FloorToInt(elapsed)).Append("s)");
+                
+                UpdateStatus(_stringBuilder.ToString());
 
                 dotCount = (dotCount + 1) % 4;
                 await AsyncUtilities.WaitForSecondsAsync(PROGRESS_UPDATE_INTERVAL, ct);
@@ -504,13 +552,21 @@ namespace AI
             switch (www.result)
             {
                 case UnityWebRequest.Result.ConnectionError:
-                    return $"Connection error: {www.error}";
+                    _stringBuilder.Clear();
+                    _stringBuilder.Append("Connection error: ").Append(www.error);
+                    return _stringBuilder.ToString();
                 case UnityWebRequest.Result.ProtocolError:
-                    return $"HTTP error: {www.responseCode} - {www.error}";
+                    _stringBuilder.Clear();
+                    _stringBuilder.Append("HTTP error: ").Append(www.responseCode).Append(" - ").Append(www.error);
+                    return _stringBuilder.ToString();
                 case UnityWebRequest.Result.DataProcessingError:
-                    return $"Data processing error: {www.error}";
+                    _stringBuilder.Clear();
+                    _stringBuilder.Append("Data processing error: ").Append(www.error);
+                    return _stringBuilder.ToString();
                 default:
-                    return $"Unknown error or timeout: {www.error}";
+                    _stringBuilder.Clear();
+                    _stringBuilder.Append("Unknown error or timeout: ").Append(www.error);
+                    return _stringBuilder.ToString();
             }
         }
 
@@ -519,13 +575,15 @@ namespace AI
             switch (result)
             {
                 case UnityWebRequest.Result.ConnectionError:
-                    return "Connection failed. Server might be down or network issues.";
+                    return ERROR_MSG_CONNECTION;
                 case UnityWebRequest.Result.ProtocolError:
-                    return $"Server error ({responseCode}). Please try again later.";
+                    _stringBuilder.Clear();
+                    _stringBuilder.Append("Server error (").Append(responseCode).Append("). Please try again later.");
+                    return _stringBuilder.ToString();
                 case UnityWebRequest.Result.DataProcessingError:
                     return "Error processing data from server.";
                 default:
-                    return "Request failed or timed out. Please try again.";
+                    return ERROR_MSG_TIMEOUT;
             }
         }
         
@@ -546,7 +604,9 @@ namespace AI
             }
             catch (Exception e)
             {
-                UpdateStatus($"Failed to process server response: {e.Message}");
+                _stringBuilder.Clear();
+                _stringBuilder.Append("Failed to process server response: ").Append(e.Message);
+                UpdateStatus(_stringBuilder.ToString());
                 Debug.LogError($"Error parsing response: {e}");
             }
         }
@@ -563,9 +623,13 @@ namespace AI
             UpdateGeneratedImage(generatedTexture);
             LogTypeInference(response.parameters_used);
 
-            UpdateStatus("Boss generated!");
+            UpdateStatus(STATUS_MSG_BOSS_GENERATED);
             if (response.duration > 0) 
-                Debug.Log($"Generation took {response.duration:F2} seconds");
+            {
+                _stringBuilder.Clear();
+                _stringBuilder.Append("Generation took ").AppendFormat("{0:F2}", response.duration).Append(" seconds");
+                Debug.Log(_stringBuilder.ToString());
+            }
 
             CreateBossSprite(generatedTexture);
             _hasGeneratedImage = true;
@@ -587,7 +651,7 @@ namespace AI
             Texture2D texture = new Texture2D(2, 2);
             if (!texture.LoadImage(imageBytes))
             {
-                UpdateStatus("Failed to load generated image data.");
+                UpdateStatus(STATUS_MSG_FAILED_LOAD);
                 Destroy(texture);
                 return null;
             }
@@ -639,13 +703,19 @@ namespace AI
             if (BossContainer.Instance != null)
             {
                 SaveBossData();
-                UpdateStatus($"Boss '{bossName}' has been created! Return to main menu and start the game.");
+                
+                _stringBuilder.Clear();
+                _stringBuilder.Append(STATUS_MSG_BOSS_CREATED_PREFIX)
+                    .Append(bossName)
+                    .Append(STATUS_MSG_BOSS_CREATED_SUFFIX);
+                UpdateStatus(_stringBuilder.ToString());
+                
                 _hasConfirmedBoss = true;
                 UpdateUIState();
             }
             else
             {
-                UpdateStatus("Error: Failed to save boss data.");
+                UpdateStatus(STATUS_MSG_SAVE_ERROR);
             }
         }
 
@@ -664,21 +734,21 @@ namespace AI
         {
             if (!_hasGeneratedImage || generatedImage.texture == null)
             {
-                UpdateStatus("No image to download.");
+                UpdateStatus(STATUS_MSG_NO_IMAGE);
                 return;
             }
 
             Texture2D textureToSave = generatedImage.texture as Texture2D;
             if (textureToSave == null)
             {
-                UpdateStatus("Error: Generated image format is incorrect.");
+                UpdateStatus(ERROR_MSG_DOWNLOAD_FORMAT);
                 return;
             }
 
             byte[] imageBytes = textureToSave.EncodeToPNG();
             if (imageBytes == null)
             {
-                UpdateStatus("Error: Failed to encode image.");
+                UpdateStatus(ERROR_MSG_ENCODE_FAILED);
                 return;
             }
 
@@ -697,8 +767,15 @@ namespace AI
         {
             string safeName = !string.IsNullOrEmpty(bossName) 
                 ? bossName.Replace(" ", "_") 
-                : "GeneratedBoss";
-            return $"{safeName}_{DateTime.Now:yyyyMMdd_HHmmss}.png";
+                : DEFAULT_BOSS_NAME;
+            
+            _stringBuilder.Clear();
+            _stringBuilder.Append(safeName)
+                .Append('_')
+                .Append(DateTime.Now.ToString("yyyyMMdd_HHmmss"))
+                .Append(".png");
+            
+            return _stringBuilder.ToString();
         }
 
 #if UNITY_EDITOR
@@ -715,11 +792,14 @@ namespace AI
                 try
                 {
                     File.WriteAllBytes(path, imageBytes);
-                    UpdateStatus($"Image saved: {Path.GetFileName(path)}");
+                    
+                    _stringBuilder.Clear();
+                    _stringBuilder.Append("Image saved: ").Append(Path.GetFileName(path));
+                    UpdateStatus(_stringBuilder.ToString());
                 }
                 catch (Exception e)
                 {
-                    UpdateStatus("Error saving image.");
+                    UpdateStatus(ERROR_MSG_SAVE_FAILED);
                     Debug.LogError($"Failed to save image: {e.Message}");
                 }
             }
@@ -731,7 +811,10 @@ namespace AI
         {
             string base64Data = "data:image/png;base64," + Convert.ToBase64String(imageBytes);
             WebGLFileUploader.DownloadFile(fileName, base64Data);
-            UpdateStatus($"Image downloaded: {fileName}");
+            
+            _stringBuilder.Clear();
+            _stringBuilder.Append("Image downloaded: ").Append(fileName);
+            UpdateStatus(_stringBuilder.ToString());
         }
 #endif
 

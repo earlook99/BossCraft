@@ -11,10 +11,17 @@ namespace GameSystem.UI
         [Header("UI References")]
         [SerializeField] private GameObject _battleMessagePanel;
         [SerializeField] private TextMeshProUGUI _battleMessageText;
+        [SerializeField] private CanvasGroup _messageCanvasGroup;
+        
+        [Header("Animation Settings")]
+        [SerializeField] private float _fadeInDuration = 0.2f;
+        [SerializeField] private float _fadeOutDuration = 0.3f;
         
         private Queue<MessageData> _messageQueue = new Queue<MessageData>();
         private Coroutine _messageCoroutine;
         private bool _isShowingMessage = false;
+        private bool _isPanelVisible = false;
+        private string _lastMessage = "";
         
         private const float DEFAULT_MESSAGE_DURATION = 2f;
         
@@ -57,6 +64,37 @@ namespace GameSystem.UI
             {
                 _battleMessageText = _battleMessagePanel.GetComponentInChildren<TextMeshProUGUI>();
             }
+            
+            if (_messageCanvasGroup == null && _battleMessagePanel != null)
+            {
+                _messageCanvasGroup = _battleMessagePanel.GetComponent<CanvasGroup>();
+                if (_messageCanvasGroup == null)
+                {
+                    _messageCanvasGroup = _battleMessagePanel.AddComponent<CanvasGroup>();
+                }
+            }
+            
+            if (_battleMessagePanel != null)
+            {
+                SetPanelVisibility(false, true);
+            }
+            
+            OptimizeMessagePanel();
+        }
+        
+        private void OptimizeMessagePanel()
+        {
+            if (_battleMessageText != null)
+            {
+                _battleMessageText.raycastTarget = false;
+            }
+            
+            var canvasOptimizer = CanvasOptimizer.Instance;
+            if (canvasOptimizer != null && _battleMessagePanel != null)
+            {
+                canvasOptimizer.MoveToCanvas(_battleMessagePanel, CanvasType.Overlay);
+                canvasOptimizer.OptimizeUIElement(_battleMessagePanel);
+            }
         }
         
         private void SubscribeToEvents()
@@ -76,6 +114,13 @@ namespace GameSystem.UI
         
         public void ShowMessage(string message, float duration = DEFAULT_MESSAGE_DURATION)
         {
+            if (string.IsNullOrEmpty(message)) return;
+            
+            if (_isShowingMessage && _lastMessage == message)
+            {
+                return;
+            }
+            
             _messageQueue.Enqueue(new MessageData(message, duration));
             
             if (!_isShowingMessage)
@@ -113,19 +158,89 @@ namespace GameSystem.UI
         {
             if (_battleMessageText != null)
             {
-                _battleMessageText.text = message;
-                
-                if (_battleMessagePanel != null && !_battleMessagePanel.activeSelf)
+                if (_battleMessageText.text != message)
                 {
-                    _battleMessagePanel.SetActive(true);
+                    _battleMessageText.text = message;
+                    _lastMessage = message;
+                }
+                
+                if (!_isPanelVisible)
+                {
+                    yield return FadeInPanel();
                 }
                 
                 yield return new WaitForSeconds(duration);
                 
-                if (_messageQueue.Count == 0 && _battleMessagePanel != null)
+                if (_messageQueue.Count == 0)
+                {
+                    yield return FadeOutPanel();
+                }
+            }
+        }
+        
+        private IEnumerator FadeInPanel()
+        {
+            SetPanelVisibility(true, false);
+            
+            if (_messageCanvasGroup != null && _fadeInDuration > 0)
+            {
+                float elapsed = 0f;
+                _messageCanvasGroup.alpha = 0f;
+                
+                while (elapsed < _fadeInDuration)
+                {
+                    elapsed += Time.deltaTime;
+                    _messageCanvasGroup.alpha = elapsed / _fadeInDuration;
+                    yield return null;
+                }
+                
+                _messageCanvasGroup.alpha = 1f;
+            }
+            
+            _isPanelVisible = true;
+        }
+        
+        private IEnumerator FadeOutPanel()
+        {
+            if (_messageCanvasGroup != null && _fadeOutDuration > 0)
+            {
+                float elapsed = 0f;
+                _messageCanvasGroup.alpha = 1f;
+                
+                while (elapsed < _fadeOutDuration)
+                {
+                    elapsed += Time.deltaTime;
+                    _messageCanvasGroup.alpha = 1f - (elapsed / _fadeOutDuration);
+                    yield return null;
+                }
+                
+                _messageCanvasGroup.alpha = 0f;
+            }
+            
+            SetPanelVisibility(false, true);
+            _isPanelVisible = false;
+        }
+        
+        private void SetPanelVisibility(bool visible, bool immediate = false)
+        {
+            if (_messageCanvasGroup != null)
+            {
+                _messageCanvasGroup.alpha = immediate ? (visible ? 1f : 0f) : _messageCanvasGroup.alpha;
+                _messageCanvasGroup.interactable = false;
+                _messageCanvasGroup.blocksRaycasts = false;
+                
+                if (!visible && immediate)
                 {
                     _battleMessagePanel.SetActive(false);
                 }
+                else if (visible)
+                {
+                    _battleMessagePanel.SetActive(true);
+                }
+            }
+            else if (_battleMessagePanel != null)
+            {
+                _battleMessagePanel.SetActive(visible);
             }
         }
         
@@ -140,11 +255,10 @@ namespace GameSystem.UI
             }
             
             _isShowingMessage = false;
+            _lastMessage = "";
             
-            if (_battleMessagePanel != null)
-            {
-                _battleMessagePanel.SetActive(false);
-            }
+            SetPanelVisibility(false, true);
+            _isPanelVisible = false;
         }
         
         public bool HasPendingMessages()

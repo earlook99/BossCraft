@@ -14,19 +14,30 @@ namespace GameSystem.UI
         [SerializeField] private TargetSelectionUI _targetSelectionUI;
         [SerializeField] private BattleEndUI _battleEndUI;
         
+        [Header("Canvas Assignment")]
+        [SerializeField] private CanvasType _actionMenuCanvasType = CanvasType.Dynamic;
+        [SerializeField] private CanvasType _targetSelectionCanvasType = CanvasType.Overlay;
+        [SerializeField] private CanvasType _battleEndCanvasType = CanvasType.Overlay;
+        
         [Header("Battle Entities")]
         [SerializeField] private BattleEntity[] _battleEntities = new BattleEntity[5];
         
         private StatusUIManager _statusUIManager;
         private MessageUIManager _messageUIManager;
+        private CanvasOptimizer _canvasOptimizer;
         
         private int _currentPlayerIndex;
         private ActionType _pendingActionType;
         private int _pendingActionIndex;
         
+        private CanvasGroup _actionMenuCanvasGroup;
+        private bool _isActionMenuVisible = false;
+        
         private void Awake()
         {
             InitializeComponents();
+            SetupCanvases();
+            OptimizeUIElements();
             SubscribeToEvents();
         }
         
@@ -50,9 +61,45 @@ namespace GameSystem.UI
                 
             if (_targetSelectionUI == null)
                 CreateTargetSelectionUI();
-                
+            
+            _canvasOptimizer = CanvasOptimizer.Instance;
+            
             if (_actionMenuPanel != null)
-                _actionMenuPanel.SetActive(false);
+            {
+                _actionMenuCanvasGroup = _actionMenuPanel.GetComponent<CanvasGroup>();
+                if (_actionMenuCanvasGroup == null)
+                    _actionMenuCanvasGroup = _actionMenuPanel.AddComponent<CanvasGroup>();
+                
+                SetActionMenuVisible(false);
+            }
+        }
+        
+        private void SetupCanvases()
+        {
+            if (_canvasOptimizer == null) return;
+            
+            if (_actionMenuPanel != null)
+                _canvasOptimizer.MoveToCanvas(_actionMenuPanel, _actionMenuCanvasType);
+            
+            if (_targetSelectionUI != null)
+                _canvasOptimizer.MoveToCanvas(_targetSelectionUI.gameObject, _targetSelectionCanvasType);
+            
+            if (_battleEndUI != null)
+                _canvasOptimizer.MoveToCanvas(_battleEndUI.gameObject, _battleEndCanvasType);
+        }
+        
+        private void OptimizeUIElements()
+        {
+            if (_canvasOptimizer == null) return;
+            
+            if (_actionMenuPanel != null)
+                _canvasOptimizer.OptimizeUIElement(_actionMenuPanel);
+            
+            if (_targetSelectionUI != null)
+                _canvasOptimizer.OptimizeUIElement(_targetSelectionUI.gameObject);
+            
+            if (_battleEndUI != null)
+                _canvasOptimizer.OptimizeUIElement(_battleEndUI.gameObject);
         }
         
         private void CreateTargetSelectionUI()
@@ -133,18 +180,31 @@ namespace GameSystem.UI
             var playerEntity = _battleEntities[playerIndex];
             if (playerEntity == null)
                 return;
-                
-            if (_actionMenuPanel)
-                _actionMenuPanel.SetActive(true);
+            
+            SetActionMenuVisible(true);
                 
             if (_actionMenuUI)
                 _actionMenuUI.Setup(this, playerEntity, playerIndex);
         }
         
+        private void SetActionMenuVisible(bool visible)
+        {
+            if (_actionMenuCanvasGroup != null)
+            {
+                _isActionMenuVisible = visible;
+                _actionMenuCanvasGroup.alpha = visible ? 1f : 0f;
+                _actionMenuCanvasGroup.interactable = visible;
+                _actionMenuCanvasGroup.blocksRaycasts = visible;
+            }
+            else if (_actionMenuPanel != null)
+            {
+                _actionMenuPanel.SetActive(visible);
+            }
+        }
+        
         public void OnActionSelect(ActionType actionType, int actionIndex)
         {
-            if (_actionMenuPanel != null)
-                _actionMenuPanel.SetActive(false);
+            SetActionMenuVisible(false);
                 
             _pendingActionType = actionType;
             _pendingActionIndex = actionIndex;

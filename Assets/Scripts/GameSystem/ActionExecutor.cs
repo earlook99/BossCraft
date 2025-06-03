@@ -1,11 +1,11 @@
 using System.Threading;
 using System.Threading.Tasks;
+using System.Collections.Generic;
 using UnityEngine;
 using Entity;
 using Data;
 using GameSystem.Events;
 using GameSystem.Utils;
-using System.Linq;
 
 namespace GameSystem
 {
@@ -14,6 +14,7 @@ namespace GameSystem
         [SerializeField] private GameObject _defaultEffectPrefab;
         
         private BattleEntity[] _entities;
+        private readonly List<int> _validTargetIndices = new List<int>(5);
         
         private const float MESSAGE_DURATION = 1f;
         private const float EFFECT_DURATION = 2f;
@@ -99,7 +100,8 @@ namespace GameSystem
                     await ApplyToSingleTargetAsync(source, _entities[(int)targetType], moveInst, ct);
                     break;
                 case MoveCategory.AOE:
-                    await ApplyToMultipleTargetsAsync(source, GetAOETargets(source), moveInst, ct);
+                    GetAOETargets(source, _validTargetIndices);
+                    await ApplyToMultipleTargetsAsync(source, _validTargetIndices, moveInst, ct);
                     break;
                 case MoveCategory.MultiRandom:
                     await ApplyToRandomTargetsAsync(source, moveInst, ct);
@@ -107,15 +109,26 @@ namespace GameSystem
             }
         }
         
-        private int[] GetAOETargets(BattleEntity source)
+        private void GetAOETargets(BattleEntity source, List<int> targetIndices)
         {
+            targetIndices.Clear();
+            
             if (source is BossEntity)
             {
-                return Enumerable.Range(0, 4).Where(i => _entities[i].CurrentHP > 0).ToArray();
+                for (int i = 0; i < 4; i++)
+                {
+                    if (_entities[i] != null && _entities[i].CurrentHP > 0)
+                    {
+                        targetIndices.Add(i);
+                    }
+                }
             }
             else
             {
-                return new[] { 4 };
+                if (_entities[4] != null && _entities[4].CurrentHP > 0)
+                {
+                    targetIndices.Add(4);
+                }
             }
         }
         
@@ -129,7 +142,7 @@ namespace GameSystem
             }
         }
         
-        private async Task ApplyToMultipleTargetsAsync(BattleEntity source, int[] targetIndices, MoveInstance moveInst, CancellationToken ct)
+        private async Task ApplyToMultipleTargetsAsync(BattleEntity source, List<int> targetIndices, MoveInstance moveInst, CancellationToken ct)
         {
             foreach (int idx in targetIndices)
             {
@@ -149,10 +162,11 @@ namespace GameSystem
             
             for (int i = 0; i < hitCount; i++)
             {
-                var validTargets = GetValidRandomTargets(source);
-                if (validTargets.Length == 0) break;
+                GetValidRandomTargets(source, _validTargetIndices);
+                if (_validTargetIndices.Count == 0) break;
                 
-                var target = _entities[validTargets[Random.Range(0, validTargets.Length)]];
+                int randomIndex = Random.Range(0, _validTargetIndices.Count);
+                var target = _entities[_validTargetIndices[randomIndex]];
                 
                 foreach (var effect in moveInst.Data.Effects)
                 {
@@ -166,15 +180,26 @@ namespace GameSystem
             }
         }
         
-        private int[] GetValidRandomTargets(BattleEntity source)
+        private void GetValidRandomTargets(BattleEntity source, List<int> targetIndices)
         {
+            targetIndices.Clear();
+            
             if (source is BossEntity)
             {
-                return Enumerable.Range(0, 4).Where(i => _entities[i].CurrentHP > 0).ToArray();
+                for (int i = 0; i < 4; i++)
+                {
+                    if (_entities[i] != null && _entities[i].CurrentHP > 0)
+                    {
+                        targetIndices.Add(i);
+                    }
+                }
             }
             else
             {
-                return new[] { 4 }.Where(i => _entities[i].CurrentHP > 0).ToArray();
+                if (_entities[4] != null && _entities[4].CurrentHP > 0)
+                {
+                    targetIndices.Add(4);
+                }
             }
         }
         

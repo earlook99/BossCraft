@@ -21,14 +21,43 @@ namespace UI
 
         private bool _isActive = false;
         private BattleEntity _currentHoverEntity = null;
+        
+        private Camera _mainCamera;
+        private Vector3 _lastMousePosition;
+        private Dictionary<Collider2D, BattleEntity> _colliderToEntityCache = new Dictionary<Collider2D, BattleEntity>();
 
         private const int PLAYER_COUNT = 4;
         private const int BOSS_INDEX = 4;
+        private const float MOUSE_MOVE_THRESHOLD = 0.1f;
 
-        public void Setup(BattleUIController uiController, BattleEntity[] entities)  // 파라미터 타입 변경
+        private void Awake()
+        {
+            _mainCamera = Camera.main;
+        }
+
+        public void Setup(BattleUIController uiController, BattleEntity[] entities)
         {
             _uiController = uiController;
             _allEntities = entities;
+            
+            CacheEntityColliders();
+        }
+
+        private void CacheEntityColliders()
+        {
+            _colliderToEntityCache.Clear();
+            
+            foreach (var entity in _allEntities)
+            {
+                if (entity != null)
+                {
+                    var collider = entity.GetComponent<Collider2D>();
+                    if (collider != null)
+                    {
+                        _colliderToEntityCache[collider] = entity;
+                    }
+                }
+            }
         }
 
         public void StartTargetSelection(
@@ -51,6 +80,7 @@ namespace UI
             else
             {
                 _currentTargetIndex = 0;
+                _lastMousePosition = Input.mousePosition;
             }
         }
 
@@ -117,30 +147,37 @@ namespace UI
                 return;
             }
 
-            HandleMouseTargeting();
+            Vector3 currentMousePos = Input.mousePosition;
+            if (Vector3.Distance(currentMousePos, _lastMousePosition) > MOUSE_MOVE_THRESHOLD)
+            {
+                _lastMousePosition = currentMousePos;
+                HandleMouseTargeting();
+            }
+
+            if (Input.GetMouseButtonDown(0) && _currentHoverEntity != null)
+            {
+                int entityIndex = System.Array.IndexOf(_allEntities, _currentHoverEntity);
+                ConfirmTarget(entityIndex);
+            }
         }
 
         private void HandleMouseTargeting()
         {
-            Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
+            Ray ray = _mainCamera.ScreenPointToRay(_lastMousePosition);
             RaycastHit2D hit = Physics2D.GetRayIntersection(ray, Mathf.Infinity);
             BattleEntity hoverEntity = null;
 
-            if (hit.collider != null)
+            if (hit.collider != null && _colliderToEntityCache.TryGetValue(hit.collider, out BattleEntity entity))
             {
-                hoverEntity = hit.collider.GetComponent<BattleEntity>();
-                if (hoverEntity != null && !IsValidHoverTarget(hoverEntity))
+                if (IsValidHoverTarget(entity))
                 {
-                    hoverEntity = null;
+                    hoverEntity = entity;
                 }
             }
 
-            UpdateHighlight(hoverEntity);
-
-            if (Input.GetMouseButtonDown(0) && hoverEntity != null)
+            if (_currentHoverEntity != hoverEntity)
             {
-                int entityIndex = System.Array.IndexOf(_allEntities, hoverEntity);
-                ConfirmTarget(entityIndex);
+                UpdateHighlight(hoverEntity);
             }
         }
 
@@ -191,6 +228,14 @@ namespace UI
         {
             SetHighlight(_currentHoverEntity, false);
             _currentHoverEntity = null;
+        }
+        
+        private void OnDisable()
+        {
+            if (_isActive)
+            {
+                Cancel();
+            }
         }
     }
 }

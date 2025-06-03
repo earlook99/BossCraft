@@ -23,6 +23,11 @@ namespace UI
         private Vector3 originalRotation;
         private Vector3 originalScale;
         
+        private float cachedTime;
+        private float cachedFloatSin;
+        private float cachedRotationSin;
+        private float cachedScaleSin;
+        
         private void Awake()
         {
             rectTransform = GetComponent<RectTransform>();
@@ -32,34 +37,46 @@ namespace UI
             originalScale = rectTransform.localScale;
         }
         
+        private void OnEnable()
+        {
+            ResetToOriginal();
+        }
+        
         private void Update()
         {
-            float time = Time.time;
+            cachedTime = Time.time;
             
-            ApplyFloating(time);
+            cachedFloatSin = Mathf.Sin(cachedTime * floatSpeed);
+            ApplyFloating();
             
             if (enableRotation)
-                ApplyRotation(time);
+            {
+                cachedRotationSin = Mathf.Sin(cachedTime * rotationSpeed);
+                ApplyRotation();
+            }
             
             if (enableScale)
-                ApplyScaling(time);
+            {
+                cachedScaleSin = Mathf.Sin(cachedTime * scaleSpeed);
+                ApplyScaling();
+            }
         }
 
-        private void ApplyFloating(float time)
+        private void ApplyFloating()
         {
-            float yOffset = Mathf.Sin(time * floatSpeed) * floatAmplitude;
-            rectTransform.anchoredPosition = originalPosition + new Vector3(0, yOffset, 0);
+            float yOffset = cachedFloatSin * floatAmplitude;
+            rectTransform.anchoredPosition = new Vector3(originalPosition.x, originalPosition.y + yOffset, originalPosition.z);
         }
 
-        private void ApplyRotation(float time)
+        private void ApplyRotation()
         {
-            float rotationOffset = Mathf.Sin(time * rotationSpeed) * rotationAmplitude;
-            rectTransform.localEulerAngles = originalRotation + new Vector3(0, 0, rotationOffset);
+            float rotationOffset = cachedRotationSin * rotationAmplitude;
+            rectTransform.localEulerAngles = new Vector3(originalRotation.x, originalRotation.y, originalRotation.z + rotationOffset);
         }
 
-        private void ApplyScaling(float time)
+        private void ApplyScaling()
         {
-            float scaleOffset = 1f + Mathf.Sin(time * scaleSpeed) * scaleAmplitude;
+            float scaleOffset = 1f + cachedScaleSin * scaleAmplitude;
             rectTransform.localScale = originalScale * scaleOffset;
         }
         
@@ -71,9 +88,12 @@ namespace UI
         
         public void ResetToOriginal()
         {
-            rectTransform.anchoredPosition = originalPosition;
-            rectTransform.localEulerAngles = originalRotation;
-            rectTransform.localScale = originalScale;
+            if (rectTransform != null)
+            {
+                rectTransform.anchoredPosition = originalPosition;
+                rectTransform.localEulerAngles = originalRotation;
+                rectTransform.localScale = originalScale;
+            }
         }
     }
 }

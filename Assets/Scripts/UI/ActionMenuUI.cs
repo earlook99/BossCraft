@@ -5,7 +5,7 @@ using UnityEngine;
 using GameSystem;
 using Entity;
 using GameSystem.UI;
-using TMPro;
+using GameSystem.Pooling;
 
 namespace UI
 {
@@ -20,16 +20,62 @@ namespace UI
     {
         [SerializeField] private Transform _buttonsContainer;
         [SerializeField] private GameObject _buttonPrefab;
+        [SerializeField] private int _maxButtonCount = 8;
 
         private BattleUIController _uiController;
         private BattleEntity _currentEntity;
         private int _playerIndex;
         private MenuState _currentState;
+        
+        private List<PoolableButton> _activeButtons = new List<PoolableButton>(8);
+        private CanvasGroup _containerCanvasGroup;
+        private bool _isInitialized = false;
 
         private const float ACTION_MESSAGE_DURATION = 1f;
+        
+        private readonly Action[] _mainMenuActions = new Action[4];
+        private readonly string[] _mainMenuLabels = { "Fight", "Item", "Guard", "Taunt" };
+
+        private void Awake()
+        {
+            Initialize();
+        }
+
+        private void Initialize()
+        {
+            if (_buttonsContainer != null)
+            {
+                _containerCanvasGroup = _buttonsContainer.GetComponent<CanvasGroup>();
+                if (_containerCanvasGroup == null)
+                {
+                    _containerCanvasGroup = _buttonsContainer.gameObject.AddComponent<CanvasGroup>();
+                }
+            }
+            
+            OptimizeButtons();
+            
+            _mainMenuActions[0] = () => SwitchMenuState(MenuState.Moves);
+            _mainMenuActions[1] = () => SwitchMenuState(MenuState.Items);
+            _mainMenuActions[2] = () => HandleActionSelect(ActionType.Guard, -1);
+            _mainMenuActions[3] = () => HandleActionSelect(ActionType.Taunt, -1);
+            
+            _isInitialized = true;
+        }
+
+        private void OptimizeButtons()
+        {
+            var canvasOptimizer = CanvasOptimizer.Instance;
+            if (canvasOptimizer != null && _buttonsContainer != null)
+            {
+                canvasOptimizer.OptimizeUIElement(_buttonsContainer.gameObject);
+            }
+        }
 
         public void Setup(BattleUIController controller, BattleEntity entity, int playerIndex)
         {
+            if (!_isInitialized)
+                Initialize();
+            
             _uiController = controller;
             _currentEntity = entity;
             _playerIndex = playerIndex;
@@ -37,77 +83,165 @@ namespace UI
             
             if (entity == null) return;
 
-            ClearButtons();
-            CreateActionButtons();
+            RefreshButtons();
         }
 
-        private void ClearButtons()
-        {
-            foreach (Transform child in _buttonsContainer)
-            {
-                Destroy(child.gameObject);
-            }
-        }
-
-        private void CreateActionButtons()
+        private void RefreshButtons()
         {
             GameSystem.Events.UIEvents.RaiseShowMessage($"What will {_currentEntity.EntityName} do?", ACTION_MESSAGE_DURATION);
             
-            CreateButton("Fight", () => SwitchMenuState(MenuState.Moves));
-            CreateButton("Item",  () => SwitchMenuState(MenuState.Items));
-            CreateButton("Guard",  () => HandleActionSelect(ActionType.Guard, -1));
-            CreateButton("Taunt",  () => HandleActionSelect(ActionType.Taunt, -1));
-        }
-
-        private void CreateMoveButtons()
-        {
-            ReadOnlySpan<MoveInstance> currentMoves = _currentEntity.MoveInstances;
-
-            for (int i = 0; i < currentMoves.Length; i++)
-            {
-                int index = i;
-                CreateButton(currentMoves[i].Data.Name, () => HandleActionSelect(ActionType.Move, index));
-            }
-        }
-
-        private void CreateButton(string label, Action onClick)
-        {
-            var poolManager = GameSystem.Pooling.UIPoolManager.Instance;
-            if (poolManager != null)
-            {
-                var button = poolManager.CreateButton(label, onClick, _buttonsContainer);
-                if (button != null) return;
-            }
-            
-            // Fallback to instantiation if pool is not available
-            var buttonObj = Instantiate(_buttonPrefab, _buttonsContainer);
-            var buttonUI = buttonObj.GetComponent<ActionButtonUI>();
-
-            buttonUI.Setup(label, 0);
-            buttonUI.OnButtonClicked += _ => onClick?.Invoke();
-        }
-
-        private void SwitchMenuState(MenuState newState)
-        {
-            _currentState = newState;
-            ClearButtons();
-
-            switch (newState)
+            switch (_currentState)
             {
                 case MenuState.Main:
-                    CreateActionButtons();
+                    ShowMainMenu();
                     break;
                 case MenuState.Moves:
-                    CreateMoveButtons();
+                    ShowMoveMenu();
                     break;
                 case MenuState.Items:
                     break;
             }
         }
 
+        private void ShowMainMenu()
+        {
+            int buttonCount = _mainMenuLabels.Length;
+            PrepareButtons(buttonCount);
+            
+            for (int i = 0; i < buttonCount; i++)
+            {
+                if (i < _activeButtons.Count)
+                {
+                    _activeButtons[i].Setup(_mainMenuLabels[i], _mainMenuActions[i]);
+                }
+            }
+            
+            SetContainerActive(true);
+        }
+
+        private void ShowMoveMenu()
+        {
+            ReadOnlySpan<MoveInstance> currentMoves = _currentEntity.MoveInstances;
+            int moveCount = currentMoves.Length;
+            
+            PrepareButtons(moveCount);
+
+            for (int i = 0; i < moveCount; i++)
+            {
+                if (i < _activeButtons.Count)
+                {
+                    int index = i;
+                    _activeButtons[i].Setup(
+                        currentMoves[i].Data.Name, 
+                        () => HandleActionSelect(ActionType.Move, index)
+                    );
+                }
+            }
+            
+            SetContainerActive(true);
+        }
+
+        private void PrepareButtons(int count)
+        {
+            var poolManager = UIPoolManager.Instance;
+            bool usePooling = poolManager != null;
+            
+            count = Mathf.Min(count, _maxButtonCount);
+            
+            while (_activeButtons.Count < count)
+            {
+                PoolableButton button = null;
+                
+                if (usePooling)
+                {
+                    button = poolManager.CreateButton("", null, _buttonsContainer);
+                }
+                
+                if (button == null)
+                {
+                    var buttonObj = Instantiate(_buttonPrefab, _buttonsContainer);
+                    button = buttonObj.GetComponent<PoolableButton>();
+                    if (button == null)
+                    {
+                        button = buttonObj.AddComponent<PoolableButton>();
+                    }
+                }
+                
+                _activeButtons.Add(button);
+            }
+            
+            for (int i = count; i < _activeButtons.Count; i++)
+            {
+                if (_activeButtons[i] != null)
+                {
+                    if (usePooling)
+                    {
+                        poolManager.ReturnUI(_activeButtons[i]);
+                    }
+                    else
+                    {
+                        _activeButtons[i].gameObject.SetActive(false);
+                    }
+                }
+            }
+            
+            if (_activeButtons.Count > count)
+            {
+                _activeButtons.RemoveRange(count, _activeButtons.Count - count);
+            }
+        }
+
+        private void SetContainerActive(bool active)
+        {
+            if (_containerCanvasGroup != null)
+            {
+                _containerCanvasGroup.alpha = active ? 1f : 0f;
+                _containerCanvasGroup.interactable = active;
+                _containerCanvasGroup.blocksRaycasts = active;
+            }
+        }
+
+        private void SwitchMenuState(MenuState newState)
+        {
+            _currentState = newState;
+            RefreshButtons();
+        }
+
         private void HandleActionSelect(ActionType actionType, int actionIndex)
         {
             _uiController.OnActionSelect(actionType, actionIndex);
+        }
+
+        private void OnDisable()
+        {
+            ClearButtons();
+        }
+
+        private void OnDestroy()
+        {
+            ClearButtons();
+        }
+
+        private void ClearButtons()
+        {
+            var poolManager = UIPoolManager.Instance;
+            
+            foreach (var button in _activeButtons)
+            {
+                if (button != null)
+                {
+                    if (poolManager != null)
+                    {
+                        poolManager.ReturnUI(button);
+                    }
+                    else
+                    {
+                        Destroy(button.gameObject);
+                    }
+                }
+            }
+            
+            _activeButtons.Clear();
         }
     }
 }

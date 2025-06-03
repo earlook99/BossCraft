@@ -2,8 +2,8 @@ using System;
 using GameSystem;
 using GameSystem.Interfaces;
 using System.Collections.Generic;
-using System.Linq;
 using Data;
+using UI;
 using UnityEngine;
 
 namespace Entity
@@ -20,7 +20,6 @@ namespace Entity
         [SerializeField] private int _attack = 50;
         [SerializeField] private int _defense = 50;
         
-        // Public properties for backward compatibility
         public int MaxHP 
         { 
             get => _maxHP; 
@@ -49,6 +48,8 @@ namespace Entity
         public List<MoveData> MoveSet = new List<MoveData>();
 
         private SpriteRenderer _spriteRenderer;
+        private SpriteOutlineToggle _outlineToggle;
+        private Collider2D _collider2D;
         private MoveInstance[] _moveInstances;
         
         private bool _isCharging = false;
@@ -61,6 +62,8 @@ namespace Entity
         private const int DEFENSE_FORMULA_BASE = 100;
 
         public SpriteRenderer SpriteRenderer => _spriteRenderer;
+        public SpriteOutlineToggle OutlineToggle => _outlineToggle;
+        public Collider2D EntityCollider => _collider2D;
         public ReadOnlySpan<MoveInstance> MoveInstances => _moveInstances;
         public bool IsStunned { get; private set; }
         public int StunTurnsLeft { get; private set; }
@@ -71,31 +74,52 @@ namespace Entity
         public float AtkBuffMultiplier { get; set; } = 1f;
         public float DefBuffMultiplier { get; set; } = 1f;
         
-        // IBattleEntity Implementation
         public string Name => EntityName;
         public bool IsAlive => _currentHP > 0;
         public bool CanBeTargeted => IsAlive && !IsStunned;
-        public EntityType EntityType => (EntityType)Array.IndexOf(GameObject.FindObjectsByType<BattleEntity>(FindObjectsSortMode.None), this);
+        public EntityType EntityType => (EntityType)Array.IndexOf(BattleContext.Instance?.Entities ?? Array.Empty<BattleEntity>(), this);
         public float AttackMultiplier => AtkBuffMultiplier;
         public float DefenseMultiplier => DefBuffMultiplier;
         public bool CanBeHealed => IsAlive && _currentHP < _maxHP;
         
-        // Explicit interface properties (already defined above as public properties)
         int GameSystem.Interfaces.IBattleEntity.Attack => _attack;
         int GameSystem.Interfaces.IBattleEntity.Defense => _defense;
         int GameSystem.Interfaces.IDamageable.CurrentHP => _currentHP;
         int GameSystem.Interfaces.IDamageable.MaxHP => _maxHP;
+        
+        protected virtual void Awake()
+        {
+            CacheComponents();
+        }
         
         protected virtual void Start()
         {
             Initialize();
         }
         
+        private void CacheComponents()
+        {
+            _spriteRenderer = GetComponentInChildren<SpriteRenderer>();
+            _outlineToggle = GetComponentInChildren<SpriteOutlineToggle>();
+            _collider2D = GetComponent<Collider2D>();
+        }
+        
         public void Initialize()
         {
             _currentHP = _maxHP;
-            _moveInstances = MoveSet.Select(moveData => new MoveInstance(moveData)).ToArray();
-            _spriteRenderer = GetComponentInChildren<SpriteRenderer>();
+            
+            if (MoveSet != null && MoveSet.Count > 0)
+            {
+                _moveInstances = new MoveInstance[MoveSet.Count];
+                for (int i = 0; i < MoveSet.Count; i++)
+                {
+                    _moveInstances[i] = new MoveInstance(MoveSet[i]);
+                }
+            }
+            else
+            {
+                _moveInstances = Array.Empty<MoveInstance>();
+            }
     
             if (_spriteRenderer != null && this is not BossEntity)
             {
@@ -197,7 +221,6 @@ namespace Entity
         
         public void EndTurn()
         {
-            // Update cooldowns
             for (int i = 0; i < _moveInstances.Length; i++)
             {
                 if (_moveInstances[i].CooldownLeft > 0)

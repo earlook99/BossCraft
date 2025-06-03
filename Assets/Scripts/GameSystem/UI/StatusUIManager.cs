@@ -16,8 +16,13 @@ namespace GameSystem.UI
         [SerializeField] private CharacterStatusUI _playerStatusPrefab;
         [SerializeField] private CharacterStatusUI _bossStatusPrefab;
         
-        private Dictionary<int, CharacterStatusUI> _entityStatusUIs = new Dictionary<int, CharacterStatusUI>();
+        [Header("Canvas Assignment")]
+        [SerializeField] private CanvasType _statusCanvasType = CanvasType.Dynamic;
+        
+        private Dictionary<int, CharacterStatusUI> _entityStatusUIs = new Dictionary<int, CharacterStatusUI>(5);
         private BattleEntity[] _entities;
+        private int[] _lastKnownHP = new int[5];
+        private bool _isInitialized = false;
         
         private void Awake()
         {
@@ -55,13 +60,45 @@ namespace GameSystem.UI
         {
             _entities = entities;
             SetupBattleUI();
+            _isInitialized = true;
         }
         
         private void SetupBattleUI()
         {
             CleanupExistingUI();
+            
+            var canvasOptimizer = CanvasOptimizer.Instance;
+            
             CreateBossStatusUI();
             CreatePartyStatusUIs();
+            
+            if (canvasOptimizer != null)
+            {
+                if (_bossArea != null)
+                {
+                    canvasOptimizer.MoveToCanvas(_bossArea.gameObject, _statusCanvasType);
+                    canvasOptimizer.OptimizeUIElement(_bossArea.gameObject);
+                }
+                
+                if (_partyArea != null)
+                {
+                    canvasOptimizer.MoveToCanvas(_partyArea.gameObject, _statusCanvasType);
+                    canvasOptimizer.OptimizeUIElement(_partyArea.gameObject);
+                }
+            }
+            
+            InitializeHPTracking();
+        }
+        
+        private void InitializeHPTracking()
+        {
+            for (int i = 0; i < _entities.Length && i < _lastKnownHP.Length; i++)
+            {
+                if (_entities[i] != null)
+                {
+                    _lastKnownHP[i] = _entities[i].CurrentHP;
+                }
+            }
         }
         
         private void CleanupExistingUI()
@@ -85,6 +122,8 @@ namespace GameSystem.UI
             var statusUI = Instantiate(_bossStatusPrefab, _bossArea);
             statusUI.Setup(bossEntity, (int)EntityType.Boss);
             _entityStatusUIs.Add((int)EntityType.Boss, statusUI);
+            
+            OptimizeStatusUI(statusUI.gameObject);
         }
         
         private void CreatePartyStatusUIs()
@@ -102,6 +141,17 @@ namespace GameSystem.UI
                 var statusUI = Instantiate(_playerStatusPrefab, _partyArea);
                 statusUI.Setup(entity, i);
                 _entityStatusUIs.Add(i, statusUI);
+                
+                OptimizeStatusUI(statusUI.gameObject);
+            }
+        }
+        
+        private void OptimizeStatusUI(GameObject statusUIObject)
+        {
+            var canvasOptimizer = CanvasOptimizer.Instance;
+            if (canvasOptimizer != null)
+            {
+                canvasOptimizer.OptimizeUIElement(statusUIObject);
             }
         }
         
@@ -131,9 +181,19 @@ namespace GameSystem.UI
         
         private void HandleUpdateHPBar(UpdateHPBarEventArgs args)
         {
-            if (_entityStatusUIs.TryGetValue(args.EntityIndex, out var statusUI))
+            if (!_isInitialized) return;
+            
+            if (args.EntityIndex >= 0 && args.EntityIndex < _lastKnownHP.Length)
             {
-                statusUI.UpdateHP(args.CurrentHP);
+                if (_lastKnownHP[args.EntityIndex] != args.CurrentHP)
+                {
+                    _lastKnownHP[args.EntityIndex] = args.CurrentHP;
+                    
+                    if (_entityStatusUIs.TryGetValue(args.EntityIndex, out var statusUI))
+                    {
+                        statusUI.UpdateHP(args.CurrentHP);
+                    }
+                }
             }
         }
         
@@ -147,10 +207,22 @@ namespace GameSystem.UI
         
         private void UpdateEntityHP(BattleEntity entity)
         {
+            if (!_isInitialized || entity == null) return;
+            
             int entityIndex = System.Array.IndexOf(_entities, entity);
-            if (entityIndex >= 0 && _entityStatusUIs.TryGetValue(entityIndex, out var statusUI))
+            if (entityIndex >= 0 && entityIndex < _lastKnownHP.Length)
             {
-                statusUI.UpdateHP(entity.CurrentHP);
+                int currentHP = entity.CurrentHP;
+                
+                if (_lastKnownHP[entityIndex] != currentHP)
+                {
+                    _lastKnownHP[entityIndex] = currentHP;
+                    
+                    if (_entityStatusUIs.TryGetValue(entityIndex, out var statusUI))
+                    {
+                        statusUI.UpdateHP(currentHP);
+                    }
+                }
             }
         }
     }

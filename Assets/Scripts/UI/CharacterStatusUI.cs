@@ -6,6 +6,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Collections.Generic;
 using GameSystem.Utils;
+using System.Text;
 
 namespace UI
 {
@@ -33,6 +34,15 @@ namespace UI
         private BossEntity _linkedBoss;
         private CancellationTokenSource _transitionCts;
         private List<GameObject> _stackDividers = new List<GameObject>();
+        
+        private static readonly StringBuilder _hpTextBuilder = new StringBuilder(16);
+        private static readonly Color COLOR_WHITE = Color.white;
+        private static readonly Color COLOR_BLACK_TRANSPARENT = new Color(0, 0, 0, 0);
+        
+        private RectTransform _hpFillRectTransform;
+        private RectTransform _shieldFillRectTransform;
+        private CanvasGroup[] _dividerCanvasGroups;
+        private Image[] _dividerImages;
 
         private const float HP_FLASH_DURATION = 0.2f;
         private const float SHIELD_ANIM_DURATION = 0.3f;
@@ -41,6 +51,19 @@ namespace UI
         private const float DIVIDER_WIDTH = 4f;
         private const float DIVIDER_FADE_TIME = 0.1f;
         private const float DIVIDER_DELAY = 0.05f;
+
+        private void Awake()
+        {
+            CacheComponents();
+        }
+
+        private void CacheComponents()
+        {
+            if (_hpFillImage != null)
+                _hpFillRectTransform = _hpFillImage.rectTransform;
+            if (_shieldFillImage != null)
+                _shieldFillRectTransform = _shieldFillImage.rectTransform;
+        }
 
         private void OnDestroy()
         {
@@ -86,10 +109,10 @@ namespace UI
 
         private void InitializeShieldFillAnchors()
         {
-            _shieldFillImage.rectTransform.anchorMin = new Vector2(0, 0);
-            _shieldFillImage.rectTransform.anchorMax = new Vector2(1, 1);
-            _shieldFillImage.rectTransform.offsetMin = Vector2.zero;
-            _shieldFillImage.rectTransform.offsetMax = Vector2.zero;
+            _shieldFillRectTransform.anchorMin = Vector2.zero;
+            _shieldFillRectTransform.anchorMax = Vector2.one;
+            _shieldFillRectTransform.offsetMin = Vector2.zero;
+            _shieldFillRectTransform.offsetMax = Vector2.zero;
         }
 
         private void HideShieldElements()
@@ -122,7 +145,9 @@ namespace UI
             
             if (_linkedBoss == null || !_hideHPTextForBoss)
             {
-                _hpText.text = $"{newHP}/{_linkedEntity.MaxHP}";
+                _hpTextBuilder.Clear();
+                _hpTextBuilder.Append(newHP).Append('/').Append(_linkedEntity.MaxHP);
+                _hpText.text = _hpTextBuilder.ToString();
             }
             else if (_hpText != null)
             {
@@ -134,10 +159,10 @@ namespace UI
         
         private void UpdateHPFillOnly(int hp, int maxHP)
         {
-            if (_hpFillImage == null) return;
+            if (_hpFillRectTransform == null) return;
             
             float hpRatio = (float)hp / maxHP;
-            _hpFillImage.rectTransform.anchorMax = new Vector2(hpRatio, 1f);
+            _hpFillRectTransform.anchorMax = new Vector2(hpRatio, 1f);
             
             HideShieldElements();
             ClearStackDividers();
@@ -151,11 +176,13 @@ namespace UI
                     Destroy(divider);
             }
             _stackDividers.Clear();
+            _dividerCanvasGroups = null;
+            _dividerImages = null;
         }
         
         private void UpdateCombinedBar(int hp, int shield, int maxHP)
         {
-            if (_hpFillImage == null || _shieldFillImage == null) return;
+            if (_hpFillRectTransform == null || _shieldFillRectTransform == null) return;
             
             float hpRatio = (float)hp / maxHP;
             float shieldRatio = (float)shield / maxHP;
@@ -176,13 +203,13 @@ namespace UI
 
         private void UpdateHPAndShieldFills(float hpRatio, float totalRatio)
         {
-            _hpFillImage.rectTransform.anchorMax = new Vector2(hpRatio, 1f);
+            _hpFillRectTransform.anchorMax = new Vector2(hpRatio, 1f);
             
             _shieldFillImage.gameObject.SetActive(true);
-            _shieldFillImage.rectTransform.anchorMin = new Vector2(hpRatio, 0f);
-            _shieldFillImage.rectTransform.anchorMax = new Vector2(totalRatio, 1f);
-            _shieldFillImage.rectTransform.offsetMin = Vector2.zero;
-            _shieldFillImage.rectTransform.offsetMax = Vector2.zero;
+            _shieldFillRectTransform.anchorMin = new Vector2(hpRatio, 0f);
+            _shieldFillRectTransform.anchorMax = new Vector2(totalRatio, 1f);
+            _shieldFillRectTransform.offsetMin = Vector2.zero;
+            _shieldFillRectTransform.offsetMax = Vector2.zero;
         }
 
         private void UpdateShieldSeparator(float hpRatio)
@@ -211,9 +238,13 @@ namespace UI
             float shieldStartX = containerWidth * hpRatio;
             float shieldWidth = containerWidth * shieldRatio;
             
-            for (int i = 1; i < currentStacks; i++)
+            int dividerCount = currentStacks - 1;
+            _dividerCanvasGroups = new CanvasGroup[dividerCount];
+            _dividerImages = new Image[dividerCount];
+            
+            for (int i = 0; i < dividerCount; i++)
             {
-                CreateStackDivider(shieldStartX, shieldWidth, i, currentStacks);
+                CreateStackDivider(shieldStartX, shieldWidth, i + 1, currentStacks, i);
             }
         }
 
@@ -228,22 +259,24 @@ namespace UI
             return containerWidth;
         }
 
-        private void CreateStackDivider(float shieldStartX, float shieldWidth, int index, int totalStacks)
+        private void CreateStackDivider(float shieldStartX, float shieldWidth, int stackIndex, int totalStacks, int arrayIndex)
         {
             GameObject divider = Instantiate(_dividerPrefab, _fillContainer);
             var rectTransform = divider.GetComponent<RectTransform>();
             var image = divider.GetComponent<Image>();
 
             rectTransform.sizeDelta = new Vector2(DIVIDER_WIDTH, _fillContainer.rect.height);
-            image.color = new Color(0, 0, 0, 0);
+            image.color = COLOR_BLACK_TRANSPARENT;
 
-            float dividerX = shieldStartX + (shieldWidth * index / totalStacks);
+            float dividerX = shieldStartX + (shieldWidth * stackIndex / totalStacks);
             rectTransform.anchorMin = new Vector2(0, 0.5f);
             rectTransform.anchorMax = new Vector2(0, 0.5f);
             rectTransform.anchoredPosition = new Vector2(dividerX, 0);
 
             divider.AddComponent<Mask>().showMaskGraphic = false;
+            
             _stackDividers.Add(divider);
+            _dividerImages[arrayIndex] = image;
         }
         
         public async void AnimateShieldConversion(int hpBefore, int hpAfter, int shieldAmount)
@@ -257,7 +290,6 @@ namespace UI
             }
             catch (TaskCanceledException)
             {
-                // Animation was cancelled, this is expected
             }
         }
         
@@ -281,46 +313,50 @@ namespace UI
         private void SetupShieldAnimation(int hpAfter, int shieldAmount)
         {
             float endHPRatio = (float)hpAfter / _linkedEntity.MaxHP;
-            _hpFillImage.rectTransform.anchorMax = new Vector2(endHPRatio, 1f);
+            _hpFillRectTransform.anchorMax = new Vector2(endHPRatio, 1f);
             
             _shieldFillImage.gameObject.SetActive(true);
             float shieldRatio = (float)shieldAmount / _linkedEntity.MaxHP;
             float totalRatio = endHPRatio + shieldRatio;
             
-            _shieldFillImage.rectTransform.anchorMin = new Vector2(endHPRatio, 0f);
-            _shieldFillImage.rectTransform.anchorMax = new Vector2(totalRatio, 1f);
+            _shieldFillRectTransform.anchorMin = new Vector2(endHPRatio, 0f);
+            _shieldFillRectTransform.anchorMax = new Vector2(totalRatio, 1f);
             
-            _shieldFillImage.color = new Color(_shieldColor.r, _shieldColor.g, _shieldColor.b, 0f);
+            Color shieldColorTransparent = _shieldColor;
+            shieldColorTransparent.a = 0f;
+            _shieldFillImage.color = shieldColorTransparent;
             _shieldFillImage.transform.localScale = new Vector3(SHIELD_INITIAL_SCALE, SHIELD_INITIAL_SCALE, 1f);
         }
 
         private async Task AnimateHPFlashAsync(CancellationToken ct)
         {
             float elapsed = 0f;
+            Color originalColor = _hpColor;
             
             while (elapsed < HP_FLASH_DURATION && !ct.IsCancellationRequested)
             {
                 elapsed += Time.deltaTime;
                 float t = elapsed / HP_FLASH_DURATION;
-                _hpFillImage.color = Color.Lerp(_hpColor, Color.white, Mathf.Sin(t * Mathf.PI));
+                _hpFillImage.color = Color.Lerp(originalColor, COLOR_WHITE, Mathf.Sin(t * Mathf.PI));
                 await AsyncUtilities.NextFrameAsync(ct);
             }
             
             if (!ct.IsCancellationRequested)
-                _hpFillImage.color = _hpColor;
+                _hpFillImage.color = originalColor;
         }
 
         private async Task AnimateShieldAppearAsync(CancellationToken ct)
         {
             float elapsed = 0f;
+            Color targetColor = _shieldColor;
             
             while (elapsed < SHIELD_ANIM_DURATION && !ct.IsCancellationRequested)
             {
                 elapsed += Time.deltaTime;
                 float t = elapsed / SHIELD_ANIM_DURATION;
                 
-                float alpha = Mathf.Pow(t, 0.5f);
-                _shieldFillImage.color = new Color(_shieldColor.r, _shieldColor.g, _shieldColor.b, alpha * SHIELD_ALPHA);
+                float alpha = Mathf.Pow(t, 0.5f) * SHIELD_ALPHA;
+                _shieldFillImage.color = new Color(targetColor.r, targetColor.g, targetColor.b, alpha);
                 
                 float scale = 1f + (0.3f * Mathf.Pow(1f - t, 3f));
                 _shieldFillImage.transform.localScale = new Vector3(scale, scale, 1f);
@@ -330,36 +366,42 @@ namespace UI
             
             if (!ct.IsCancellationRequested)
             {
-                _shieldFillImage.color = _shieldColor;
+                _shieldFillImage.color = targetColor;
                 _shieldFillImage.transform.localScale = Vector3.one;
             }
         }
         
         private async Task FadeInDividersSequentiallyAsync(CancellationToken ct)
         {
-            foreach (var divider in _stackDividers)
+            if (_dividerImages == null) return;
+            
+            Color targetColor = Color.black;
+            
+            for (int i = 0; i < _dividerImages.Length; i++)
             {
-                if (divider == null || ct.IsCancellationRequested) continue;
+                if (ct.IsCancellationRequested) break;
                 
-                var image = divider.GetComponent<Image>();
+                var image = _dividerImages[i];
                 if (image == null) continue;
                 
-                await FadeDividerAsync(image, ct);
+                await FadeDividerAsync(image, targetColor, ct);
                 await AsyncUtilities.WaitForSecondsAsync(DIVIDER_DELAY, ct);
             }
         }
 
-        private async Task FadeDividerAsync(Image image, CancellationToken ct)
+        private async Task FadeDividerAsync(Image image, Color targetColor, CancellationToken ct)
         {
-            Color originalColor = image.color;
-            image.color = new Color(originalColor.r, originalColor.g, originalColor.b, 0f);
+            Color startColor = targetColor;
+            startColor.a = 0f;
+            image.color = startColor;
             
             float elapsed = 0f;
             while (elapsed < DIVIDER_FADE_TIME && !ct.IsCancellationRequested)
             {
                 elapsed += Time.deltaTime;
                 float alpha = elapsed / DIVIDER_FADE_TIME;
-                image.color = new Color(originalColor.r, originalColor.g, originalColor.b, alpha);
+                targetColor.a = alpha;
+                image.color = targetColor;
                 await AsyncUtilities.NextFrameAsync(ct);
             }
         }
