@@ -20,6 +20,8 @@ namespace GameSystem.Events
         public static event Action<EntityDefeatedEventArgs> OnEntityDefeated;
         public static event Action<ShieldActivatedEventArgs> OnShieldActivated;
         public static event Action<ShieldBrokenEventArgs> OnShieldBroken;
+        
+        public static event Action<BuffStackChangedEventArgs> OnBuffStackChanged;
 
         public static void RaiseBattleStarted(BattleEntity[] entities)
         {
@@ -103,6 +105,16 @@ namespace GameSystem.Events
         {
             OnShieldBroken?.Invoke(new ShieldBrokenEventArgs { Boss = boss });
         }
+        
+        public static void RaiseBuffStackChanged(BattleEntity entity, BuffsType buffType, int newStackCount)
+        {
+            OnBuffStackChanged?.Invoke(new BuffStackChangedEventArgs 
+            { 
+                Entity = entity, 
+                BuffType = buffType, 
+                NewStackCount = newStackCount 
+            });
+        }
 
         public static void ClearAllListeners()
         {
@@ -183,5 +195,12 @@ namespace GameSystem.Events
     public class ShieldBrokenEventArgs : EventArgs
     {
         public BossEntity Boss { get; set; }
+    }
+    
+    public class BuffStackChangedEventArgs : EventArgs
+    {
+        public BattleEntity Entity { get; set; }
+        public BuffsType BuffType { get; set; }
+        public int NewStackCount { get; set; }
     }
 }

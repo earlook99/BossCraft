@@ -1,0 +1,34 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c7080a18dee88af47baae11fd18048d9, type: 3}
+  m_Name: Player1_3
+  m_EditorClassIdentifier: 
+  Name: Stealth
+  Category: 0
+  AllowedTargetSide: 0
+  Type: 5
+  Cooldown: 0
+  RequiresCharge: 0
+  Effects:
+  - EffectType: 8
+    Power: 0
+    BuffsType: 0
+    Accuracy: 1
+    CritChance: 0
+  - EffectType: 2
+    Power: 0
+    BuffsType: 1
+    Accuracy: 1
+    CritChance: 0
+  VFXPrefab: {fileID: 2659604122979068415, guid: a88b1f26c7141a44c9a4d8eb59ea8114, type: 3}
+  Description: The user vanishes into shadows for 2 turns. Raises Attack and avoids
+    single-target moves.

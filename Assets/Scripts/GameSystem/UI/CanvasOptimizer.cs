@@ -76,7 +76,14 @@ namespace GameSystem.UI
             canvasGO.transform.SetParent(parent);
             
             Canvas canvas = canvasGO.AddComponent<Canvas>();
-            canvas.renderMode = RenderMode.ScreenSpaceOverlay;
+            if (canvas.name == "StaticCanvas")
+            {
+                canvas.renderMode = RenderMode.ScreenSpaceCamera;
+            }
+            else
+            {
+                canvas.renderMode = RenderMode.ScreenSpaceOverlay;
+            }
             
             CanvasScaler scaler = canvasGO.AddComponent<CanvasScaler>();
             scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;

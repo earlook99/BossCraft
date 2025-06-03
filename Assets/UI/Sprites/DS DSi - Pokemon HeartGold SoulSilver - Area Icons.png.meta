@@ -1,0 +1,598 @@
+fileFormatVersion: 2
+guid: 0b8642c0129283446bd2ce3706246edd
+TextureImporter:
+  internalIDToNameTable:
+  - first:
+      213: -7383231939115690826
+    second: DS DSi - Pokemon HeartGold SoulSilver - Area Icons_0
+  - first:
+      213: 2731500205652275937
+    second: DS DSi - Pokemon HeartGold SoulSilver - Area Icons_1
+  - first:
+      213: 8946551126825995565
+    second: DS DSi - Pokemon HeartGold SoulSilver - Area Icons_2
+  - first:
+      213: -2756524734169591060
+    second: DS DSi - Pokemon HeartGold SoulSilver - Area Icons_3
+  - first:
+      213: -3348799637484827306
+    second: DS DSi - Pokemon HeartGold SoulSilver - Area Icons_4
+  - first:
+      213: 882207772928120650
+    second: DS DSi - Pokemon HeartGold SoulSilver - Area Icons_5
+  - first:
+      213: 663994109450365094
+    second: DS DSi - Pokemon HeartGold SoulSilver - Area Icons_6
+  - first:
+      213: -3936978730416063685
+    second: DS DSi - Pokemon HeartGold SoulSilver - Area Icons_7
+  - first:
+      213: -3153129640165842759
+    second: DS DSi - Pokemon HeartGold SoulSilver - Area Icons_8
+  - first:
+      213: 3318570209596295575
+    second: DS DSi - Pokemon HeartGold SoulSilver - Area Icons_9
+  - first:
+      213: 4539104879362746695
+    second: DS DSi - Pokemon HeartGold SoulSilver - Area Icons_10
+  - first:
+      213: -5456932807854412747
+    second: DS DSi - Pokemon HeartGold SoulSilver - Area Icons_11
+  - first:
+      213: -7746015786891325785
+    second: DS DSi - Pokemon HeartGold SoulSilver - Area Icons_12
+  - first:
+      213: 7436303907590994470
+    second: DS DSi - Pokemon HeartGold SoulSilver - Area Icons_13
+  - first:
+      213: 9120929735581193657
+    second: DS DSi - Pokemon HeartGold SoulSilver - Area Icons_14
+  - first:
+      213: -1397803750638710009
+    second: DS DSi - Pokemon HeartGold SoulSilver - Area Icons_15
+  - first:
+      213: -3960108131983544453
+    second: DS DSi - Pokemon HeartGold SoulSilver - Area Icons_16
+  - first:
+      213: -8981871976072630757
+    second: DS DSi - Pokemon HeartGold SoulSilver - Area Icons_17
+  externalObjects: {}
+  serializedVersion: 13
+  mipmaps:
+    mipMapMode: 0
+    enableMipMap: 0
+    sRGBTexture: 1
+    linearTexture: 0
+    fadeOut: 0
+    borderMipMap: 0
+    mipMapsPreserveCoverage: 0
+    alphaTestReferenceValue: 0.5
+    mipMapFadeDistanceStart: 1
+    mipMapFadeDistanceEnd: 3
+  bumpmap:
+    convertToNormalMap: 0
+    externalNormalMap: 0
+    heightScale: 0.25
+    normalMapFilter: 0
+    flipGreenChannel: 0
+  isReadable: 0
+  streamingMipmaps: 0
+  streamingMipmapsPriority: 0
+  vTOnly: 0
+  ignoreMipmapLimit: 0
+  grayScaleToAlpha: 0
+  generateCubemap: 6
+  cubemapConvolution: 0
+  seamlessCubemap: 0
+  textureFormat: 1
+  maxTextureSize: 2048
+  textureSettings:
+    serializedVersion: 2
+    filterMode: 1
+    aniso: 1
+    mipBias: 0
+    wrapU: 1
+    wrapV: 1
+    wrapW: 1
+  nPOTScale: 0
+  lightmap: 0
+  compressionQuality: 50
+  spriteMode: 2
+  spriteExtrude: 1
+  spriteMeshType: 1
+  alignment: 0
+  spritePivot: {x: 0.5, y: 0.5}
+  spritePixelsToUnits: 100
+  spriteBorder: {x: 0, y: 0, z: 0, w: 0}
+  spriteGenerateFallbackPhysicsShape: 1
+  alphaUsage: 1
+  alphaIsTransparency: 1
+  spriteTessellationDetail: -1
+  textureType: 8
+  textureShape: 1
+  singleChannelComponent: 0
+  flipbookRows: 1
+  flipbookColumns: 1
+  maxTextureSizeSet: 0
+  compressionQualitySet: 0
+  textureFormatSet: 0
+  ignorePngGamma: 0
+  applyGammaDecoding: 0
+  swizzle: 50462976
+  cookieLightType: 0
+  platformSettings:
+  - serializedVersion: 4
+    buildTarget: DefaultTexturePlatform
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Standalone
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: WebGL
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  spriteSheet:
+    serializedVersion: 2
+    sprites:
+    - serializedVersion: 2
+      name: DS DSi - Pokemon HeartGold SoulSilver - Area Icons_0
+      rect:
+        serializedVersion: 2
+        x: 3
+        y: 79
+        width: 131
+        height: 29
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 6b4d0be5bad798990800000000000000
+      internalID: -7383231939115690826
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: DS DSi - Pokemon HeartGold SoulSilver - Area Icons_1
+      rect:
+        serializedVersion: 2
+        x: 141
+        y: 79
+        width: 133
+        height: 29
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 1e27fc507fc38e520800000000000000
+      internalID: 2731500205652275937
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: DS DSi - Pokemon HeartGold SoulSilver - Area Icons_2
+      rect:
+        serializedVersion: 2
+        x: 281
+        y: 79
+        width: 133
+        height: 31
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d2d855759d8882c70800000000000000
+      internalID: 8946551126825995565
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: DS DSi - Pokemon HeartGold SoulSilver - Area Icons_3
+      rect:
+        serializedVersion: 2
+        x: 5
+        y: 45
+        width: 129
+        height: 27
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 1, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ce25e35eb5bdeb9d0800000000000000
+      internalID: -2756524734169591060
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: DS DSi - Pokemon HeartGold SoulSilver - Area Icons_4
+      rect:
+        serializedVersion: 2
+        x: 141
+        y: 44
+        width: 137
+        height: 31
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 65d82cfe87ca681d0800000000000000
+      internalID: -3348799637484827306
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: DS DSi - Pokemon HeartGold SoulSilver - Area Icons_5
+      rect:
+        serializedVersion: 2
+        x: 281
+        y: 44
+        width: 131
+        height: 29
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a47187b9b4b3e3c00800000000000000
+      internalID: 882207772928120650
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: DS DSi - Pokemon HeartGold SoulSilver - Area Icons_6
+      rect:
+        serializedVersion: 2
+        x: 3
+        y: 9
+        width: 133
+        height: 29
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 6a8adb2ef1bf63900800000000000000
+      internalID: 663994109450365094
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: DS DSi - Pokemon HeartGold SoulSilver - Area Icons_7
+      rect:
+        serializedVersion: 2
+        x: 142
+        y: 9
+        width: 133
+        height: 29
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b3b384524ba0d59c0800000000000000
+      internalID: -3936978730416063685
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: DS DSi - Pokemon HeartGold SoulSilver - Area Icons_8
+      rect:
+        serializedVersion: 2
+        x: 280
+        y: 7
+        width: 29
+        height: 34
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 9b0e82b5c45dd34d0800000000000000
+      internalID: -3153129640165842759
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: DS DSi - Pokemon HeartGold SoulSilver - Area Icons_9
+      rect:
+        serializedVersion: 2
+        x: 312
+        y: 30
+        width: 35
+        height: 10
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 7994e29e50eed0e20800000000000000
+      internalID: 3318570209596295575
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: DS DSi - Pokemon HeartGold SoulSilver - Area Icons_10
+      rect:
+        serializedVersion: 2
+        x: 349
+        y: 30
+        width: 29
+        height: 10
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 749a8aca6d32efe30800000000000000
+      internalID: 4539104879362746695
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: DS DSi - Pokemon HeartGold SoulSilver - Area Icons_11
+      rect:
+        serializedVersion: 2
+        x: 380
+        y: 30
+        width: 33
+        height: 10
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 53ca9a8f5841544b0800000000000000
+      internalID: -5456932807854412747
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: DS DSi - Pokemon HeartGold SoulSilver - Area Icons_12
+      rect:
+        serializedVersion: 2
+        x: 415
+        y: 28
+        width: 15
+        height: 13
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 7ae46c59eaf908490800000000000000
+      internalID: -7746015786891325785
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: DS DSi - Pokemon HeartGold SoulSilver - Area Icons_13
+      rect:
+        serializedVersion: 2
+        x: 312
+        y: 17
+        width: 63
+        height: 10
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 62a7fc5310f033760800000000000000
+      internalID: 7436303907590994470
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: DS DSi - Pokemon HeartGold SoulSilver - Area Icons_14
+      rect:
+        serializedVersion: 2
+        x: 378
+        y: 17
+        width: 17
+        height: 10
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 9b55d9e054d049e70800000000000000
+      internalID: 9120929735581193657
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: DS DSi - Pokemon HeartGold SoulSilver - Area Icons_15
+      rect:
+        serializedVersion: 2
+        x: 397
+        y: 17
+        width: 33
+        height: 11
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 703987905e00a9ce0800000000000000
+      internalID: -1397803750638710009
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: DS DSi - Pokemon HeartGold SoulSilver - Area Icons_16
+      rect:
+        serializedVersion: 2
+        x: 312
+        y: 4
+        width: 47
+        height: 11
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b7f2cf0b2aeda09c0800000000000000
+      internalID: -3960108131983544453
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: DS DSi - Pokemon HeartGold SoulSilver - Area Icons_17
+      rect:
+        serializedVersion: 2
+        x: 363
+        y: 2
+        width: 11
+        height: 13
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b1ea728960bf95380800000000000000
+      internalID: -8981871976072630757
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    outline: []
+    customData: 
+    physicsShape: []
+    bones: []
+    spriteID: 928be084efe2aa6469837dd6d2135ea2
+    internalID: 0
+    vertices: []
+    indices: 
+    edges: []
+    weights: []
+    secondaryTextures: []
+    spriteCustomMetadata:
+      entries: []
+    nameFileIdTable:
+      DS DSi - Pokemon HeartGold SoulSilver - Area Icons_0: -7383231939115690826
+      DS DSi - Pokemon HeartGold SoulSilver - Area Icons_1: 2731500205652275937
+      DS DSi - Pokemon HeartGold SoulSilver - Area Icons_10: 4539104879362746695
+      DS DSi - Pokemon HeartGold SoulSilver - Area Icons_11: -5456932807854412747
+      DS DSi - Pokemon HeartGold SoulSilver - Area Icons_12: -7746015786891325785
+      DS DSi - Pokemon HeartGold SoulSilver - Area Icons_13: 7436303907590994470
+      DS DSi - Pokemon HeartGold SoulSilver - Area Icons_14: 9120929735581193657
+      DS DSi - Pokemon HeartGold SoulSilver - Area Icons_15: -1397803750638710009
+      DS DSi - Pokemon HeartGold SoulSilver - Area Icons_16: -3960108131983544453
+      DS DSi - Pokemon HeartGold SoulSilver - Area Icons_17: -8981871976072630757
+      DS DSi - Pokemon HeartGold SoulSilver - Area Icons_2: 8946551126825995565
+      DS DSi - Pokemon HeartGold SoulSilver - Area Icons_3: -2756524734169591060
+      DS DSi - Pokemon HeartGold SoulSilver - Area Icons_4: -3348799637484827306
+      DS DSi - Pokemon HeartGold SoulSilver - Area Icons_5: 882207772928120650
+      DS DSi - Pokemon HeartGold SoulSilver - Area Icons_6: 663994109450365094
+      DS DSi - Pokemon HeartGold SoulSilver - Area Icons_7: -3936978730416063685
+      DS DSi - Pokemon HeartGold SoulSilver - Area Icons_8: -3153129640165842759
+      DS DSi - Pokemon HeartGold SoulSilver - Area Icons_9: 3318570209596295575
+  mipmapLimitGroupName: 
+  pSDRemoveMatte: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

@@ -25,6 +25,11 @@ namespace UI
         private Camera _mainCamera;
         private Vector3 _lastMousePosition;
         private Dictionary<Collider2D, BattleEntity> _colliderToEntityCache = new Dictionary<Collider2D, BattleEntity>();
+        
+        [Header("Visual Feedback")]
+        [SerializeField] private GameObject _targetingOverlay;
+        [SerializeField] private Color _validTargetColor = new Color(0, 1, 0, 0.3f);
+        [SerializeField] private Color _invalidTargetColor = new Color(1, 0, 0, 0.3f);
 
         private const int PLAYER_COUNT = 4;
         private const int BOSS_INDEX = 4;
@@ -81,6 +86,8 @@ namespace UI
             {
                 _currentTargetIndex = 0;
                 _lastMousePosition = Input.mousePosition;
+                ShowTargetingMode(true);
+                HighlightValidTargets();
             }
         }
 
@@ -141,23 +148,17 @@ namespace UI
         {
             if (!_isActive) return;
 
-            if (Input.GetKeyDown(KeyCode.Escape))
-            {
-                Cancel();
-                return;
-            }
-
             Vector3 currentMousePos = Input.mousePosition;
+            
             if (Vector3.Distance(currentMousePos, _lastMousePosition) > MOUSE_MOVE_THRESHOLD)
             {
                 _lastMousePosition = currentMousePos;
                 HandleMouseTargeting();
             }
 
-            if (Input.GetMouseButtonDown(0) && _currentHoverEntity != null)
+            if (Input.GetMouseButtonDown(0))
             {
-                int entityIndex = System.Array.IndexOf(_allEntities, _currentHoverEntity);
-                ConfirmTarget(entityIndex);
+                HandleMouseClick();
             }
         }
 
@@ -178,6 +179,35 @@ namespace UI
             if (_currentHoverEntity != hoverEntity)
             {
                 UpdateHighlight(hoverEntity);
+            }
+        }
+        
+        private void HandleMouseClick()
+        {
+            Ray ray = _mainCamera.ScreenPointToRay(Input.mousePosition);
+            RaycastHit2D hit = Physics2D.GetRayIntersection(ray, Mathf.Infinity);
+            
+            if (hit.collider == null)
+            {
+                Cancel();
+                return;
+            }
+            
+            if (_colliderToEntityCache.TryGetValue(hit.collider, out BattleEntity entity))
+            {
+                if (IsValidHoverTarget(entity))
+                {
+                    int entityIndex = System.Array.IndexOf(_allEntities, entity);
+                    ConfirmTarget(entityIndex);
+                }
+                else
+                {
+                    Cancel();
+                }
+            }
+            else
+            {
+                Cancel();
             }
         }
 
@@ -214,6 +244,8 @@ namespace UI
 
             _isActive = false;
             ClearHighlight();
+            ShowTargetingMode(false);
+            ClearValidTargetHighlights();
             _onTargetSelected?.Invoke((EntityType)entityIndex);
         }
 
@@ -221,6 +253,8 @@ namespace UI
         {
             _isActive = false;
             ClearHighlight();
+            ShowTargetingMode(false);
+            ClearValidTargetHighlights();
             _onCancelled?.Invoke();
         }
 
@@ -228,6 +262,65 @@ namespace UI
         {
             SetHighlight(_currentHoverEntity, false);
             _currentHoverEntity = null;
+        }
+        
+        private void ShowTargetingMode(bool show)
+        {
+            if (_targetingOverlay != null)
+            {
+                _targetingOverlay.SetActive(show);
+            }
+            
+            SetCursorForTargeting(show);
+        }
+        
+        private void SetCursorForTargeting(bool isTargeting)
+        {
+            Cursor.visible = true;
+        }
+        
+        private void HighlightValidTargets()
+        {
+            foreach (int index in _validTargetIndices)
+            {
+                if (index < _allEntities.Length && _allEntities[index] != null)
+                {
+                    var spriteRenderer = _allEntities[index].SpriteRenderer;
+                    if (spriteRenderer != null)
+                    {
+                        Color color = spriteRenderer.color;
+                        color.a = 1f;
+                        spriteRenderer.color = color;
+                    }
+                }
+            }
+            
+            for (int i = 0; i < _allEntities.Length; i++)
+            {
+                if (!_validTargetIndices.Contains(i) && _allEntities[i] != null)
+                {
+                    var spriteRenderer = _allEntities[i].SpriteRenderer;
+                    if (spriteRenderer != null)
+                    {
+                        Color color = spriteRenderer.color;
+                        color.a = 0.3f;
+                        spriteRenderer.color = color;
+                    }
+                }
+            }
+        }
+        
+        private void ClearValidTargetHighlights()
+        {
+            foreach (var entity in _allEntities)
+            {
+                if (entity != null && entity.SpriteRenderer != null)
+                {
+                    Color color = entity.SpriteRenderer.color;
+                    color.a = entity is BossEntity ? 1f : GameConstants.UI.INACTIVE_SPRITE_ALPHA;
+                    entity.SpriteRenderer.color = color;
+                }
+            }
         }
         
         private void OnDisable()

@@ -1,0 +1,28 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c7080a18dee88af47baae11fd18048d9, type: 3}
+  m_Name: Player1_1
+  m_EditorClassIdentifier: 
+  Name: Swift Strike
+  Category: 0
+  AllowedTargetSide: 3
+  Type: 7
+  Cooldown: 0
+  RequiresCharge: 0
+  Effects:
+  - EffectType: 0
+    Power: 100
+    BuffsType: 0
+    Accuracy: 1
+    CritChance: 0
+  VFXPrefab: {fileID: 2659604122979068415, guid: d81c7e1efd7674b4db74b6619ecd1f15, type: 3}
+  Description: A swift, icy blade strike. Deals damage to one foe.

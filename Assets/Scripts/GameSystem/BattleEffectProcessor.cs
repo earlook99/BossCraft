@@ -51,6 +51,15 @@ namespace GameSystem
                 case MoveEffectType.Stun:
                     await ProcessStunAsync(source, target, moveInst, effect, ct);
                     break;
+                case MoveEffectType.Stealth:
+                    await ProcessStealthAsync(source, target, moveInst, effect, ct);
+                    break;
+                case MoveEffectType.Counter:
+                    await ProcessCounterAsync(source, target, moveInst, effect, ct);
+                    break;
+                case MoveEffectType.Taunt:
+                    await ProcessTauntAsync(source, target, moveInst, effect, ct);
+                    break;
             }
         }
         
@@ -137,6 +146,33 @@ namespace GameSystem
             }
         }
         
+        private async Task ProcessStealthAsync(BattleEntity source, BattleEntity target, MoveInstance moveInst, MoveEffect effect, CancellationToken ct)
+        {
+            target.ApplyStealth(2);
+            BattleEvents.RaiseStatusEffectApplied(source, target, effect.EffectType);
+            await SpawnEffectAsync(target, moveInst.Data, ct);
+            UIEvents.RaiseShowMessage($"{target.EntityName} becomes stealthed!", 1.5f);
+            await AsyncUtilities.WaitForSecondsAsync(1.5f, ct); // 대기 추가
+        }
+        
+        private async Task ProcessCounterAsync(BattleEntity source, BattleEntity target, MoveInstance moveInst, MoveEffect effect, CancellationToken ct)
+        {
+            await SpawnEffectAsync(target, moveInst.Data, ct);
+            target.ApplyStatusEffect(MoveEffectType.Counter, 3);
+            BattleEvents.RaiseStatusEffectApplied(source, target, effect.EffectType);
+            UIEvents.RaiseShowMessage($"{target.EntityName} prepares to counter!", 1.5f);
+            await AsyncUtilities.WaitForSecondsAsync(1.5f, ct); // 메시지 표시 대기
+        }
+
+        private async Task ProcessTauntAsync(BattleEntity source, BattleEntity target, MoveInstance moveInst, MoveEffect effect, CancellationToken ct)
+        {
+            await SpawnEffectAsync(target, moveInst.Data, ct);
+            target.ApplyStatusEffect(MoveEffectType.Taunt, 2);
+            BattleEvents.RaiseStatusEffectApplied(source, target, effect.EffectType);
+            UIEvents.RaiseShowMessage($"{target.EntityName} taunts the enemy!", 1.5f);
+            await AsyncUtilities.WaitForSecondsAsync(1.5f, ct); // 메시지 표시 대기
+        }
+        
         private void ApplyStatModifier(BattleEntity target, MoveEffect effect, bool isBuff)
         {
             float modifier = effect.Power / 100f;
@@ -166,19 +202,10 @@ namespace GameSystem
             var effectPoolManager = Pooling.EffectPoolManager.Instance;
             if (effectPoolManager != null && moveData.VFXPrefab != null)
             {
-                string poolName = moveData.VFXPrefab.name;
-                var effect = effectPoolManager.GetEffect(poolName, target.transform.position, Quaternion.identity);
+                var effect = effectPoolManager.GetEffect(moveData.VFXPrefab);
                 if (effect != null)
                 {
-                    await AsyncUtilities.WaitForSecondsAsync(EFFECT_DURATION, ct);
-                    effectPoolManager.ReturnEffect(effect);
-                }
-            }
-            else if (_defaultEffectPrefab != null && effectPoolManager != null)
-            {
-                var effect = effectPoolManager.GetEffect("DefaultEffect", target.transform.position, Quaternion.identity);
-                if (effect != null)
-                {
+                    effect.transform.position = target.transform.position;
                     await AsyncUtilities.WaitForSecondsAsync(EFFECT_DURATION, ct);
                     effectPoolManager.ReturnEffect(effect);
                 }

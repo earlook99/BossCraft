@@ -14,6 +14,9 @@ namespace Data
         public bool RequiresCharge = false;
         public MoveEffect[] Effects;
         public GameObject VFXPrefab;
+        
+        [TextArea(2, 4)]
+        public string Description;
     }
 
     [System.Serializable]

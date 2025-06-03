@@ -47,7 +47,10 @@ namespace Data
         ClearOppBuff,
         ClearSelfDebuff,
         Stun,
-        Shield
+        Shield,
+        Stealth,
+        Counter,
+        Taunt
     }
 
     public enum BuffsType

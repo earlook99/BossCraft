@@ -1,8 +1,10 @@
 using System.Collections.Generic;
+using Data;
 using UnityEngine;
 using Entity;
 using UI;
 using GameSystem.Events;
+using GameSystem.Pooling;
 
 namespace GameSystem.UI
 {
@@ -19,7 +21,12 @@ namespace GameSystem.UI
         [Header("Canvas Assignment")]
         [SerializeField] private CanvasType _statusCanvasType = CanvasType.Dynamic;
         
+        [Header("Buff Icons")]
+        [SerializeField] private Sprite _attackBuffIcon;
+        [SerializeField] private Sprite _defenseBuffIcon;
+        
         private Dictionary<int, CharacterStatusUI> _entityStatusUIs = new Dictionary<int, CharacterStatusUI>(5);
+        private Dictionary<(int entityIndex, BuffsType buffType), PoolableStatusIcon> _buffIcons = new Dictionary<(int, BuffsType), PoolableStatusIcon>();
         private BattleEntity[] _entities;
         private int[] _lastKnownHP = new int[5];
         private bool _isInitialized = false;
@@ -40,6 +47,7 @@ namespace GameSystem.UI
             BattleEvents.OnHealingReceived += HandleHealingReceived;
             BattleEvents.OnShieldActivated += HandleShieldActivated;
             BattleEvents.OnShieldBroken += HandleShieldBroken;
+            BattleEvents.OnBuffStackChanged += HandleBuffStackChanged;
             
             UIEvents.OnUpdateHPBar += HandleUpdateHPBar;
             UIEvents.OnUpdateShield += HandleUpdateShield;
@@ -51,6 +59,7 @@ namespace GameSystem.UI
             BattleEvents.OnHealingReceived -= HandleHealingReceived;
             BattleEvents.OnShieldActivated -= HandleShieldActivated;
             BattleEvents.OnShieldBroken -= HandleShieldBroken;
+            BattleEvents.OnBuffStackChanged -= HandleBuffStackChanged;
             
             UIEvents.OnUpdateHPBar -= HandleUpdateHPBar;
             UIEvents.OnUpdateShield -= HandleUpdateShield;
@@ -203,6 +212,55 @@ namespace GameSystem.UI
             {
                 statusUI.UpdateShield(args.Boss.ShieldStacks, args.Boss.MaxShieldStacks, args.Boss.ShieldHP);
             }
+        }
+        
+        private void HandleBuffStackChanged(BuffStackChangedEventArgs args)
+        {
+            int entityIndex = System.Array.IndexOf(_entities, args.Entity);
+            if (entityIndex < 0) return;
+        
+            var key = (entityIndex, args.BuffType);
+        
+            if (args.NewStackCount == 0)
+            {
+                // 버프 제거
+                if (_buffIcons.TryGetValue(key, out var icon))
+                {
+                    UIPoolManager.Instance?.ReturnUI(icon);
+                    _buffIcons.Remove(key);
+                }
+            }
+            else
+            {
+                // 버프 추가/업데이트
+                if (_buffIcons.TryGetValue(key, out var icon))
+                {
+                    icon.UpdateStack(args.NewStackCount);
+                }
+                else
+                {
+                    CreateBuffIcon(entityIndex, args.BuffType, args.NewStackCount);
+                }
+            }
+        }
+        
+        private void CreateBuffIcon(int entityIndex, BuffsType buffType, int stackCount)
+        {
+            if (!_entityStatusUIs.TryGetValue(entityIndex, out var statusUI)) return;
+        
+            var poolManager = UIPoolManager.Instance;
+            if (poolManager == null) return;
+        
+            var icon = poolManager.GetUI<PoolableStatusIcon>(UIPoolManager.STATUS_ICON_POOL);
+            if (icon == null) return;
+        
+            Sprite sprite = buffType == BuffsType.Attack ? _attackBuffIcon : _defenseBuffIcon;
+            icon.Setup(sprite, stackCount);
+        
+            // 아이콘 위치를 해당 엔티티의 StatusUI 근처에 배치
+            icon.transform.SetParent(statusUI.transform, false);
+        
+            _buffIcons[(entityIndex, buffType)] = icon;
         }
         
         private void UpdateEntityHP(BattleEntity entity)

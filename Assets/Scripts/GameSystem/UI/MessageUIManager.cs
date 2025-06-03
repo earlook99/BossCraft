@@ -76,7 +76,7 @@ namespace GameSystem.UI
             
             if (_battleMessagePanel != null)
             {
-                SetPanelVisibility(false, true);
+                SetPanelVisibility(true, true);
             }
             
             OptimizeMessagePanel();
@@ -158,68 +158,68 @@ namespace GameSystem.UI
         {
             if (_battleMessageText != null)
             {
-                if (_battleMessageText.text != message)
-                {
-                    _battleMessageText.text = message;
-                    _lastMessage = message;
-                }
-                
-                if (!_isPanelVisible)
-                {
-                    yield return FadeInPanel();
-                }
-                
-                yield return new WaitForSeconds(duration);
-                
-                if (_messageQueue.Count == 0)
-                {
-                    yield return FadeOutPanel();
-                }
+                _battleMessageText.text = message;
+                _lastMessage = message;
+        
+                // if (!_isPanelVisible)
+                // {
+                //     yield return FadeInPanel();
+                // }
+        
+                // duration 후 자동 사라짐 제거
+                // yield return new WaitForSeconds(duration);
+        
+                // 메시지 큐가 비어있을 때만 사라짐
+                // if (_messageQueue.Count == 0)
+                // {
+                //     yield return FadeOutPanel();
+                // }
+                yield break;
             }
         }
         
-        private IEnumerator FadeInPanel()
-        {
-            SetPanelVisibility(true, false);
-            
-            if (_messageCanvasGroup != null && _fadeInDuration > 0)
-            {
-                float elapsed = 0f;
-                _messageCanvasGroup.alpha = 0f;
-                
-                while (elapsed < _fadeInDuration)
-                {
-                    elapsed += Time.deltaTime;
-                    _messageCanvasGroup.alpha = elapsed / _fadeInDuration;
-                    yield return null;
-                }
-                
-                _messageCanvasGroup.alpha = 1f;
-            }
-            
-            _isPanelVisible = true;
-        }
-        
-        private IEnumerator FadeOutPanel()
-        {
-            if (_messageCanvasGroup != null && _fadeOutDuration > 0)
-            {
-                float elapsed = 0f;
-                _messageCanvasGroup.alpha = 1f;
-                
-                while (elapsed < _fadeOutDuration)
-                {
-                    elapsed += Time.deltaTime;
-                    _messageCanvasGroup.alpha = 1f - (elapsed / _fadeOutDuration);
-                    yield return null;
-                }
-                
-                _messageCanvasGroup.alpha = 0f;
-            }
-            
-            SetPanelVisibility(false, true);
-            _isPanelVisible = false;
-        }
+        // private IEnumerator FadeInPanel()
+        // {
+        //     SetPanelVisibility(true, false);
+        //     
+        //     if (_messageCanvasGroup != null && _fadeInDuration > 0)
+        //     {
+        //         float elapsed = 0f;
+        //         _messageCanvasGroup.alpha = 0f;
+        //         
+        //         while (elapsed < _fadeInDuration)
+        //         {
+        //             elapsed += Time.deltaTime;
+        //             _messageCanvasGroup.alpha = elapsed / _fadeInDuration;
+        //             yield return null;
+        //         }
+        //         
+        //         _messageCanvasGroup.alpha = 1f;
+        //     }
+        //     
+        //     _isPanelVisible = true;
+        // }
+        //
+        // private IEnumerator FadeOutPanel()
+        // {
+        //     if (_messageCanvasGroup != null && _fadeOutDuration > 0)
+        //     {
+        //         float elapsed = 0f;
+        //         _messageCanvasGroup.alpha = 1f;
+        //         
+        //         while (elapsed < _fadeOutDuration)
+        //         {
+        //             elapsed += Time.deltaTime;
+        //             _messageCanvasGroup.alpha = 1f - (elapsed / _fadeOutDuration);
+        //             yield return null;
+        //         }
+        //         
+        //         _messageCanvasGroup.alpha = 0f;
+        //     }
+        //     
+        //     SetPanelVisibility(false, true);
+        //     _isPanelVisible = false;
+        // }
         
         private void SetPanelVisibility(bool visible, bool immediate = false)
         {
@@ -257,7 +257,7 @@ namespace GameSystem.UI
             _isShowingMessage = false;
             _lastMessage = "";
             
-            SetPanelVisibility(false, true);
+            SetPanelVisibility(true, true);
             _isPanelVisible = false;
         }
         

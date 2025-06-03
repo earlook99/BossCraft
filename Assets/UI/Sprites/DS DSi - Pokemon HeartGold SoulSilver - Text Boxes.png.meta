@@ -1,0 +1,639 @@
+fileFormatVersion: 2
+guid: e3e040fac28de8b44a8904ebb49a36b5
+TextureImporter:
+  internalIDToNameTable:
+  - first:
+      213: 1811672688225120295
+    second: DS DSi - Pokemon HeartGold SoulSilver - Text Boxes_0
+  externalObjects: {}
+  serializedVersion: 13
+  mipmaps:
+    mipMapMode: 0
+    enableMipMap: 0
+    sRGBTexture: 1
+    linearTexture: 0
+    fadeOut: 0
+    borderMipMap: 0
+    mipMapsPreserveCoverage: 0
+    alphaTestReferenceValue: 0.5
+    mipMapFadeDistanceStart: 1
+    mipMapFadeDistanceEnd: 3
+  bumpmap:
+    convertToNormalMap: 0
+    externalNormalMap: 0
+    heightScale: 0.25
+    normalMapFilter: 0
+    flipGreenChannel: 0
+  isReadable: 0
+  streamingMipmaps: 0
+  streamingMipmapsPriority: 0
+  vTOnly: 0
+  ignoreMipmapLimit: 0
+  grayScaleToAlpha: 0
+  generateCubemap: 6
+  cubemapConvolution: 0
+  seamlessCubemap: 0
+  textureFormat: 1
+  maxTextureSize: 2048
+  textureSettings:
+    serializedVersion: 2
+    filterMode: 1
+    aniso: 1
+    mipBias: 0
+    wrapU: 1
+    wrapV: 1
+    wrapW: 1
+  nPOTScale: 0
+  lightmap: 0
+  compressionQuality: 50
+  spriteMode: 2
+  spriteExtrude: 1
+  spriteMeshType: 1
+  alignment: 0
+  spritePivot: {x: 0.5, y: 0.5}
+  spritePixelsToUnits: 100
+  spriteBorder: {x: 0, y: 0, z: 0, w: 0}
+  spriteGenerateFallbackPhysicsShape: 1
+  alphaUsage: 1
+  alphaIsTransparency: 1
+  spriteTessellationDetail: -1
+  textureType: 8
+  textureShape: 1
+  singleChannelComponent: 0
+  flipbookRows: 1
+  flipbookColumns: 1
+  maxTextureSizeSet: 0
+  compressionQualitySet: 0
+  textureFormatSet: 0
+  ignorePngGamma: 0
+  applyGammaDecoding: 0
+  swizzle: 50462976
+  cookieLightType: 0
+  platformSettings:
+  - serializedVersion: 4
+    buildTarget: DefaultTexturePlatform
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Standalone
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: WebGL
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  spriteSheet:
+    serializedVersion: 2
+    sprites:
+    - serializedVersion: 2
+      name: DS DSi - Pokemon HeartGold SoulSilver - Text Boxes_0
+      rect:
+        serializedVersion: 2
+        x: 2
+        y: 494
+        width: 251
+        height: 44
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: f148e4980f42f5a4bbeafa34c4cc5b4e
+      internalID: -1000761920
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: DS DSi - Pokemon HeartGold SoulSilver - Text Boxes_1
+      rect:
+        serializedVersion: 2
+        x: 256
+        y: 494
+        width: 251
+        height: 44
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 13dc59cfc03c66f489279f1151456742
+      internalID: 1745213300
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: DS DSi - Pokemon HeartGold SoulSilver - Text Boxes_2
+      rect:
+        serializedVersion: 2
+        x: 2
+        y: 447
+        width: 251
+        height: 44
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 8636d910b3bea4b42846ad4fccb64fef
+      internalID: 674056349
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: DS DSi - Pokemon HeartGold SoulSilver - Text Boxes_3
+      rect:
+        serializedVersion: 2
+        x: 256
+        y: 447
+        width: 251
+        height: 44
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 8f56e876d5f2df24c92917f65c01641e
+      internalID: 612470076
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: DS DSi - Pokemon HeartGold SoulSilver - Text Boxes_4
+      rect:
+        serializedVersion: 2
+        x: 2
+        y: 400
+        width: 251
+        height: 44
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: c6bf445ee35940745a61641649534e5c
+      internalID: -375943193
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: DS DSi - Pokemon HeartGold SoulSilver - Text Boxes_5
+      rect:
+        serializedVersion: 2
+        x: 256
+        y: 400
+        width: 251
+        height: 44
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 39c30e2383253c144a121df497518c08
+      internalID: -80685950
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: DS DSi - Pokemon HeartGold SoulSilver - Text Boxes_6
+      rect:
+        serializedVersion: 2
+        x: 2
+        y: 353
+        width: 251
+        height: 44
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 037370cbc605c034183bef5d93535f8e
+      internalID: -781338704
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: DS DSi - Pokemon HeartGold SoulSilver - Text Boxes_7
+      rect:
+        serializedVersion: 2
+        x: 256
+        y: 353
+        width: 251
+        height: 44
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: e4087bd87054c7944b8f1ee6a1545bc1
+      internalID: -283619601
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: DS DSi - Pokemon HeartGold SoulSilver - Text Boxes_8
+      rect:
+        serializedVersion: 2
+        x: 2
+        y: 306
+        width: 251
+        height: 44
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 2a3385bd27631d948a20a4e828df32c8
+      internalID: 705441922
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: DS DSi - Pokemon HeartGold SoulSilver - Text Boxes_9
+      rect:
+        serializedVersion: 2
+        x: 256
+        y: 306
+        width: 251
+        height: 44
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 6f32f610b874f174f84db5575848a291
+      internalID: 612320739
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: DS DSi - Pokemon HeartGold SoulSilver - Text Boxes_10
+      rect:
+        serializedVersion: 2
+        x: 2
+        y: 259
+        width: 251
+        height: 44
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: f45c10ad1b4abba44b398f2bc63448ee
+      internalID: -1181797302
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: DS DSi - Pokemon HeartGold SoulSilver - Text Boxes_11
+      rect:
+        serializedVersion: 2
+        x: 256
+        y: 259
+        width: 251
+        height: 44
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: fbcd18c962a97184883b7a4bebbdd7fe
+      internalID: -779068293
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: DS DSi - Pokemon HeartGold SoulSilver - Text Boxes_12
+      rect:
+        serializedVersion: 2
+        x: 2
+        y: 212
+        width: 251
+        height: 44
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: df850644bf5aca44fb35537158bb06fe
+      internalID: -1321391420
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: DS DSi - Pokemon HeartGold SoulSilver - Text Boxes_13
+      rect:
+        serializedVersion: 2
+        x: 256
+        y: 212
+        width: 251
+        height: 44
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 51815a3659019284d8a11b2f414b6564
+      internalID: 1095366385
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: DS DSi - Pokemon HeartGold SoulSilver - Text Boxes_14
+      rect:
+        serializedVersion: 2
+        x: 2
+        y: 165
+        width: 251
+        height: 44
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: f214f9fac46ec134badc11cea35f8da9
+      internalID: -1435037678
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: DS DSi - Pokemon HeartGold SoulSilver - Text Boxes_15
+      rect:
+        serializedVersion: 2
+        x: 256
+        y: 165
+        width: 251
+        height: 44
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 447b13a70e6fb5d46b4ba5ffd0d8e25e
+      internalID: -370880121
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: DS DSi - Pokemon HeartGold SoulSilver - Text Boxes_16
+      rect:
+        serializedVersion: 2
+        x: 2
+        y: 118
+        width: 251
+        height: 44
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 244707d502fc37d44a3333cfde952f0a
+      internalID: -957183885
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: DS DSi - Pokemon HeartGold SoulSilver - Text Boxes_17
+      rect:
+        serializedVersion: 2
+        x: 256
+        y: 118
+        width: 251
+        height: 44
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: f453231983cc94d4a8648ddde5be96bf
+      internalID: 1840081967
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: DS DSi - Pokemon HeartGold SoulSilver - Text Boxes_18
+      rect:
+        serializedVersion: 2
+        x: 2
+        y: 71
+        width: 251
+        height: 44
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 2f5ad460dc805ee40a44f1ab595b5ebc
+      internalID: -1253780566
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: DS DSi - Pokemon HeartGold SoulSilver - Text Boxes_19
+      rect:
+        serializedVersion: 2
+        x: 256
+        y: 71
+        width: 251
+        height: 44
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 7cf4ccdc99a0d0448bab15c94c6be7f6
+      internalID: 609148926
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: DS DSi - Pokemon HeartGold SoulSilver - Text Boxes_20
+      rect:
+        serializedVersion: 2
+        x: 2
+        y: 24
+        width: 251
+        height: 44
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 059925c465f34024e812aa4d72872855
+      internalID: 325267239
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: DS DSi - Pokemon HeartGold SoulSilver - Text Boxes_21
+      rect:
+        serializedVersion: 2
+        x: 256
+        y: 24
+        width: 251
+        height: 44
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: d4f93a9b1eec06b41860b633f0d650fd
+      internalID: -1205465126
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    outline: []
+    customData: 
+    physicsShape: []
+    bones: []
+    spriteID: 52a0e5d23fc6f724998ab96ea5071511
+    internalID: 0
+    vertices: []
+    indices: 
+    edges: []
+    weights: []
+    secondaryTextures: []
+    spriteCustomMetadata:
+      entries: []
+    nameFileIdTable:
+      DS DSi - Pokemon HeartGold SoulSilver - Text Boxes_0: -1000761920
+      DS DSi - Pokemon HeartGold SoulSilver - Text Boxes_1: 1745213300
+      DS DSi - Pokemon HeartGold SoulSilver - Text Boxes_10: -1181797302
+      DS DSi - Pokemon HeartGold SoulSilver - Text Boxes_11: -779068293
+      DS DSi - Pokemon HeartGold SoulSilver - Text Boxes_12: -1321391420
+      DS DSi - Pokemon HeartGold SoulSilver - Text Boxes_13: 1095366385
+      DS DSi - Pokemon HeartGold SoulSilver - Text Boxes_14: -1435037678
+      DS DSi - Pokemon HeartGold SoulSilver - Text Boxes_15: -370880121
+      DS DSi - Pokemon HeartGold SoulSilver - Text Boxes_16: -957183885
+      DS DSi - Pokemon HeartGold SoulSilver - Text Boxes_17: 1840081967
+      DS DSi - Pokemon HeartGold SoulSilver - Text Boxes_18: -1253780566
+      DS DSi - Pokemon HeartGold SoulSilver - Text Boxes_19: 609148926
+      DS DSi - Pokemon HeartGold SoulSilver - Text Boxes_2: 674056349
+      DS DSi - Pokemon HeartGold SoulSilver - Text Boxes_20: 325267239
+      DS DSi - Pokemon HeartGold SoulSilver - Text Boxes_21: -1205465126
+      DS DSi - Pokemon HeartGold SoulSilver - Text Boxes_3: 612470076
+      DS DSi - Pokemon HeartGold SoulSilver - Text Boxes_4: -375943193
+      DS DSi - Pokemon HeartGold SoulSilver - Text Boxes_5: -80685950
+      DS DSi - Pokemon HeartGold SoulSilver - Text Boxes_6: -781338704
+      DS DSi - Pokemon HeartGold SoulSilver - Text Boxes_7: -283619601
+      DS DSi - Pokemon HeartGold SoulSilver - Text Boxes_8: 705441922
+      DS DSi - Pokemon HeartGold SoulSilver - Text Boxes_9: 612320739
+  mipmapLimitGroupName: 
+  pSDRemoveMatte: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

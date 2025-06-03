@@ -94,18 +94,32 @@ namespace GameSystem
         
         private async Task ApplyMoveEffectsAsync(BattleEntity source, EntityType targetType, MoveInstance moveInst, CancellationToken ct)
         {
+            // VFX를 먼저 한 번만 재생
+            var primaryTarget = _entities[(int)targetType];
+            await SpawnMoveEffectAsync(primaryTarget, moveInst.Data, ct);
+    
+            // 그 다음 각 효과 적용
             switch (moveInst.Data.Category)
             {
                 case MoveCategory.Single:
-                    await ApplyToSingleTargetAsync(source, _entities[(int)targetType], moveInst, ct);
+                    await ApplyToSingleTargetAsync(source, primaryTarget, moveInst, ct);
                     break;
-                case MoveCategory.AOE:
-                    GetAOETargets(source, _validTargetIndices);
-                    await ApplyToMultipleTargetsAsync(source, _validTargetIndices, moveInst, ct);
-                    break;
-                case MoveCategory.MultiRandom:
-                    await ApplyToRandomTargetsAsync(source, moveInst, ct);
-                    break;
+                // ... 나머지
+            }
+        }
+        
+        private async Task SpawnMoveEffectAsync(BattleEntity target, MoveData moveData, CancellationToken ct)
+        {
+            var effectPoolManager = Pooling.EffectPoolManager.Instance;
+            if (effectPoolManager != null && moveData.VFXPrefab != null)
+            {
+                var effect = effectPoolManager.GetEffect(moveData.VFXPrefab);
+                if (effect != null)
+                {
+                    effect.transform.position = target.transform.position;
+                    await AsyncUtilities.WaitForSecondsAsync(EFFECT_DURATION, ct);
+                    effectPoolManager.ReturnEffect(effect);
+                }
             }
         }
         

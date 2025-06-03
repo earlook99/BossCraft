@@ -1,0 +1,30 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e819d7daff9482e459ce339d5b6b9f05, type: 3}
+  m_Name: BattleSettings
+  m_EditorClassIdentifier: 
+  TurnStartDelay: 0.5
+  TurnTransitionDelay: 0.3
+  CriticalMultiplier: 1.5
+  MinimumDamage: 1
+  ShieldDamageReduction: 0.5
+  DefaultStunDuration: 1
+  ShieldBreakStunDuration: 1
+  MinStatMultiplier: 0.6
+  MaxStatMultiplier: 1.4
+  MinMultiHits: 2
+  MaxMultiHits: 5
+  MultiHitDelay: 0.5
+  GuardDefenseMultiplier: 2
+  EffectDuration: 2
+  MessageDuration: 1
+  DefenseFormulaBase: 100

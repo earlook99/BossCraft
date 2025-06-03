@@ -1,10 +1,43 @@
 fileFormatVersion: 2
-guid: e7ac3fdd22548b34f879753457a4406b
+guid: 3bcd4e4c773df0343917312498e6edc1
 TextureImporter:
   internalIDToNameTable:
   - first:
-      213: -8097726269577436539
-    second: "ChatGPT Image 2025\uB144 6\uC6D4 1\uC77C \uC624\uD6C4 07_30_44_0"
+      213: -7884965082209556757
+    second: moon_effect_transparent (1)_0
+  - first:
+      213: 6647713291741008169
+    second: moon_effect_transparent (1)_1
+  - first:
+      213: -5897737234680897020
+    second: moon_effect_transparent (1)_2
+  - first:
+      213: 4532157428285976119
+    second: moon_effect_transparent (1)_3
+  - first:
+      213: -7052252627446505133
+    second: moon_effect_transparent (1)_4
+  - first:
+      213: -6188489735184457828
+    second: moon_effect_transparent (1)_5
+  - first:
+      213: 1119218929208173953
+    second: moon_effect_transparent (1)_6
+  - first:
+      213: -3247762647082273861
+    second: moon_effect_transparent (1)_7
+  - first:
+      213: -6763150143332124383
+    second: moon_effect_transparent (1)_8
+  - first:
+      213: 8223498064261414711
+    second: moon_effect_transparent (1)_9
+  - first:
+      213: 8257860482837890332
+    second: moon_effect_transparent (1)_10
+  - first:
+      213: -7612097243843040825
+    second: moon_effect_transparent (1)_11
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -37,7 +70,7 @@ TextureImporter:
   maxTextureSize: 2048
   textureSettings:
     serializedVersion: 2
-    filterMode: 0
+    filterMode: 1
     aniso: 1
     mipBias: 0
     wrapU: 1
@@ -51,7 +84,7 @@ TextureImporter:
   spriteMeshType: 1
   alignment: 0
   spritePivot: {x: 0.5, y: 0.5}
-  spritePixelsToUnits: 1
+  spritePixelsToUnits: 32
   spriteBorder: {x: 0, y: 0, z: 0, w: 0}
   spriteGenerateFallbackPhysicsShape: 1
   alphaUsage: 1
@@ -75,7 +108,7 @@ TextureImporter:
     maxTextureSize: 2048
     resizeAlgorithm: 0
     textureFormat: -1
-    textureCompression: 0
+    textureCompression: 1
     compressionQuality: 50
     crunchedCompression: 0
     allowsAlphaSplitting: 0
@@ -96,357 +129,282 @@ TextureImporter:
     ignorePlatformSupport: 0
     androidETC2FallbackOverride: 0
     forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: WebGL
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
   spriteSheet:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: SwordDance_0
+      name: moon_effect_transparent (1)_0
       rect:
         serializedVersion: 2
-        x: 3
-        y: 771
-        width: 250
-        height: 250
+        x: 578
+        y: 828
+        width: 130
+        height: 127
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
       physicsShape: []
-      tessellationDetail: 0
+      tessellationDetail: -1
       bones: []
-      spriteID: b3d211403f45d99478b3363cf56c11b2
-      internalID: -1613874176
+      spriteID: be66a88b80af29290800000000000000
+      internalID: -7884965082209556757
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: SwordDance_1
+      name: moon_effect_transparent (1)_1
       rect:
         serializedVersion: 2
-        x: 256
-        y: 771
-        width: 250
-        height: 250
+        x: 825
+        y: 829
+        width: 140
+        height: 135
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
       physicsShape: []
-      tessellationDetail: 0
+      tessellationDetail: -1
       bones: []
-      spriteID: f7aa89d85c10764438ad8567f102ec45
-      internalID: -646053242
+      spriteID: 9219dda840c614c50800000000000000
+      internalID: 6647713291741008169
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: SwordDance_2
+      name: moon_effect_transparent (1)_2
       rect:
         serializedVersion: 2
-        x: 509
-        y: 771
-        width: 250
-        height: 250
+        x: 322
+        y: 579
+        width: 127
+        height: 128
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
       physicsShape: []
-      tessellationDetail: 0
+      tessellationDetail: -1
       bones: []
-      spriteID: aa2b102180a23da478434895ecbed89c
-      internalID: 1803593903
+      spriteID: 402204c8b37072ea0800000000000000
+      internalID: -5897737234680897020
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: SwordDance_3
+      name: moon_effect_transparent (1)_3
       rect:
         serializedVersion: 2
-        x: 762
-        y: 771
-        width: 250
-        height: 250
+        x: 571
+        y: 576
+        width: 135
+        height: 134
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
       physicsShape: []
-      tessellationDetail: 0
+      tessellationDetail: -1
       bones: []
-      spriteID: 0a78a2c42dc804340b04978d060ca5e3
-      internalID: 1761986002
+      spriteID: 73e222b2b2575ee30800000000000000
+      internalID: 4532157428285976119
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: SwordDance_4
+      name: moon_effect_transparent (1)_4
       rect:
         serializedVersion: 2
-        x: 3
-        y: 518
-        width: 250
-        height: 250
+        x: 826
+        y: 577
+        width: 135
+        height: 133
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
       physicsShape: []
-      tessellationDetail: 0
+      tessellationDetail: -1
       bones: []
-      spriteID: 7f97e79b8ede6574482659f953fdf6b1
-      internalID: 33786130
+      spriteID: 3516cba899d512e90800000000000000
+      internalID: -7052252627446505133
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: SwordDance_5
+      name: moon_effect_transparent (1)_5
       rect:
         serializedVersion: 2
-        x: 256
-        y: 518
-        width: 250
-        height: 250
+        x: 63
+        y: 323
+        width: 135
+        height: 134
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
       physicsShape: []
-      tessellationDetail: 0
+      tessellationDetail: -1
       bones: []
-      spriteID: 2ddd97de7a3c05f499e44dd592a5802b
-      internalID: 1658801625
+      spriteID: c9fdd26bf511e1aa0800000000000000
+      internalID: -6188489735184457828
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: SwordDance_6
+      name: moon_effect_transparent (1)_6
       rect:
         serializedVersion: 2
-        x: 509
-        y: 518
-        width: 250
-        height: 250
+        x: 318
+        y: 325
+        width: 132
+        height: 131
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
       physicsShape: []
-      tessellationDetail: 0
+      tessellationDetail: -1
       bones: []
-      spriteID: 86b239a12a82fac4fa96ad7fffaceb1e
-      internalID: -667669354
+      spriteID: 185a85dafa3488f00800000000000000
+      internalID: 1119218929208173953
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: SwordDance_7
+      name: moon_effect_transparent (1)_7
       rect:
         serializedVersion: 2
-        x: 762
-        y: 518
-        width: 250
-        height: 250
+        x: 569
+        y: 325
+        width: 136
+        height: 131
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
       physicsShape: []
-      tessellationDetail: 0
+      tessellationDetail: -1
       bones: []
-      spriteID: 66d7ab37f70b51449a0ebeb552042b1e
-      internalID: 1430759553
+      spriteID: bb3f0e17411ade2d0800000000000000
+      internalID: -3247762647082273861
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: SwordDance_8
+      name: moon_effect_transparent (1)_8
       rect:
         serializedVersion: 2
-        x: 3
-        y: 265
-        width: 250
-        height: 250
+        x: 825
+        y: 324
+        width: 137
+        height: 137
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
       physicsShape: []
-      tessellationDetail: 0
+      tessellationDetail: -1
       bones: []
-      spriteID: 82713dfadb1e6d9458fb40c594fea39c
-      internalID: 454159597
+      spriteID: 1297e0007c67422a0800000000000000
+      internalID: -6763150143332124383
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: SwordDance_9
+      name: moon_effect_transparent (1)_9
       rect:
         serializedVersion: 2
-        x: 256
-        y: 265
-        width: 250
-        height: 250
+        x: 62
+        y: 77
+        width: 130
+        height: 123
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
       physicsShape: []
-      tessellationDetail: 0
+      tessellationDetail: -1
       bones: []
-      spriteID: 9b9e87bbb16b6d445be03a35c3a5c858
-      internalID: -1085870453
+      spriteID: 73ff9636bebbf1270800000000000000
+      internalID: 8223498064261414711
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: SwordDance_10
+      name: moon_effect_transparent (1)_10
       rect:
         serializedVersion: 2
-        x: 509
-        y: 265
-        width: 250
-        height: 250
+        x: 321
+        y: 78
+        width: 125
+        height: 120
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
       physicsShape: []
-      tessellationDetail: 0
+      tessellationDetail: -1
       bones: []
-      spriteID: af6bdd8c2e1be95489edf76e0c4f438e
-      internalID: -678434776
+      spriteID: c15c94c6b50d99270800000000000000
+      internalID: 8257860482837890332
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: SwordDance_11
+      name: moon_effect_transparent (1)_11
       rect:
         serializedVersion: 2
-        x: 762
-        y: 265
-        width: 250
-        height: 250
+        x: 575
+        y: 79
+        width: 98
+        height: 107
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
       physicsShape: []
-      tessellationDetail: 0
+      tessellationDetail: -1
       bones: []
-      spriteID: d871ac7046b1ab149a4d091c45418b6c
-      internalID: 72129044
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: SwordDance_12
-      rect:
-        serializedVersion: 2
-        x: 3
-        y: 12
-        width: 250
-        height: 250
-      alignment: 0
-      pivot: {x: 0, y: 0}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: 0
-      bones: []
-      spriteID: 207f78fbd0f56744880b1e7e50c11bdb
-      internalID: -1089144254
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: SwordDance_13
-      rect:
-        serializedVersion: 2
-        x: 256
-        y: 12
-        width: 250
-        height: 250
-      alignment: 0
-      pivot: {x: 0, y: 0}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: 0
-      bones: []
-      spriteID: d48bed55bd0d5024789df47b909cc637
-      internalID: -1003091552
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: SwordDance_14
-      rect:
-        serializedVersion: 2
-        x: 509
-        y: 12
-        width: 250
-        height: 250
-      alignment: 0
-      pivot: {x: 0, y: 0}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: 0
-      bones: []
-      spriteID: bef028f245348d9499cd963d9adbd66f
-      internalID: 1188056583
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: SwordDance_15
-      rect:
-        serializedVersion: 2
-        x: 762
-        y: 12
-        width: 250
-        height: 250
-      alignment: 0
-      pivot: {x: 0, y: 0}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: 0
-      bones: []
-      spriteID: 4db634eafd565d4489d4618a5bba21ac
-      internalID: -1274781778
+      spriteID: 7c9610923e56c5690800000000000000
+      internalID: -7612097243843040825
       vertices: []
       indices: 
       edges: []
@@ -455,7 +413,7 @@ TextureImporter:
     customData: 
     physicsShape: []
     bones: []
-    spriteID: e0eb7535e55142a49b623a60660f5a1c
+    spriteID: 
     internalID: 0
     vertices: []
     indices: 
@@ -465,22 +423,18 @@ TextureImporter:
     spriteCustomMetadata:
       entries: []
     nameFileIdTable:
-      SwordDance_0: -1613874176
-      SwordDance_1: -646053242
-      SwordDance_10: -678434776
-      SwordDance_11: 72129044
-      SwordDance_12: -1089144254
-      SwordDance_13: -1003091552
-      SwordDance_14: 1188056583
-      SwordDance_15: -1274781778
-      SwordDance_2: 1803593903
-      SwordDance_3: 1761986002
-      SwordDance_4: 33786130
-      SwordDance_5: 1658801625
-      SwordDance_6: -667669354
-      SwordDance_7: 1430759553
-      SwordDance_8: 454159597
-      SwordDance_9: -1085870453
+      moon_effect_transparent (1)_0: -7884965082209556757
+      moon_effect_transparent (1)_1: 6647713291741008169
+      moon_effect_transparent (1)_10: 8257860482837890332
+      moon_effect_transparent (1)_11: -7612097243843040825
+      moon_effect_transparent (1)_2: -5897737234680897020
+      moon_effect_transparent (1)_3: 4532157428285976119
+      moon_effect_transparent (1)_4: -7052252627446505133
+      moon_effect_transparent (1)_5: -6188489735184457828
+      moon_effect_transparent (1)_6: 1119218929208173953
+      moon_effect_transparent (1)_7: -3247762647082273861
+      moon_effect_transparent (1)_8: -6763150143332124383
+      moon_effect_transparent (1)_9: 8223498064261414711
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

@@ -8,33 +8,17 @@ namespace GameSystem.Factory
 {
     public class EntityFactory : MonoBehaviour
     {
-        [System.Serializable]
-        public class EntityPrefabConfig
-        {
-            public string EntityName;
-            public GameObject Prefab;
-            public List<MoveData> DefaultMoves;
-            public EntityStats DefaultStats;
-        }
-        
-        [System.Serializable]
-        public struct EntityStats
-        {
-            public int MaxHP;
-            public int Attack;
-            public int Defense;
-            public ElementType ElementType;
-        }
-        
         [Header("Entity Prefabs")]
-        [SerializeField] private List<EntityPrefabConfig> _playerPrefabs;
+        [SerializeField] private GameObject[] _playerPrefabs = new GameObject[4];
         [SerializeField] private GameObject _bossPrefab;
+        
+        [Header("Spawn Containers")]
         [SerializeField] private Transform _playerContainer;
         [SerializeField] private Transform _bossContainer;
         
         [Header("Boss Configuration")]
         [SerializeField] private ShieldPattern _defaultShieldPattern;
-        [SerializeField] private List<MoveData> _defaultBossMoves;
+        [SerializeField] private MoveData _bossShieldMove;
         
         private static EntityFactory _instance;
         public static EntityFactory Instance => _instance;
@@ -49,6 +33,25 @@ namespace GameSystem.Factory
             {
                 Destroy(gameObject);
             }
+            
+            CreateContainers();
+        }
+        
+        private void CreateContainers()
+        {
+            if (_playerContainer == null)
+            {
+                GameObject playerContainerObj = new GameObject("PlayerContainer");
+                playerContainerObj.transform.SetParent(transform);
+                _playerContainer = playerContainerObj.transform;
+            }
+            
+            if (_bossContainer == null)
+            {
+                GameObject bossContainerObj = new GameObject("BossContainer");
+                bossContainerObj.transform.SetParent(transform);
+                _bossContainer = bossContainerObj.transform;
+            }
         }
         
         private void OnDestroy()
@@ -59,25 +62,25 @@ namespace GameSystem.Factory
             }
         }
         
-        public BattleEntity CreatePlayerEntity(string entityName, Vector3 position, int index)
+        public BattleEntity CreatePlayerEntity(int index, Vector3 position)
         {
-            var config = _playerPrefabs.Find(c => c.EntityName == entityName);
-            if (config == null)
+            if (index < 0 || index >= _playerPrefabs.Length || _playerPrefabs[index] == null)
             {
-                Debug.LogError($"Player entity config not found for: {entityName}");
+                Debug.LogError($"Player prefab at index {index} not found");
                 return null;
             }
             
-            GameObject entityObj = Instantiate(config.Prefab, position, Quaternion.identity, _playerContainer);
-            entityObj.name = $"Player_{index}_{entityName}";
+            GameObject entityObj = Instantiate(_playerPrefabs[index], position, Quaternion.identity, _playerContainer);
             
             BattleEntity entity = entityObj.GetComponent<BattleEntity>();
             if (entity == null)
             {
-                entity = entityObj.AddComponent<BattleEntity>();
+                Debug.LogError($"BattleEntity component not found on prefab at index {index}");
+                Destroy(entityObj);
+                return null;
             }
             
-            ConfigureEntity(entity, config);
+            entity.Initialize();
             
             return entity;
         }
@@ -91,33 +94,30 @@ namespace GameSystem.Factory
             }
             
             GameObject bossObj = Instantiate(_bossPrefab, position, Quaternion.identity, _bossContainer);
-            bossObj.name = "Boss";
             
             BossEntity boss = bossObj.GetComponent<BossEntity>();
             if (boss == null)
             {
-                boss = bossObj.AddComponent<BossEntity>();
+                Debug.LogError("BossEntity component not found on boss prefab");
+                Destroy(bossObj);
+                return null;
             }
             
             ConfigureBossFromContainer(boss);
             
-            return boss;
-        }
-        
-        private void ConfigureEntity(BattleEntity entity, EntityPrefabConfig config)
-        {
-            entity.EntityName = config.EntityName;
-            entity.MaxHP = config.DefaultStats.MaxHP;
-            entity.Attack = config.DefaultStats.Attack;
-            entity.Defense = config.DefaultStats.Defense;
-            entity.ElementType = config.DefaultStats.ElementType;
-            
-            if (config.DefaultMoves != null && config.DefaultMoves.Count > 0)
+            if (_defaultShieldPattern != null)
             {
-                entity.MoveSet = new List<MoveData>(config.DefaultMoves);
+                SetBossShieldPattern(boss, _defaultShieldPattern);
             }
             
-            entity.Initialize();
+            if (_bossShieldMove != null)
+            {
+                EnsureBossHasShieldMove(boss);
+            }
+            
+            boss.Initialize();
+            
+            return boss;
         }
         
         private void ConfigureBossFromContainer(BossEntity boss)
@@ -130,10 +130,6 @@ namespace GameSystem.Factory
                 {
                     boss.EntityName = container.CurrentBossName;
                 }
-                else
-                {
-                    boss.EntityName = "Unknown Boss";
-                }
                 
                 boss.ElementType = container.CurrentBossType;
                 
@@ -142,27 +138,6 @@ namespace GameSystem.Factory
                     SetBossSprite(boss, container.CurrentBossImageData);
                 }
             }
-            else
-            {
-                boss.EntityName = "Default Boss";
-                boss.ElementType = ElementType.Dark;
-            }
-            
-            if (_defaultShieldPattern != null)
-            {
-                SetBossShieldPattern(boss, _defaultShieldPattern);
-            }
-            
-            if (_defaultBossMoves != null && _defaultBossMoves.Count > 0)
-            {
-                boss.MoveSet = new List<MoveData>(_defaultBossMoves);
-            }
-            
-            boss.MaxHP = 500;
-            boss.Attack = 80;
-            boss.Defense = 60;
-            
-            boss.Initialize();
         }
         
         private void SetBossSprite(BossEntity boss, byte[] imageData)
@@ -181,8 +156,6 @@ namespace GameSystem.Factory
             if (spriteRenderer != null)
             {
                 spriteRenderer.sprite = sprite;
-                spriteRenderer.enabled = true;
-                spriteRenderer.color = Color.white;
             }
         }
         
@@ -197,15 +170,41 @@ namespace GameSystem.Factory
             }
         }
         
-        public BattleEntity[] CreateBattleEntities(string[] playerNames, Vector3[] playerPositions, Vector3 bossPosition)
+        private void EnsureBossHasShieldMove(BossEntity boss)
+        {
+            bool hasShieldMove = false;
+            
+            foreach (var move in boss.MoveSet)
+            {
+                if (move == null) continue;
+                
+                foreach (var effect in move.Effects)
+                {
+                    if (effect.EffectType == MoveEffectType.Shield)
+                    {
+                        hasShieldMove = true;
+                        break;
+                    }
+                }
+                
+                if (hasShieldMove) break;
+            }
+            
+            if (!hasShieldMove && _bossShieldMove != null)
+            {
+                boss.MoveSet.Add(_bossShieldMove);
+            }
+        }
+        
+        public BattleEntity[] CreateBattleEntities(Vector3[] playerPositions, Vector3 bossPosition)
         {
             BattleEntity[] entities = new BattleEntity[GameConstants.Battle.TOTAL_ENTITIES];
             
             for (int i = 0; i < GameConstants.Battle.PLAYER_COUNT; i++)
             {
-                if (i < playerNames.Length && i < playerPositions.Length)
+                if (i < playerPositions.Length)
                 {
-                    entities[i] = CreatePlayerEntity(playerNames[i], playerPositions[i], i);
+                    entities[i] = CreatePlayerEntity(i, playerPositions[i]);
                 }
             }
             

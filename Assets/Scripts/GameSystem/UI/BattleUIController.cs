@@ -1,3 +1,4 @@
+using CameraSystem;
 using Data;
 using UnityEngine;
 using Entity;
@@ -205,17 +206,17 @@ namespace GameSystem.UI
         public void OnActionSelect(ActionType actionType, int actionIndex)
         {
             SetActionMenuVisible(false);
-                
+    
             _pendingActionType = actionType;
             _pendingActionIndex = actionIndex;
-            
+    
             if (actionType == ActionType.Move)
             {
                 HandleMoveAction(actionIndex);
             }
             else
             {
-                CompleteActionWithTarget(EntityType.Boss);
+                UIEvents.RaiseActionSelected(actionType, actionIndex, _currentPlayerIndex);
             }
         }
         
@@ -223,13 +224,25 @@ namespace GameSystem.UI
         {
             var playerEntity = _battleEntities[_currentPlayerIndex];
             var moveData = playerEntity.GetMoveData(actionIndex);
-            
+    
             if (moveData != null)
             {
-                if (moveData.Category == MoveCategory.AOE)
-                    CompleteActionWithTarget(EntityType.Boss);
+                // Ally/Allies 타겟이면 즉시 줌아웃
+                if (moveData.AllowedTargetSide == TargetSide.Ally || 
+                    moveData.AllowedTargetSide == TargetSide.Allies)
+                {
+                    var cameraManager = FindAnyObjectByType<CameraManager>();
+                    cameraManager?.SwitchCameraTo(CineCamType.ZoomOut);
+                }
+        
+                if (moveData.Category == MoveCategory.AOE || moveData.AllowedTargetSide == TargetSide.Self)
+                {
+                    CompleteActionWithTarget((EntityType)_currentPlayerIndex);
+                }
                 else
+                {
                     StartTargetSelection(moveData);
+                }
             }
         }
         
@@ -257,12 +270,7 @@ namespace GameSystem.UI
         private void CompleteActionWithTarget(EntityType target)
         {
             UIEvents.RaiseActionSelected(_pendingActionType, _pendingActionIndex, _currentPlayerIndex);
-            
-            var battleManager = FindAnyObjectByType<BattleManager>();
-            if (battleManager != null)
-            {
-                battleManager.OnTargetSelected(target);
-            }
+            // OnTargetSelected 제거 - 중복 실행 방지
         }
     }
 }

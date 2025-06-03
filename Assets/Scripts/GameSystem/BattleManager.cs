@@ -7,6 +7,7 @@ using Data;
 using CameraSystem;
 using GameSystem.Events;
 using GameSystem.Factory;
+using GameSystem.UI;
 using GameSystem.Utils;
 
 namespace GameSystem
@@ -135,7 +136,7 @@ namespace GameSystem
             
             Vector3 bossPosition = _bossSpawnPoint != null ? _bossSpawnPoint.position : Vector3.zero;
             
-            _entities = entityFactory.CreateBattleEntities(_playerEntityNames, playerPositions, bossPosition);
+            _entities = entityFactory.CreateBattleEntities(playerPositions, bossPosition);
         }
         
         private void HandleStateChanged(BattleState previousState, BattleState newState)
@@ -191,6 +192,14 @@ namespace GameSystem
                 );
                 EnqueuePlayerAction(autoAction);
             }
+            else
+            {
+                var uiController = FindAnyObjectByType<BattleUIController>();
+                if (uiController != null)
+                {
+                    uiController.ShowActionMenuForPlayer(playerIndex);
+                }
+            }
         }
         
         private async Task HandleBossTurnAsync(CancellationToken ct)
@@ -237,25 +246,44 @@ namespace GameSystem
         
         private void HandleActionSelected(ActionSelectedEventArgs args)
         {
-            _pendingAction = new ActionData(
-                args.ActionType,
-                args.ActionIndex,
-                (EntityType)args.PlayerIndex,
-                EntityType.Boss
-            );
-            
             if (args.ActionType == ActionType.Move)
             {
                 var entity = _entities[args.PlayerIndex];
                 var moveData = entity.GetMoveData(args.ActionIndex);
-                
-                if (moveData != null && moveData.Category != MoveCategory.AOE)
+        
+                EntityType defaultTarget = EntityType.Boss;
+                if (moveData != null && moveData.AllowedTargetSide == TargetSide.Self)
                 {
+                    defaultTarget = (EntityType)args.PlayerIndex;
+                }
+        
+                _pendingAction = new ActionData(
+                    args.ActionType,
+                    args.ActionIndex,
+                    (EntityType)args.PlayerIndex,
+                    defaultTarget
+                );
+        
+                // Self 타겟이나 AOE는 즉시 실행
+                if (moveData == null || moveData.Category == MoveCategory.AOE || moveData.AllowedTargetSide == TargetSide.Self)
+                {
+                    EnqueuePlayerAction(_pendingAction);
                     return;
                 }
+        
+                // 타겟 선택 필요한 경우만 대기
+                return;
             }
-            
-            EnqueuePlayerAction(_pendingAction);
+            else
+            {
+                var action = new ActionData(
+                    args.ActionType,
+                    args.ActionIndex,
+                    (EntityType)args.PlayerIndex,
+                    EntityType.Boss
+                );
+                EnqueuePlayerAction(action);
+            }
         }
         
         public void OnTargetSelected(EntityType target)
@@ -287,6 +315,28 @@ namespace GameSystem
             entity.StartTurn();
             UIEvents.RaiseShowMessage($"{entity.EntityName} is stunned!", _battleSettings.MessageDuration);
             await AsyncUtilities.WaitForSecondsAsync(_battleSettings.MessageDuration, ct);
+        }
+        
+        public void QueueCounterAttack(BattleEntity counter)
+        {
+            var boss = _entities[GameConstants.Battle.BOSS_INDEX];
+            if (boss.CurrentHP > 0)
+            {
+                _actionQueue.EnqueueActionAsync(
+                    new ActionData(),
+                    async () => {
+                        UIEvents.RaiseShowMessage($"{counter.EntityName} counters!", 1f);
+                        await AsyncUtilities.WaitForSecondsAsync(1f, _cancellationManager.Token);
+                
+                        // 이펙트 제거 - 이미 버프 적용 시 재생됨
+                
+                        int damage = Mathf.RoundToInt(counter.Attack * 0.5f);
+                        boss.TakeDamage(counter.ElementType, damage);
+                        BattleEvents.RaiseDamageDealt(counter, boss, damage, counter.ElementType);
+                    },
+                    0f
+                );
+            }
         }
         
         private void AdvanceTurn()

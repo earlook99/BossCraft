@@ -23,10 +23,12 @@ namespace GameSystem.Pooling
         [SerializeField] private List<EffectPoolConfig> _poolConfigs;
         [SerializeField] private Transform _poolParent;
         
-        private Dictionary<string, GenericObjectPool<PoolableEffect>> _effectPools;
-        private GameObject _defaultEffectPrefab;
+        [Header("Dynamic Pool Settings")]
+        [SerializeField] private int _defaultInitialSize = 5;
+        [SerializeField] private int _defaultMaxSize = 20;
         
-        private const string DEFAULT_POOL_NAME = "DefaultEffect";
+        private Dictionary<string, GenericObjectPool<PoolableEffect>> _effectPools;
+        private Dictionary<string, GameObject> _prefabCache;
         
         private void Awake()
         {
@@ -53,6 +55,7 @@ namespace GameSystem.Pooling
         private void InitializePools()
         {
             _effectPools = new Dictionary<string, GenericObjectPool<PoolableEffect>>();
+            _prefabCache = new Dictionary<string, GameObject>();
             
             if (_poolParent == null)
             {
@@ -92,11 +95,26 @@ namespace GameSystem.Pooling
             );
             
             _effectPools.Add(config.PoolName, pool);
+            _prefabCache[config.PoolName] = config.Prefab;
+        }
+        
+        private GenericObjectPool<PoolableEffect> CreateDynamicPool(GameObject prefab, string poolName)
+        {
+            EnsurePoolableComponent(prefab);
             
-            if (config.PoolName == DEFAULT_POOL_NAME)
-            {
-                _defaultEffectPrefab = config.Prefab;
-            }
+            var pool = new GenericObjectPool<PoolableEffect>(
+                prefab,
+                _poolParent,
+                _defaultInitialSize,
+                _defaultMaxSize,
+                ResetEffect
+            );
+            
+            _effectPools.Add(poolName, pool);
+            _prefabCache[poolName] = prefab;
+            
+            Debug.Log($"Created dynamic pool for effect: {poolName}");
+            return pool;
         }
         
         private void EnsurePoolableComponent(GameObject prefab)
@@ -125,26 +143,25 @@ namespace GameSystem.Pooling
             return true;
         }
         
-        public PoolableEffect GetEffect(string poolName, Vector3 position, Quaternion rotation)
+        public PoolableEffect GetEffect(GameObject prefab)
+        {
+            if (prefab == null) return null;
+            
+            string poolName = prefab.name;
+            return GetEffect(poolName, Vector3.zero, Quaternion.identity, prefab);
+        }
+        
+        public PoolableEffect GetEffect(string poolName, Vector3 position, Quaternion rotation, GameObject prefabReference = null)
         {
             if (!_effectPools.TryGetValue(poolName, out var pool))
             {
-                Debug.LogWarning($"Pool {poolName} not found, using default");
-                
-                if (_defaultEffectPrefab != null && !_effectPools.ContainsKey(DEFAULT_POOL_NAME))
+                if (prefabReference != null)
                 {
-                    CreatePool(new EffectPoolConfig
-                    {
-                        PoolName = DEFAULT_POOL_NAME,
-                        Prefab = _defaultEffectPrefab,
-                        InitialSize = 10,
-                        MaxSize = 30
-                    });
+                    pool = CreateDynamicPool(prefabReference, poolName);
                 }
-                
-                if (!_effectPools.TryGetValue(DEFAULT_POOL_NAME, out pool))
+                else
                 {
-                    Debug.LogError("No default effect pool available");
+                    Debug.LogWarning($"Pool {poolName} not found and no prefab reference provided");
                     return null;
                 }
             }
@@ -175,19 +192,12 @@ namespace GameSystem.Pooling
                 }
             }
             
-            if (_effectPools.TryGetValue(DEFAULT_POOL_NAME, out var defaultPool))
-            {
-                defaultPool.Return(effect);
-            }
-            else
-            {
-                Destroy(effect.gameObject);
-            }
+            Destroy(effect.gameObject);
         }
         
-        public IEnumerator PlayEffectForDuration(string poolName, Vector3 position, float duration)
+        public IEnumerator PlayEffectForDuration(string poolName, Vector3 position, float duration, GameObject prefabReference = null)
         {
-            var effect = GetEffect(poolName, position, Quaternion.identity);
+            var effect = GetEffect(poolName, position, Quaternion.identity, prefabReference);
             if (effect != null)
             {
                 yield return new WaitForSeconds(duration);
@@ -210,6 +220,7 @@ namespace GameSystem.Pooling
                 pool.Clear();
             }
             _effectPools.Clear();
+            _prefabCache.Clear();
         }
         
         public Dictionary<string, (int available, int total)> GetPoolStats()

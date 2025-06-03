@@ -48,15 +48,5 @@ namespace UI
         {
             SetOutline(!_isOutlineActive);
         }
-
-#if UNITY_EDITOR
-        void Update()
-        {
-            if (Input.GetKeyDown(KeyCode.F))
-            {
-                ToggleOutline();
-            }
-        }
-#endif
     }
 }

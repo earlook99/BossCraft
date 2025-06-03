@@ -6,6 +6,7 @@ using GameSystem;
 using Entity;
 using GameSystem.UI;
 using GameSystem.Pooling;
+using UnityEngine.EventSystems;
 
 namespace UI
 {
@@ -123,7 +124,7 @@ namespace UI
         {
             ReadOnlySpan<MoveInstance> currentMoves = _currentEntity.MoveInstances;
             int moveCount = currentMoves.Length;
-            
+    
             PrepareButtons(moveCount);
 
             for (int i = 0; i < moveCount; i++)
@@ -131,14 +132,45 @@ namespace UI
                 if (i < _activeButtons.Count)
                 {
                     int index = i;
+                    var moveData = currentMoves[i].Data;
                     _activeButtons[i].Setup(
-                        currentMoves[i].Data.Name, 
+                        moveData.Name, 
                         () => HandleActionSelect(ActionType.Move, index)
                     );
+            
+                    // Hover 이벤트 추가
+                    var eventTrigger = _activeButtons[i].GetComponent<EventTrigger>() 
+                                       ?? _activeButtons[i].gameObject.AddComponent<EventTrigger>();
+            
+                    eventTrigger.triggers.Clear();
+            
+                    // PointerEnter
+                    var enterEntry = new EventTrigger.Entry();
+                    enterEntry.eventID = EventTriggerType.PointerEnter;
+                    enterEntry.callback.AddListener((_) => ShowMoveDescription(moveData));
+                    eventTrigger.triggers.Add(enterEntry);
+            
+                    // PointerExit
+                    var exitEntry = new EventTrigger.Entry();
+                    exitEntry.eventID = EventTriggerType.PointerExit;
+                    exitEntry.callback.AddListener((_) => HideMoveDescription());
+                    eventTrigger.triggers.Add(exitEntry);
                 }
             }
-            
+    
             SetContainerActive(true);
+        }
+        
+        private void ShowMoveDescription(MoveData moveData)
+        {
+            string description = $"{moveData.Name}: Power {moveData.Effects[0].Power}, Type: {moveData.Type}\n{moveData.Description}";
+            GameSystem.Events.UIEvents.RaiseShowMessage(description, float.MaxValue);
+        }
+
+        private void HideMoveDescription()
+        {
+            var messageManager = FindAnyObjectByType<GameSystem.UI.MessageUIManager>();
+            messageManager?.ClearAllMessages();
         }
 
         private void PrepareButtons(int count)

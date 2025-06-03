@@ -137,6 +137,15 @@ namespace GameSystem
 
         private float ScoreSingle(MoveData data, ref EntityType targetOut)
         {
+            for (int i = 0; i < _party.Length; i++)
+            {
+                if (_party[i] != null && _party[i].IsTaunting && _party[i].CurrentHP > 0)
+                {
+                    targetOut = (EntityType)i;
+                    return CalculateMoveUtility(_boss, _party[i], data) * _weights.SingleHit * 2f; // 우선도 높임
+                }
+            }
+            
             float bestScore = -1f;
             EntityType bestTarget = EntityType.Boss;
 
@@ -144,13 +153,16 @@ namespace GameSystem
             {
                 var player = _party[i];
                 if (player == null || player.CurrentHP <= 0) continue;
-                
+        
+                // 은신 상태면 single 타겟에서 제외
+                if (player.IsStealthed) continue;
+        
                 float localScore = CalculateMoveUtility(_boss, player, data) * _weights.SingleHit;
 
                 if (localScore > bestScore)
                 {
                     bestScore = localScore;
-                    bestTarget = (EntityType)i; 
+                    bestTarget = (EntityType)i;
                 }
             }
 

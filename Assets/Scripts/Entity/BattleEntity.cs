@@ -1,3 +1,4 @@
+// BattleEntity.cs 수정
 using System;
 using GameSystem;
 using GameSystem.Interfaces;
@@ -19,6 +20,12 @@ namespace Entity
         [SerializeField] private int _currentHP;
         [SerializeField] private int _attack = 50;
         [SerializeField] private int _defense = 50;
+        
+        // 버프 스택 추가
+        private int _attackBuffStacks = 0;
+        private int _defenseBuffStacks = 0;
+        private const int MAX_BUFF_STACKS = 2;
+        private const float BUFF_PER_STACK = 0.2f; // 스택당 20% 증가
         
         public int MaxHP 
         { 
@@ -57,9 +64,24 @@ namespace Entity
         private int _chargingMoveIndex;
         private EntityType _chargingMoveTarget;
         
+        private bool _isStealthed = false;
+        private int _stealthTurnsLeft = 0;
+        
+        public bool IsStealthed => _isStealthed;
+        public int StealthTurnsLeft => _stealthTurnsLeft;
+        
+        private bool _hasCounter = false;
+        private int _counterTurnsLeft = 0;
+        private bool _isTaunting = false;
+        private int _tauntTurnsLeft = 0;
+        
+        public bool HasCounter => _hasCounter;
+        public bool IsTaunting => _isTaunting;
+        
         private const float DEFAULT_SPRITE_ALPHA = 0.1f;
         private const float GUARD_DEFENSE_MULTIPLIER = 2f;
         private const int DEFENSE_FORMULA_BASE = 100;
+        private const float STEALTH_ALPHA = 0.3f;
 
         public SpriteRenderer SpriteRenderer => _spriteRenderer;
         public SpriteOutlineToggle OutlineToggle => _outlineToggle;
@@ -71,15 +93,24 @@ namespace Entity
         public bool IsGuarding => _isGuarding;
         public int ChargingMoveIndex => _chargingMoveIndex;
         public EntityType ChargingMoveTarget => _chargingMoveTarget;
-        public float AtkBuffMultiplier { get; set; } = 1f;
+        
+        private float _atkBuffMultiplier = 1f;
+        public float AtkBuffMultiplier 
+        { 
+            get => _atkBuffMultiplier * (1f + (_attackBuffStacks * BUFF_PER_STACK));
+            set => _atkBuffMultiplier = value;
+        }
         public float DefBuffMultiplier { get; set; } = 1f;
+        
+        public int AttackBuffStacks => _attackBuffStacks;
+        public int DefenseBuffStacks => _defenseBuffStacks;
         
         public string Name => EntityName;
         public bool IsAlive => _currentHP > 0;
         public bool CanBeTargeted => IsAlive && !IsStunned;
         public EntityType EntityType => (EntityType)Array.IndexOf(BattleContext.Instance?.Entities ?? Array.Empty<BattleEntity>(), this);
         public float AttackMultiplier => AtkBuffMultiplier;
-        public float DefenseMultiplier => DefBuffMultiplier;
+        public float DefenseMultiplier => DefBuffMultiplier * (1f + (_defenseBuffStacks * BUFF_PER_STACK));
         public bool CanBeHealed => IsAlive && _currentHP < _maxHP;
         
         int GameSystem.Interfaces.IBattleEntity.Attack => _attack;
@@ -156,6 +187,15 @@ namespace Entity
             finalDamage = Mathf.Max(finalDamage, 1);
 
             CurrentHP = Mathf.Clamp(CurrentHP - finalDamage, 0, MaxHP);
+            
+            if (_hasCounter && CurrentHP > 0)
+            {
+                var battleManager = FindAnyObjectByType<BattleManager>();
+                if (battleManager != null)
+                {
+                    battleManager.QueueCounterAttack(this);
+                }
+            }
         }
         
         public float GetDamageMultiplier(ElementType damageType)
@@ -173,21 +213,41 @@ namespace Entity
             switch (buffType)
             {
                 case BuffsType.Attack:
-                    AtkBuffMultiplier = Mathf.Clamp(AtkBuffMultiplier + multiplier, 
-                        GameConstants.Battle.MIN_STAT_MULTIPLIER, 
-                        GameConstants.Battle.MAX_STAT_MULTIPLIER);
+                    if (_attackBuffStacks < MAX_BUFF_STACKS)
+                    {
+                        _attackBuffStacks++;
+                        GameSystem.Events.BattleEvents.RaiseBuffStackChanged(this, buffType, _attackBuffStacks);
+                    }
                     break;
                 case BuffsType.Defense:
-                    DefBuffMultiplier = Mathf.Clamp(DefBuffMultiplier + multiplier, 
-                        GameConstants.Battle.MIN_STAT_MULTIPLIER, 
-                        GameConstants.Battle.MAX_STAT_MULTIPLIER);
+                    if (_defenseBuffStacks < MAX_BUFF_STACKS)
+                    {
+                        _defenseBuffStacks++;
+                        GameSystem.Events.BattleEvents.RaiseBuffStackChanged(this, buffType, _defenseBuffStacks);
+                    }
                     break;
             }
         }
         
         public void ApplyDebuff(BuffsType buffType, float multiplier)
         {
-            ApplyBuff(buffType, -multiplier);
+            switch (buffType)
+            {
+                case BuffsType.Attack:
+                    if (_attackBuffStacks > 0)
+                    {
+                        _attackBuffStacks--;
+                        GameSystem.Events.BattleEvents.RaiseBuffStackChanged(this, buffType, _attackBuffStacks);
+                    }
+                    break;
+                case BuffsType.Defense:
+                    if (_defenseBuffStacks > 0)
+                    {
+                        _defenseBuffStacks--;
+                        GameSystem.Events.BattleEvents.RaiseBuffStackChanged(this, buffType, _defenseBuffStacks);
+                    }
+                    break;
+            }
         }
         
         public void ApplyStatusEffect(MoveEffectType effectType, int duration)
@@ -197,12 +257,30 @@ namespace Entity
                 case MoveEffectType.Stun:
                     ApplyStun(duration);
                     break;
+                case MoveEffectType.Stealth:
+                    ApplyStealth(duration);
+                    break;
+                case MoveEffectType.Counter:
+                    ApplyCounter(duration);
+                    break;
+                case MoveEffectType.Taunt:
+                    ApplyTaunt(duration);
+                    break;
             }
         }
         
         public void ClearBuffs()
         {
-            AtkBuffMultiplier = 1f;
+            if (_attackBuffStacks > 0)
+            {
+                _attackBuffStacks = 0;
+                GameSystem.Events.BattleEvents.RaiseBuffStackChanged(this, BuffsType.Attack, 0);
+            }
+            if (_defenseBuffStacks > 0)
+            {
+                _defenseBuffStacks = 0;
+                GameSystem.Events.BattleEvents.RaiseBuffStackChanged(this, BuffsType.Defense, 0);
+            }
             DefBuffMultiplier = 1f;
         }
         
@@ -228,6 +306,28 @@ namespace Entity
                     _moveInstances[i].CooldownLeft--;
                 }
             }
+            
+            if (_stealthTurnsLeft > 0)
+            {
+                _stealthTurnsLeft--;
+                if (_stealthTurnsLeft <= 0)
+                {
+                    _isStealthed = false;
+                    UpdateStealthVisual();
+                }
+            }
+            
+            if (_counterTurnsLeft > 0)
+            {
+                _counterTurnsLeft--;
+                if (_counterTurnsLeft <= 0) _hasCounter = false;
+            }
+    
+            if (_tauntTurnsLeft > 0)
+            {
+                _tauntTurnsLeft--;
+                if (_tauntTurnsLeft <= 0) _isTaunting = false;
+            }
         }
         
         public bool CanTakeTurn()
@@ -239,6 +339,35 @@ namespace Entity
         {
             IsStunned = true;
             StunTurnsLeft = turns;
+        }
+        
+        public void ApplyStealth(int turns)
+        {
+            _isStealthed = true;
+            _stealthTurnsLeft = turns;
+            UpdateStealthVisual();
+        }
+        
+        private void ApplyCounter(int turns)
+        {
+            _hasCounter = true;
+            _counterTurnsLeft = turns;
+        }
+
+        private void ApplyTaunt(int turns)
+        {
+            _isTaunting = true;
+            _tauntTurnsLeft = turns;
+        }
+        
+        private void UpdateStealthVisual()
+        {
+            if (_spriteRenderer != null)
+            {
+                var color = _spriteRenderer.color;
+                color.a = _isStealthed ? STEALTH_ALPHA : 1f;
+                _spriteRenderer.color = color;
+            }
         }
         
         public void SetGuardState(bool guarding)
@@ -261,8 +390,7 @@ namespace Entity
 
         public void ClearBuffandDebuffs()
         {
-            AtkBuffMultiplier = 1f;
-            DefBuffMultiplier = 1f;
+            ClearBuffs();
         }
 
         public void SetChargingState(bool newState, int moveIndex = -1, EntityType target = EntityType.Boss)
