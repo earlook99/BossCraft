@@ -66,22 +66,34 @@ namespace GameSystem
         private async Task ProcessDamageAsync(BattleEntity source, BattleEntity target, MoveInstance moveInst, MoveEffect effect, CancellationToken ct)
         {
             var hit = DamageFormula.GetRawHit(source, effect.Power, effect.Accuracy, effect.CritChance);
-            
+    
             await SpawnEffectAsync(target, moveInst.Data, ct);
-            
+    
             if (!hit.IsHit)
             {
                 UIEvents.RaiseShowMessage("Miss!", 1f);
                 return;
             }
-            
+    
+            float effectiveness = TypeChart.GetEffectiveness(moveInst.Data.Type, target.ElementType);
+            bool isWeakness = effectiveness > 1f;
+    
             int prevHP = target.CurrentHP;
             target.TakeDamage(moveInst.Data.Type, hit.Damage);
-            
+    
             BattleEvents.RaiseDamageDealt(source, target, hit.Damage, moveInst.Data.Type);
-            
-            await AnimateHPChangeAsync(target, prevHP, target.CurrentHP, ct);
-            
+    
+            var hpAnimTask = AnimateHPChangeAsync(target, prevHP, target.CurrentHP, ct);
+            var flashTask = target.PlayDamageFlashAsync(moveInst.Data.Type, HP_ANIMATION_DURATION, ct);
+    
+            await Task.WhenAll(hpAnimTask, flashTask);
+    
+            if (isWeakness && target is BossEntity)
+            {
+                UIEvents.RaiseShowMessage("효과가 굉장했다!", 2f);
+                await AsyncUtilities.WaitForSecondsAsync(2f, ct);
+            }
+    
             if (target.CurrentHP <= 0)
             {
                 BattleEvents.RaiseEntityDefeated(target);

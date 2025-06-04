@@ -1,9 +1,12 @@
 using System;
 using System.Collections;
+using System.Threading;
+using System.Threading.Tasks;
 using AI;
 using GameSystem;
 using UnityEngine;
 using Data;
+using GameSystem.Utils;
 
 namespace Entity
 {
@@ -174,5 +177,34 @@ namespace Entity
         
         protected override float GetWeaknessFactor(ElementType moveType) 
             => TypeChart.GetEffectiveness(moveType, this.ElementType);
+        
+        public override async Task PlayDamageFlashAsync(ElementType attackType, float duration, CancellationToken ct)
+        {
+            if (_spriteRenderer == null) return;
+    
+            Color originalColor = _spriteRenderer.color;
+    
+            float effectiveness = TypeChart.GetEffectiveness(attackType, this.ElementType);
+            bool isWeakness = effectiveness > 1f;
+    
+            Color flashColor = isWeakness ? new Color(1f, 0.3f, 0.3f, originalColor.a) : originalColor;
+    
+            float flashInterval = 0.15f;
+            int flashCount = Mathf.FloorToInt(duration / (flashInterval * 2));
+    
+            for (int i = 0; i < flashCount && !ct.IsCancellationRequested; i++)
+            {
+                _spriteRenderer.color = new Color(flashColor.r, flashColor.g, flashColor.b, 0f);
+                await AsyncUtilities.WaitForSecondsAsync(flashInterval, ct);
+        
+                _spriteRenderer.color = flashColor;
+                await AsyncUtilities.WaitForSecondsAsync(flashInterval, ct);
+            }
+    
+            if (!ct.IsCancellationRequested)
+            {
+                _spriteRenderer.color = originalColor;
+            }
+        }
     }
 }

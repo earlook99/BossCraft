@@ -3,7 +3,10 @@ using System;
 using GameSystem;
 using GameSystem.Interfaces;
 using System.Collections.Generic;
+using System.Threading;
+using System.Threading.Tasks;
 using Data;
+using GameSystem.Utils;
 using UI;
 using UnityEngine;
 
@@ -54,7 +57,7 @@ namespace Entity
         [Header("Moves")] 
         public List<MoveData> MoveSet = new List<MoveData>();
 
-        private SpriteRenderer _spriteRenderer;
+        protected SpriteRenderer _spriteRenderer;
         private SpriteOutlineToggle _outlineToggle;
         private Collider2D _collider2D;
         private MoveInstance[] _moveInstances;
@@ -399,6 +402,29 @@ namespace Entity
             _isCharging = newState;
             _chargingMoveIndex = moveIndex;
             _chargingMoveTarget = target;
+        }
+        
+        public virtual async Task PlayDamageFlashAsync(ElementType attackType, float duration, CancellationToken ct)
+        {
+            if (_spriteRenderer == null) return;
+    
+            Color originalColor = _spriteRenderer.color;
+            float flashInterval = 0.15f;
+            int flashCount = Mathf.FloorToInt(duration / (flashInterval * 2));
+    
+            for (int i = 0; i < flashCount && !ct.IsCancellationRequested; i++)
+            {
+                _spriteRenderer.color = new Color(originalColor.r, originalColor.g, originalColor.b, 0f);
+                await AsyncUtilities.WaitForSecondsAsync(flashInterval, ct);
+        
+                _spriteRenderer.color = originalColor;
+                await AsyncUtilities.WaitForSecondsAsync(flashInterval, ct);
+            }
+    
+            if (!ct.IsCancellationRequested)
+            {
+                _spriteRenderer.color = originalColor;
+            }
         }
     }
 }

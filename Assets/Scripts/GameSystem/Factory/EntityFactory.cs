@@ -149,7 +149,7 @@ namespace GameSystem.Factory
                 texture,
                 new Rect(0, 0, texture.width, texture.height),
                 new Vector2(0.5f, 0.5f),
-                100f
+                0.7f
             );
             
             var spriteRenderer = boss.GetComponentInChildren<SpriteRenderer>();

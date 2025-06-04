@@ -3,6 +3,8 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.IO;
+using System.Linq;
+using SimpleFileBrowser;
 using Data;
 using GameSystem;
 using GameSystem.Utils;
@@ -323,14 +325,12 @@ namespace AI
 
 #if UNITY_EDITOR
             SelectImageInEditor();
-#elif UNITY_WEBGL
-            WebGLFileUploader.OpenFilePicker(async (base64Data) => {
-                await LoadImageFromBase64Async(base64Data);
-            });
 #else
-            UpdateStatus("File selection not implemented for this platform.");
+    StartFileBrowser();
 #endif
         }
+        
+
 
 #if UNITY_EDITOR
         private async void SelectImageInEditor()
@@ -342,6 +342,31 @@ namespace AI
             }
         }
 #endif
+        
+        private void StartFileBrowser()
+        {
+            FileBrowser.SetFilters(true, new FileBrowser.Filter("Images", ".jpg", ".jpeg", ".png"));
+            FileBrowser.SetDefaultFilter(".png");
+            FileBrowser.SetExcludedExtensions(".lnk", ".tmp", ".zip", ".rar", ".exe");
+    
+            FileBrowser.ShowLoadDialog(OnFileSelected, OnFileBrowserCancelled, 
+                FileBrowser.PickMode.Files, false, null, null, "Select Boss Image", "Select");
+        }
+        
+        private async void OnFileSelected(string[] paths)
+        {
+            if (paths != null && paths.Length > 0)
+            {
+                string selectedPath = paths[0];
+                UpdateStatus(STATUS_MSG_LOADING_IMAGE);
+                await LoadImageAsync(selectedPath);
+            }
+        }
+
+        private void OnFileBrowserCancelled()
+        {
+            UpdateStatus("Image selection cancelled.");
+        }
 
         private async Task LoadImageAsync(string path)
         {
@@ -745,22 +770,51 @@ namespace AI
                 return;
             }
 
-            byte[] imageBytes = textureToSave.EncodeToPNG();
-            if (imageBytes == null)
+            // Runtime File Browser로 저장 위치 선택
+            string defaultFileName = GenerateFileName();
+            FileBrowser.ShowSaveDialog(OnSaveLocationSelected, OnSaveCancelled, 
+                FileBrowser.PickMode.Files, false, null, defaultFileName, 
+                "Save Boss Image", "Save");
+        }
+        
+        private void OnSaveLocationSelected(string[] paths)
+        {
+            if (paths != null && paths.Length > 0)
             {
-                UpdateStatus(ERROR_MSG_ENCODE_FAILED);
-                return;
+                SaveImageToPath(paths[0]);
             }
+        }
 
-            string fileName = GenerateFileName();
+        private void OnSaveCancelled()
+        {
+            UpdateStatus("Save cancelled.");
+        }
 
-#if UNITY_EDITOR
-            DownloadImageInEditor(imageBytes, fileName);
-#elif UNITY_WEBGL
-            DownloadImageInWebGL(imageBytes, fileName);
-#else
-            UpdateStatus("Download not supported on this platform.");
-#endif
+        private void SaveImageToPath(string savePath)
+        {
+            try
+            {
+                Texture2D textureToSave = generatedImage.texture as Texture2D;
+                byte[] imageBytes = textureToSave.EncodeToPNG();
+        
+                // 확장자 확인 및 추가
+                if (!savePath.EndsWith(".png", System.StringComparison.OrdinalIgnoreCase))
+                {
+                    savePath += ".png";
+                }
+        
+                System.IO.File.WriteAllBytes(savePath, imageBytes);
+        
+                string fileName = System.IO.Path.GetFileName(savePath);
+                UpdateStatus($"Image saved: {fileName}");
+        
+                Debug.Log($"Boss image saved to: {savePath}");
+            }
+            catch (System.Exception e)
+            {
+                UpdateStatus(ERROR_MSG_SAVE_FAILED);
+                Debug.LogError($"Failed to save image: {e.Message}");
+            }
         }
 
         private string GenerateFileName()
@@ -777,46 +831,6 @@ namespace AI
             
             return _stringBuilder.ToString();
         }
-
-#if UNITY_EDITOR
-        private void DownloadImageInEditor(byte[] imageBytes, string fileName)
-        {
-            string path = UnityEditor.EditorUtility.SaveFilePanel(
-                "Save Generated Boss Image",
-                "",
-                fileName,
-                "png");
-
-            if (!string.IsNullOrEmpty(path))
-            {
-                try
-                {
-                    File.WriteAllBytes(path, imageBytes);
-                    
-                    _stringBuilder.Clear();
-                    _stringBuilder.Append("Image saved: ").Append(Path.GetFileName(path));
-                    UpdateStatus(_stringBuilder.ToString());
-                }
-                catch (Exception e)
-                {
-                    UpdateStatus(ERROR_MSG_SAVE_FAILED);
-                    Debug.LogError($"Failed to save image: {e.Message}");
-                }
-            }
-        }
-#endif
-
-#if UNITY_WEBGL
-        private void DownloadImageInWebGL(byte[] imageBytes, string fileName)
-        {
-            string base64Data = "data:image/png;base64," + Convert.ToBase64String(imageBytes);
-            WebGLFileUploader.DownloadFile(fileName, base64Data);
-            
-            _stringBuilder.Clear();
-            _stringBuilder.Append("Image downloaded: ").Append(fileName);
-            UpdateStatus(_stringBuilder.ToString());
-        }
-#endif
 
         private void ReturnToPreviousScene()
         {
