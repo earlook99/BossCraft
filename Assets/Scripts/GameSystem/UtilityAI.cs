@@ -223,6 +223,9 @@ namespace GameSystem
                     
                 case MoveEffectType.Heal:
                     return target == boss ? effect.Power * _weights.HealBase : 0f;
+                
+                case MoveEffectType.ClearOppBuff:
+                    return target.HasBuffs ? _weights.ClearOppBuffBase : 0f;
                     
                 default:
                     return 0f;

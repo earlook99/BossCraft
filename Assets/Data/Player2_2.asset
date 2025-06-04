@@ -25,5 +25,4 @@ MonoBehaviour:
     Accuracy: 1
     CritChance: 0
   VFXPrefab: {fileID: 2659604122979068415, guid: 044df7c3e76207344bf33e88358023be, type: 3}
-  Description: Assumes the enlightened form to absorb and reflect attacks. Counters
-    incoming damage.
+  Description: ' Enters a defensive stance for 3 turns. Counters every attack.'

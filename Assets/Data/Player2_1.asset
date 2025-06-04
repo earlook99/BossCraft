@@ -25,5 +25,4 @@ MonoBehaviour:
     Accuracy: 1
     CritChance: 0
   VFXPrefab: {fileID: 2659604122979068415, guid: 0955b67266e1e0344a486465c5d5f967, type: 3}
-  Description: A divine punch carrying the sun's heat. Sacred solar energy concentrates
-    into a blazing strike.
+  Description: ' A blazing punch charged with solar power. Deals damage to one foe.'

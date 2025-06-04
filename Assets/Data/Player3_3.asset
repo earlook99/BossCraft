@@ -1,0 +1,28 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c7080a18dee88af47baae11fd18048d9, type: 3}
+  m_Name: Player3_3
+  m_EditorClassIdentifier: 
+  Name: Temporal Decay
+  Category: 1
+  AllowedTargetSide: 4
+  Type: 2
+  Cooldown: 0
+  RequiresCharge: 0
+  Effects:
+  - EffectType: 3
+    Power: 0
+    BuffsType: 1
+    Accuracy: 1
+    CritChance: 0
+  VFXPrefab: {fileID: 2659604122979068415, guid: 1f3162ed553d83044be3a1f2291d0adf, type: 3}
+  Description: ' Ages the foe rapidly through time manipulation. Lowers Attack.'

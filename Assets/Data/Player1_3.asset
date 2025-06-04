@@ -30,5 +30,5 @@ MonoBehaviour:
     Accuracy: 1
     CritChance: 0
   VFXPrefab: {fileID: 2659604122979068415, guid: a88b1f26c7141a44c9a4d8eb59ea8114, type: 3}
-  Description: The user vanishes into shadows for 2 turns. Raises Attack and avoids
-    single-target moves.
+  Description: Vanishes into shadows for 2 turns. Raises Attack and avoids single-target
+    moves.

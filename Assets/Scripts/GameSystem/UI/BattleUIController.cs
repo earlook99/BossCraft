@@ -227,7 +227,6 @@ namespace GameSystem.UI
     
             if (moveData != null)
             {
-                // Ally/Allies 타겟이면 즉시 줌아웃
                 if (moveData.AllowedTargetSide == TargetSide.Ally || 
                     moveData.AllowedTargetSide == TargetSide.Allies)
                 {
@@ -235,9 +234,13 @@ namespace GameSystem.UI
                     cameraManager?.SwitchCameraTo(CineCamType.ZoomOut);
                 }
         
-                if (moveData.Category == MoveCategory.AOE || moveData.AllowedTargetSide == TargetSide.Self)
+                if (moveData.AllowedTargetSide == TargetSide.Self)
                 {
                     CompleteActionWithTarget((EntityType)_currentPlayerIndex);
+                }
+                else if (moveData.Category == MoveCategory.AOE)
+                {
+                    CompleteActionWithTarget(EntityType.Boss);
                 }
                 else
                 {
@@ -270,7 +273,12 @@ namespace GameSystem.UI
         private void CompleteActionWithTarget(EntityType target)
         {
             UIEvents.RaiseActionSelected(_pendingActionType, _pendingActionIndex, _currentPlayerIndex);
-            // OnTargetSelected 제거 - 중복 실행 방지
+            
+            var battleManager = FindAnyObjectByType<BattleManager>();
+            if (battleManager != null)
+            {
+                battleManager.OnTargetSelected(target);
+            }
         }
     }
 }

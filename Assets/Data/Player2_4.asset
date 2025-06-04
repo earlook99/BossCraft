@@ -25,5 +25,4 @@ MonoBehaviour:
     Accuracy: 1
     CritChance: 0
   VFXPrefab: {fileID: 2659604122979068415, guid: b04107520edbe7549b3222d7732c4567, type: 3}
-  Description: Protects the party with a sacred solar halo. Blessed light increases
-    all allies' defense power.
+  Description: Creates a protective halo of light. Raises Defense of all allies.

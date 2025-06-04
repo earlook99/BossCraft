@@ -250,28 +250,20 @@ namespace GameSystem
             {
                 var entity = _entities[args.PlayerIndex];
                 var moveData = entity.GetMoveData(args.ActionIndex);
-        
+
                 EntityType defaultTarget = EntityType.Boss;
                 if (moveData != null && moveData.AllowedTargetSide == TargetSide.Self)
                 {
                     defaultTarget = (EntityType)args.PlayerIndex;
                 }
-        
+
                 _pendingAction = new ActionData(
                     args.ActionType,
                     args.ActionIndex,
                     (EntityType)args.PlayerIndex,
                     defaultTarget
                 );
-        
-                // Self 타겟이나 AOE는 즉시 실행
-                if (moveData == null || moveData.Category == MoveCategory.AOE || moveData.AllowedTargetSide == TargetSide.Self)
-                {
-                    EnqueuePlayerAction(_pendingAction);
-                    return;
-                }
-        
-                // 타겟 선택 필요한 경우만 대기
+
                 return;
             }
             else

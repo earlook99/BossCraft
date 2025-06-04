@@ -1,0 +1,627 @@
+fileFormatVersion: 2
+guid: 62d289f975608c54da6c7f1d6531ee55
+TextureImporter:
+  internalIDToNameTable:
+  - first:
+      213: 4257421415651651296
+    second: mystic_whisper_transparent_0
+  - first:
+      213: 4753149181214218592
+    second: mystic_whisper_transparent_1
+  - first:
+      213: -8857951226555276292
+    second: mystic_whisper_transparent_2
+  - first:
+      213: 702094561218014030
+    second: mystic_whisper_transparent_3
+  - first:
+      213: -7121185716937833466
+    second: mystic_whisper_transparent_4
+  - first:
+      213: -6921286993395619009
+    second: mystic_whisper_transparent_5
+  - first:
+      213: -2990647679998997079
+    second: mystic_whisper_transparent_6
+  - first:
+      213: -6865170121698437889
+    second: mystic_whisper_transparent_7
+  - first:
+      213: 985561528149616123
+    second: mystic_whisper_transparent_8
+  - first:
+      213: 2619402961274900
+    second: mystic_whisper_transparent_9
+  - first:
+      213: 6809778635182500720
+    second: mystic_whisper_transparent_10
+  - first:
+      213: -5258742427111403179
+    second: mystic_whisper_transparent_11
+  - first:
+      213: -5510983515706516363
+    second: mystic_whisper_transparent_12
+  - first:
+      213: -6650613866233001358
+    second: mystic_whisper_transparent_13
+  - first:
+      213: 3864268854995030180
+    second: mystic_whisper_transparent_14
+  - first:
+      213: -2458937355008382036
+    second: mystic_whisper_transparent_15
+  - first:
+      213: -3233283985625074199
+    second: mystic_whisper_transparent_16
+  - first:
+      213: 517738509747789108
+    second: mystic_whisper_transparent_17
+  - first:
+      213: -4039519351506488020
+    second: mystic_whisper_transparent_18
+  - first:
+      213: 6642174393518140230
+    second: mystic_whisper_transparent_19
+  - first:
+      213: 7881788928044299063
+    second: mystic_whisper_transparent_20
+  - first:
+      213: -6101736284018935844
+    second: mystic_whisper_transparent_21
+  - first:
+      213: -6282834232459521872
+    second: mystic_whisper_transparent_22
+  - first:
+      213: -7877066674786666115
+    second: mystic_whisper_transparent_23
+  - first:
+      213: -8557467581776719060
+    second: mystic_whisper_transparent_24
+  - first:
+      213: 1815789823392878670
+    second: mystic_whisper_transparent_25
+  - first:
+      213: 7631586885775927289
+    second: mystic_whisper_transparent_26
+  - first:
+      213: -1052881600846791919
+    second: mystic_whisper_transparent_27
+  - first:
+      213: 3366658165883460073
+    second: mystic_whisper_transparent_28
+  - first:
+      213: 4633297552274882159
+    second: mystic_whisper_transparent_29
+  - first:
+      213: 8018337329881041518
+    second: mystic_whisper_transparent_30
+  - first:
+      213: 8634501981241280340
+    second: mystic_whisper_transparent_31
+  - first:
+      213: 2979703569888920598
+    second: mystic_whisper_transparent_32
+  - first:
+      213: -1005784647754394375
+    second: mystic_whisper_transparent_33
+  - first:
+      213: -1141065219089390798
+    second: mystic_whisper_transparent_34
+  - first:
+      213: -3793718473808848603
+    second: mystic_whisper_transparent_35
+  - first:
+      213: 4705049224413132160
+    second: mystic_whisper_transparent_36
+  - first:
+      213: 2765194513777286361
+    second: mystic_whisper_transparent_37
+  - first:
+      213: -132521085234490083
+    second: mystic_whisper_transparent_38
+  - first:
+      213: 5931505673403627983
+    second: mystic_whisper_transparent_39
+  - first:
+      213: -5928093148544668507
+    second: mystic_whisper_transparent_40
+  - first:
+      213: 6956284914334498033
+    second: mystic_whisper_transparent_41
+  - first:
+      213: -7520044945248004882
+    second: mystic_whisper_transparent_42
+  externalObjects: {}
+  serializedVersion: 13
+  mipmaps:
+    mipMapMode: 0
+    enableMipMap: 0
+    sRGBTexture: 1
+    linearTexture: 0
+    fadeOut: 0
+    borderMipMap: 0
+    mipMapsPreserveCoverage: 0
+    alphaTestReferenceValue: 0.5
+    mipMapFadeDistanceStart: 1
+    mipMapFadeDistanceEnd: 3
+  bumpmap:
+    convertToNormalMap: 0
+    externalNormalMap: 0
+    heightScale: 0.25
+    normalMapFilter: 0
+    flipGreenChannel: 0
+  isReadable: 0
+  streamingMipmaps: 0
+  streamingMipmapsPriority: 0
+  vTOnly: 0
+  ignoreMipmapLimit: 0
+  grayScaleToAlpha: 0
+  generateCubemap: 6
+  cubemapConvolution: 0
+  seamlessCubemap: 0
+  textureFormat: 1
+  maxTextureSize: 2048
+  textureSettings:
+    serializedVersion: 2
+    filterMode: 1
+    aniso: 1
+    mipBias: 0
+    wrapU: 1
+    wrapV: 1
+    wrapW: 1
+  nPOTScale: 0
+  lightmap: 0
+  compressionQuality: 50
+  spriteMode: 2
+  spriteExtrude: 1
+  spriteMeshType: 1
+  alignment: 0
+  spritePivot: {x: 0.5, y: 0.5}
+  spritePixelsToUnits: 0.3
+  spriteBorder: {x: 0, y: 0, z: 0, w: 0}
+  spriteGenerateFallbackPhysicsShape: 1
+  alphaUsage: 1
+  alphaIsTransparency: 1
+  spriteTessellationDetail: -1
+  textureType: 8
+  textureShape: 1
+  singleChannelComponent: 0
+  flipbookRows: 1
+  flipbookColumns: 1
+  maxTextureSizeSet: 0
+  compressionQualitySet: 0
+  textureFormatSet: 0
+  ignorePngGamma: 0
+  applyGammaDecoding: 0
+  swizzle: 50462976
+  cookieLightType: 0
+  platformSettings:
+  - serializedVersion: 4
+    buildTarget: DefaultTexturePlatform
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Standalone
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: WebGL
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  spriteSheet:
+    serializedVersion: 2
+    sprites:
+    - serializedVersion: 2
+      name: mystic_whisper_transparent_0
+      rect:
+        serializedVersion: 2
+        x: 100
+        y: 804
+        width: 140
+        height: 140
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 7c430754215bffb409e48d19e03c92ac
+      internalID: -2131125969
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: mystic_whisper_transparent_1
+      rect:
+        serializedVersion: 2
+        x: 340
+        y: 804
+        width: 140
+        height: 140
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 425f5fb49f37da84fb5913ead655dff0
+      internalID: 2118067859
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: mystic_whisper_transparent_2
+      rect:
+        serializedVersion: 2
+        x: 580
+        y: 804
+        width: 140
+        height: 140
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: b66e50cbdc752ae48a95a06722d16d50
+      internalID: 266995144
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: mystic_whisper_transparent_3
+      rect:
+        serializedVersion: 2
+        x: 820
+        y: 804
+        width: 140
+        height: 140
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 51da915ef30bac54a953d1be79d2c59f
+      internalID: -2138022581
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: mystic_whisper_transparent_4
+      rect:
+        serializedVersion: 2
+        x: 100
+        y: 574
+        width: 140
+        height: 140
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 24446a3bcab5b474fbbcb39911e61f58
+      internalID: 225089116
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: mystic_whisper_transparent_5
+      rect:
+        serializedVersion: 2
+        x: 340
+        y: 574
+        width: 140
+        height: 140
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 7c27598d13d8c5a4f92b7a086481f5c9
+      internalID: 1638613727
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: mystic_whisper_transparent_6
+      rect:
+        serializedVersion: 2
+        x: 580
+        y: 574
+        width: 140
+        height: 140
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: edd51586914346e449ff0ee8b60e4ed2
+      internalID: -1418320912
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: mystic_whisper_transparent_7
+      rect:
+        serializedVersion: 2
+        x: 820
+        y: 574
+        width: 140
+        height: 140
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: ee2ec69fbaf5849489530efe2cba42b9
+      internalID: -364855345
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: mystic_whisper_transparent_8
+      rect:
+        serializedVersion: 2
+        x: 100
+        y: 344
+        width: 140
+        height: 140
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: ececf377d9987da44adeaf768775b899
+      internalID: -493151049
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: mystic_whisper_transparent_9
+      rect:
+        serializedVersion: 2
+        x: 340
+        y: 344
+        width: 140
+        height: 140
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 183ea0f0204367c49ac32707da71e77d
+      internalID: 370858831
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: mystic_whisper_transparent_10
+      rect:
+        serializedVersion: 2
+        x: 580
+        y: 344
+        width: 140
+        height: 140
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 150c1ba67d71adb4aabb385ae90196e3
+      internalID: 1760007382
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: mystic_whisper_transparent_11
+      rect:
+        serializedVersion: 2
+        x: 820
+        y: 344
+        width: 140
+        height: 140
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: c33df61b24a9b2e47bc57e92b616e383
+      internalID: -1680126042
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: mystic_whisper_transparent_12
+      rect:
+        serializedVersion: 2
+        x: 100
+        y: 114
+        width: 140
+        height: 140
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 4a5193751201b0649a9ffd92e745e250
+      internalID: 1915264902
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: mystic_whisper_transparent_13
+      rect:
+        serializedVersion: 2
+        x: 340
+        y: 114
+        width: 140
+        height: 140
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 87d55d4ecbfef9841b2062ef4a59423b
+      internalID: 434257541
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: mystic_whisper_transparent_14
+      rect:
+        serializedVersion: 2
+        x: 580
+        y: 114
+        width: 140
+        height: 140
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: d7694f345a9c75b468c5148ab895d0b0
+      internalID: -801436983
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: mystic_whisper_transparent_15
+      rect:
+        serializedVersion: 2
+        x: 820
+        y: 114
+        width: 140
+        height: 140
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 2ad06d64439c72c4db1f6737f4e74bf0
+      internalID: 2082032192
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    outline: []
+    customData: 
+    physicsShape: []
+    bones: []
+    spriteID: 49a8655cefa5f2d418991b241c520bd7
+    internalID: 0
+    vertices: []
+    indices: 
+    edges: []
+    weights: []
+    secondaryTextures: []
+    spriteCustomMetadata:
+      entries: []
+    nameFileIdTable:
+      mystic_whisper_transparent_0: -2131125969
+      mystic_whisper_transparent_1: 2118067859
+      mystic_whisper_transparent_10: 1760007382
+      mystic_whisper_transparent_11: -1680126042
+      mystic_whisper_transparent_12: 1915264902
+      mystic_whisper_transparent_13: 434257541
+      mystic_whisper_transparent_14: -801436983
+      mystic_whisper_transparent_15: 2082032192
+      mystic_whisper_transparent_2: 266995144
+      mystic_whisper_transparent_3: -2138022581
+      mystic_whisper_transparent_4: 225089116
+      mystic_whisper_transparent_5: 1638613727
+      mystic_whisper_transparent_6: -1418320912
+      mystic_whisper_transparent_7: -364855345
+      mystic_whisper_transparent_8: -493151049
+      mystic_whisper_transparent_9: 370858831
+  mipmapLimitGroupName: 
+  pSDRemoveMatte: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

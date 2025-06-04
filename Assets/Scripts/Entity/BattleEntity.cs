@@ -93,6 +93,7 @@ namespace Entity
         public bool IsGuarding => _isGuarding;
         public int ChargingMoveIndex => _chargingMoveIndex;
         public EntityType ChargingMoveTarget => _chargingMoveTarget;
+        public bool HasBuffs => _attackBuffStacks > 0 || _defenseBuffStacks > 0;
         
         private float _atkBuffMultiplier = 1f;
         public float AtkBuffMultiplier 

@@ -1,0 +1,34 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c7080a18dee88af47baae11fd18048d9, type: 3}
+  m_Name: Player3_2
+  m_EditorClassIdentifier: 
+  Name: Petrify
+  Category: 0
+  AllowedTargetSide: 3
+  Type: 3
+  Cooldown: 0
+  RequiresCharge: 1
+  Effects:
+  - EffectType: 0
+    Power: 120
+    BuffsType: 0
+    Accuracy: 1
+    CritChance: 0
+  - EffectType: 6
+    Power: 0
+    BuffsType: 0
+    Accuracy: 1
+    CritChance: 0
+  VFXPrefab: {fileID: 2659604122979068415, guid: 52692ac20bb78144faa06f853a9dd01d, type: 3}
+  Description: Charges temporal energy to turn foe to stone. Deals damage and inflicts
+    Stun.

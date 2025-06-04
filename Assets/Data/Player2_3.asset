@@ -25,5 +25,5 @@ MonoBehaviour:
     Accuracy: 1
     CritChance: 0
   VFXPrefab: {fileID: 2659604122979068415, guid: ba2cf84a74642184db170602d1d7e80d, type: 3}
-  Description: Channels the wrathful deity's presence to draw enemy focus. Forces
-    the boss to prioritize this target for 2 turns.
+  Description: Taunts the foe with divine presence. Forces them to target only this
+    user for 2 turns.

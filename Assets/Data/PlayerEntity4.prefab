@@ -76,7 +76,7 @@ SpriteRenderer:
   m_AutoUVMaxAngle: 89
   m_LightmapParameters: {fileID: 0}
   m_SortingLayerID: -1683644649
-  m_SortingLayer: 2
+  m_SortingLayer: 1
   m_SortingOrder: 0
   m_Sprite: {fileID: 57789010625025622, guid: dd4b7409574fe604d9941f1c57c77ab2, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
@@ -727,12 +727,12 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   EntityName: TestPlayer4
   ElementType: 0
-  _maxHP: 100
+  _maxHP: 200
   _currentHP: 0
   _attack: 50
   _defense: 50
   MoveSet:
-  - {fileID: 11400000, guid: 8d8b7869b10d5bb4a81bb5a50eb54bc6, type: 2}
-  - {fileID: 11400000, guid: 8c44da4450382304081b7681b8669a61, type: 2}
-  - {fileID: 11400000, guid: 35c9a0a2903421844ba8f3cde8c1652d, type: 2}
-  - {fileID: 11400000, guid: a5984b6be7dce16448d70af97c5a072f, type: 2}
+  - {fileID: 11400000, guid: ebd815edd68b1c3409b39cfac5007585, type: 2}
+  - {fileID: 11400000, guid: 4c511acddeace13489d3d60e734263f9, type: 2}
+  - {fileID: 11400000, guid: ef4a053f80375c642ab6e5d45e32e134, type: 2}
+  - {fileID: 11400000, guid: 41fcc5b411bd15248a1d7be55cc4e9c1, type: 2}

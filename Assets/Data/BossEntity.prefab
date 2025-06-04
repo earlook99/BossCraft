@@ -75,7 +75,7 @@ SpriteRenderer:
   m_AutoUVMaxAngle: 89
   m_LightmapParameters: {fileID: 0}
   m_SortingLayerID: -1683644649
-  m_SortingLayer: 2
+  m_SortingLayer: 1
   m_SortingOrder: 0
   m_Sprite: {fileID: -4800388406083057015, guid: f7a379fc14167694d94342c31d7ea77a, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
@@ -610,10 +610,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   EntityName: TestBoss
   ElementType: 0
-  _maxHP: 100
+  _maxHP: 1000
   _currentHP: 0
-  _attack: 50
-  _defense: 50
+  _attack: 80
+  _defense: 80
   MoveSet:
   - {fileID: 11400000, guid: 050df3a77724f614490405b0e9ac7816, type: 2}
   - {fileID: 11400000, guid: 8c44da4450382304081b7681b8669a61, type: 2}
