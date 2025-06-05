@@ -15,102 +15,104 @@ namespace Entity
         public ElementType ElementType;
 
         [Header("Stats")]
-        [SerializeField] private int _maxHP = 100;
-        [SerializeField] private int _currentHP;
-        [SerializeField] private int _attack = 50;
-        [SerializeField] private int _defense = 50;
+        [SerializeField] private int maxHP = 100;
+        [SerializeField] private int currentHP;
+        [SerializeField] private int attack = 50;
+        [SerializeField] private int defense = 50;
         
-        private int _attackBuffStacks = 0;
-        private int _defenseBuffStacks = 0;
+        private int attackBuffStacks = 0;
+        private int defenseBuffStacks = 0;
         private const int MAX_BUFF_STACKS = 2;
         private const float BUFF_PER_STACK = 0.2f;
         
         public int MaxHP 
         { 
-            get => _maxHP; 
-            set => _maxHP = value; 
+            get => maxHP; 
+            set => maxHP = value; 
         }
         
         public int CurrentHP 
         { 
-            get => _currentHP; 
-            set => _currentHP = Mathf.Clamp(value, 0, _maxHP); 
+            get => currentHP; 
+            set => currentHP = Mathf.Clamp(value, 0, maxHP); 
         }
         
         public int Attack 
         { 
-            get => _attack; 
-            set => _attack = value; 
+            get => attack; 
+            set => attack = value; 
         }
         
         public int Defense 
         { 
-            get => _defense; 
-            set => _defense = value; 
+            get => defense; 
+            set => defense = value; 
         }
 
         [Header("Moves")] 
         public List<MoveData> MoveSet = new List<MoveData>();
 
-        protected SpriteRenderer _spriteRenderer;
-        private SpriteOutlineToggle _outlineToggle;
-        private Collider2D _collider2D;
-        private MoveInstance[] _moveInstances;
+        protected SpriteRenderer spriteRenderer;
+        private SpriteOutlineToggle outlineToggle;
+        private Collider2D entityCollider;
+        private MoveInstance[] moveInstances;
         
-        private bool _isCharging = false;
-        private bool _isGuarding = false;
-        private int _chargingMoveIndex;
-        private EntityType _chargingMoveTarget;
+        private BattleManager battleManager;
+        private BattleUIController uiController;
         
-        private bool _isStealthed = false;
-        private int _stealthTurnsLeft = 0;
+        private bool isCharging = false;
+        private bool isGuarding = false;
+        private int chargingMoveIndex;
+        private EntityType chargingMoveTarget;
         
-        public bool IsStealthed => _isStealthed;
-        public int StealthTurnsLeft => _stealthTurnsLeft;
+        private bool isStealthed = false;
+        private int stealthTurnsLeft = 0;
         
-        private bool _hasCounter = false;
-        private int _counterTurnsLeft = 0;
-        private bool _isTaunting = false;
-        private int _tauntTurnsLeft = 0;
+        public bool IsStealthed => isStealthed;
+        public int StealthTurnsLeft => stealthTurnsLeft;
         
-        public bool HasCounter => _hasCounter;
-        public bool IsTaunting => _isTaunting;
+        private bool hasCounter = false;
+        private int counterTurnsLeft = 0;
+        private bool isTaunting = false;
+        private int tauntTurnsLeft = 0;
+        
+        public bool HasCounter => hasCounter;
+        public bool IsTaunting => isTaunting;
         
         private const float DEFAULT_SPRITE_ALPHA = 0.1f;
         private const float GUARD_DEFENSE_MULTIPLIER = 2f;
         private const int DEFENSE_FORMULA_BASE = 100;
         private const float STEALTH_ALPHA = 0.3f;
 
-        public SpriteRenderer SpriteRenderer => _spriteRenderer;
-        public SpriteOutlineToggle OutlineToggle => _outlineToggle;
-        public Collider2D EntityCollider => _collider2D;
-        public ReadOnlySpan<MoveInstance> MoveInstances => _moveInstances;
+        public SpriteRenderer SpriteRenderer => spriteRenderer;
+        public SpriteOutlineToggle OutlineToggle => outlineToggle;
+        public Collider2D EntityCollider => entityCollider;
+        public ReadOnlySpan<MoveInstance> MoveInstances => moveInstances;
         public bool IsStunned { get; private set; }
         public int StunTurnsLeft { get; private set; }
-        public bool IsCharging => _isCharging;
-        public bool IsGuarding => _isGuarding;
-        public int ChargingMoveIndex => _chargingMoveIndex;
-        public EntityType ChargingMoveTarget => _chargingMoveTarget;
-        public bool HasBuffs => _attackBuffStacks > 0 || _defenseBuffStacks > 0;
+        public bool IsCharging => isCharging;
+        public bool IsGuarding => isGuarding;
+        public int ChargingMoveIndex => chargingMoveIndex;
+        public EntityType ChargingMoveTarget => chargingMoveTarget;
+        public bool HasBuffs => attackBuffStacks > 0 || defenseBuffStacks > 0;
         
-        private float _atkBuffMultiplier = 1f;
+        private float atkBuffMultiplier = 1f;
         public float AtkBuffMultiplier 
         { 
-            get => _atkBuffMultiplier * (1f + (_attackBuffStacks * BUFF_PER_STACK));
-            set => _atkBuffMultiplier = value;
+            get => atkBuffMultiplier * (1f + (attackBuffStacks * BUFF_PER_STACK));
+            set => atkBuffMultiplier = value;
         }
         public float DefBuffMultiplier { get; set; } = 1f;
         
-        public int AttackBuffStacks => _attackBuffStacks;
-        public int DefenseBuffStacks => _defenseBuffStacks;
+        public int AttackBuffStacks => attackBuffStacks;
+        public int DefenseBuffStacks => defenseBuffStacks;
         
         public string Name => EntityName;
-        public bool IsAlive => _currentHP > 0;
+        public bool IsAlive => currentHP > 0;
         public bool CanBeTargeted => IsAlive && !IsStunned;
-        public EntityType EntityType => (EntityType)Array.IndexOf(BattleContext.Instance?.Entities ?? Array.Empty<BattleEntity>(), this);
         public float AttackMultiplier => AtkBuffMultiplier;
-        public float DefenseMultiplier => DefBuffMultiplier * (1f + (_defenseBuffStacks * BUFF_PER_STACK));
-        public bool CanBeHealed => IsAlive && _currentHP < _maxHP;
+        public float DefenseMultiplier => DefBuffMultiplier * (1f + (defenseBuffStacks * BUFF_PER_STACK));
+        public bool CanBeHealed => IsAlive && currentHP < maxHP;
         public bool CanTakeTurn() => IsAlive && !IsStunned;
         
         protected virtual void Awake()
@@ -121,45 +123,47 @@ namespace Entity
         protected virtual void Start()
         {
             Initialize();
+            battleManager = FindAnyObjectByType<BattleManager>();
+            uiController = FindAnyObjectByType<BattleUIController>();
         }
         
         private void CacheComponents()
         {
-            _spriteRenderer = GetComponentInChildren<SpriteRenderer>();
-            _outlineToggle = GetComponentInChildren<SpriteOutlineToggle>();
-            _collider2D = GetComponent<Collider2D>();
+            spriteRenderer = GetComponentInChildren<SpriteRenderer>();
+            outlineToggle = GetComponentInChildren<SpriteOutlineToggle>();
+            entityCollider = GetComponent<Collider2D>();
         }
         
         public void Initialize()
         {
-            _currentHP = _maxHP;
+            currentHP = maxHP;
             
             if (MoveSet != null && MoveSet.Count > 0)
             {
-                _moveInstances = new MoveInstance[MoveSet.Count];
+                moveInstances = new MoveInstance[MoveSet.Count];
                 for (int i = 0; i < MoveSet.Count; i++)
                 {
-                    _moveInstances[i] = new MoveInstance(MoveSet[i]);
+                    moveInstances[i] = new MoveInstance(MoveSet[i]);
                 }
             }
             else
             {
-                _moveInstances = Array.Empty<MoveInstance>();
+                moveInstances = Array.Empty<MoveInstance>();
             }
     
-            if (_spriteRenderer != null && this is not BossEntity)
+            if (spriteRenderer != null && this is not BossEntity)
             {
-                var color = _spriteRenderer.color;
+                var color = spriteRenderer.color;
                 color.a = GameConstants.UI.INACTIVE_SPRITE_ALPHA;
-                _spriteRenderer.color = color;
+                spriteRenderer.color = color;
             }
         }
         
         public ref MoveInstance GetMoveInstance(int index)
-            => ref _moveInstances[index];
+            => ref moveInstances[index];
         
         protected float GetDefenseFactor() 
-            => GameConstants.Battle.DEFENSE_FORMULA_BASE / (GameConstants.Battle.DEFENSE_FORMULA_BASE + _defense);
+            => GameConstants.Battle.DEFENSE_FORMULA_BASE / (GameConstants.Battle.DEFENSE_FORMULA_BASE + defense);
         
         protected virtual float GetWeaknessFactor(ElementType moveType) => 1f;
         
@@ -183,13 +187,9 @@ namespace Entity
 
             CurrentHP = Mathf.Clamp(CurrentHP - finalDamage, 0, MaxHP);
             
-            if (_hasCounter && CurrentHP > 0)
+            if (hasCounter && CurrentHP > 0 && battleManager != null)
             {
-                var battleManager = FindAnyObjectByType<BattleManager>();
-                if (battleManager != null)
-                {
-                    battleManager.QueueCounterAttack(this);
-                }
+                battleManager.QueueCounterAttack(this);
             }
         }
         
@@ -200,7 +200,7 @@ namespace Entity
         
         public void Heal(int amount)
         {
-            _currentHP = Mathf.Min(_currentHP + amount, _maxHP);
+            currentHP = Mathf.Min(currentHP + amount, maxHP);
         }
         
         public void ApplyBuff(BuffsType buffType, float multiplier)
@@ -208,17 +208,17 @@ namespace Entity
             switch (buffType)
             {
                 case BuffsType.Attack:
-                    if (_attackBuffStacks < MAX_BUFF_STACKS)
+                    if (attackBuffStacks < MAX_BUFF_STACKS)
                     {
-                        _attackBuffStacks++;
-                        NotifyBuffStackChanged(buffType, _attackBuffStacks);
+                        attackBuffStacks++;
+                        NotifyBuffStackChanged(buffType, attackBuffStacks);
                     }
                     break;
                 case BuffsType.Defense:
-                    if (_defenseBuffStacks < MAX_BUFF_STACKS)
+                    if (defenseBuffStacks < MAX_BUFF_STACKS)
                     {
-                        _defenseBuffStacks++;
-                        NotifyBuffStackChanged(buffType, _defenseBuffStacks);
+                        defenseBuffStacks++;
+                        NotifyBuffStackChanged(buffType, defenseBuffStacks);
                     }
                     break;
             }
@@ -229,17 +229,17 @@ namespace Entity
             switch (buffType)
             {
                 case BuffsType.Attack:
-                    if (_attackBuffStacks > 0)
+                    if (attackBuffStacks > 0)
                     {
-                        _attackBuffStacks--;
-                        NotifyBuffStackChanged(buffType, _attackBuffStacks);
+                        attackBuffStacks--;
+                        NotifyBuffStackChanged(buffType, attackBuffStacks);
                     }
                     break;
                 case BuffsType.Defense:
-                    if (_defenseBuffStacks > 0)
+                    if (defenseBuffStacks > 0)
                     {
-                        _defenseBuffStacks--;
-                        NotifyBuffStackChanged(buffType, _defenseBuffStacks);
+                        defenseBuffStacks--;
+                        NotifyBuffStackChanged(buffType, defenseBuffStacks);
                     }
                     break;
             }
@@ -247,14 +247,9 @@ namespace Entity
         
         private void NotifyBuffStackChanged(BuffsType buffType, int newStackCount)
         {
-            var battleUIController = FindAnyObjectByType<GameSystem.UI.BattleUIController>();
-            if (battleUIController != null)
+            if (uiController != null)
             {
-                var statusUIManager = battleUIController.GetStatusUIManager();
-                if (statusUIManager != null)
-                {
-                    statusUIManager.OnBuffStackChanged(this, buffType, newStackCount);
-                }
+                uiController.UpdateBuffIcon(this, buffType);
             }
         }
         
@@ -279,14 +274,14 @@ namespace Entity
         
         public void ClearBuffs()
         {
-            if (_attackBuffStacks > 0)
+            if (attackBuffStacks > 0)
             {
-                _attackBuffStacks = 0;
+                attackBuffStacks = 0;
                 NotifyBuffStackChanged(BuffsType.Attack, 0);
             }
-            if (_defenseBuffStacks > 0)
+            if (defenseBuffStacks > 0)
             {
-                _defenseBuffStacks = 0;
+                defenseBuffStacks = 0;
                 NotifyBuffStackChanged(BuffsType.Defense, 0);
             }
             DefBuffMultiplier = 1f;
@@ -307,34 +302,34 @@ namespace Entity
         
         public void EndTurn()
         {
-            for (int i = 0; i < _moveInstances.Length; i++)
+            for (int i = 0; i < moveInstances.Length; i++)
             {
-                if (_moveInstances[i].CooldownLeft > 0)
+                if (moveInstances[i].CooldownLeft > 0)
                 {
-                    _moveInstances[i].CooldownLeft--;
+                    moveInstances[i].CooldownLeft--;
                 }
             }
             
-            if (_stealthTurnsLeft > 0)
+            if (stealthTurnsLeft > 0)
             {
-                _stealthTurnsLeft--;
-                if (_stealthTurnsLeft <= 0)
+                stealthTurnsLeft--;
+                if (stealthTurnsLeft <= 0)
                 {
-                    _isStealthed = false;
+                    isStealthed = false;
                     UpdateStealthVisual();
                 }
             }
             
-            if (_counterTurnsLeft > 0)
+            if (counterTurnsLeft > 0)
             {
-                _counterTurnsLeft--;
-                if (_counterTurnsLeft <= 0) _hasCounter = false;
+                counterTurnsLeft--;
+                if (counterTurnsLeft <= 0) hasCounter = false;
             }
     
-            if (_tauntTurnsLeft > 0)
+            if (tauntTurnsLeft > 0)
             {
-                _tauntTurnsLeft--;
-                if (_tauntTurnsLeft <= 0) _isTaunting = false;
+                tauntTurnsLeft--;
+                if (tauntTurnsLeft <= 0) isTaunting = false;
             }
         }
 
@@ -346,36 +341,36 @@ namespace Entity
         
         public void ApplyStealth(int turns)
         {
-            _isStealthed = true;
-            _stealthTurnsLeft = turns;
+            isStealthed = true;
+            stealthTurnsLeft = turns;
             UpdateStealthVisual();
         }
         
         private void ApplyCounter(int turns)
         {
-            _hasCounter = true;
-            _counterTurnsLeft = turns;
+            hasCounter = true;
+            counterTurnsLeft = turns;
         }
 
         private void ApplyTaunt(int turns)
         {
-            _isTaunting = true;
-            _tauntTurnsLeft = turns;
+            isTaunting = true;
+            tauntTurnsLeft = turns;
         }
         
         private void UpdateStealthVisual()
         {
-            if (_spriteRenderer != null)
+            if (spriteRenderer != null)
             {
-                var color = _spriteRenderer.color;
-                color.a = _isStealthed ? STEALTH_ALPHA : 1f;
-                _spriteRenderer.color = color;
+                var color = spriteRenderer.color;
+                color.a = isStealthed ? STEALTH_ALPHA : 1f;
+                spriteRenderer.color = color;
             }
         }
         
         public void SetGuardState(bool guarding)
         {
-            _isGuarding = guarding;
+            isGuarding = guarding;
             DefBuffMultiplier = guarding 
                 ? DefBuffMultiplier * GameConstants.Battle.GUARD_DEFENSE_MULTIPLIER 
                 : DefBuffMultiplier / GameConstants.Battle.GUARD_DEFENSE_MULTIPLIER;
@@ -398,29 +393,29 @@ namespace Entity
 
         public void SetChargingState(bool newState, int moveIndex = -1, EntityType target = EntityType.Boss)
         {
-            _isCharging = newState;
-            _chargingMoveIndex = moveIndex;
-            _chargingMoveTarget = target;
+            isCharging = newState;
+            chargingMoveIndex = moveIndex;
+            chargingMoveTarget = target;
         }
         
         public virtual IEnumerator PlayDamageFlash(ElementType attackType, float duration)
         {
-            if (_spriteRenderer == null) yield break;
+            if (spriteRenderer == null) yield break;
 
-            Color originalColor = _spriteRenderer.color;
+            Color originalColor = spriteRenderer.color;
             float flashInterval = 0.15f;
             int flashCount = Mathf.FloorToInt(duration / (flashInterval * 2));
 
             for (int i = 0; i < flashCount; i++)
             {
-                _spriteRenderer.color = new Color(originalColor.r, originalColor.g, originalColor.b, 0f);
+                spriteRenderer.color = new Color(originalColor.r, originalColor.g, originalColor.b, 0f);
                 yield return new WaitForSeconds(flashInterval);
         
-                _spriteRenderer.color = originalColor;
+                spriteRenderer.color = originalColor;
                 yield return new WaitForSeconds(flashInterval);
             }
     
-            _spriteRenderer.color = originalColor;
+            spriteRenderer.color = originalColor;
         }
     }
 }

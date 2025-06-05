@@ -4,7 +4,6 @@ using Data;
 using UnityEngine;
 using GameSystem;
 using Entity;
-using GameSystem.UI;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
 using TMPro;
@@ -20,25 +19,23 @@ namespace UI
 
     public class ActionMenuUI : MonoBehaviour
     {
-        [SerializeField] private Transform _buttonsContainer;
-        [SerializeField] private GameObject _buttonPrefab;
-        [SerializeField] private int _maxButtonCount = 8;
+        [SerializeField] private Transform buttonsContainer;
+        [SerializeField] private GameObject buttonPrefab;
+        [SerializeField] private int maxButtonCount = 8;
 
-        private BattleUIController _uiController;
-        private BattleEntity _currentEntity;
-        private int _playerIndex;
-        private MenuState _currentState;
+        private BattleUIController uiController;
+        private BattleEntity currentEntity;
+        private int playerIndex;
+        private MenuState currentState;
         
-        private List<GameObject> _buttons = new List<GameObject>(8);
-        private CanvasGroup _containerCanvasGroup;
-        private bool _isInitialized = false;
-        
-        private MessageUIManager _messageUIManager;
+        private List<GameObject> buttons = new List<GameObject>(8);
+        private CanvasGroup containerCanvasGroup;
+        private bool isInitialized = false;
 
         private const float ACTION_MESSAGE_DURATION = 1f;
         
-        private readonly Action[] _mainMenuActions = new Action[4];
-        private readonly string[] _mainMenuLabels = { "Fight", "Item", "Guard", "Taunt" };
+        private readonly Action[] mainMenuActions = new Action[4];
+        private readonly string[] mainMenuLabels = { "Fight", "Item", "Guard", "Taunt" };
 
         private void Awake()
         {
@@ -47,56 +44,44 @@ namespace UI
 
         private void Initialize()
         {
-            if (_buttonsContainer != null)
+            if (buttonsContainer != null)
             {
-                _containerCanvasGroup = _buttonsContainer.GetComponent<CanvasGroup>();
-                if (_containerCanvasGroup == null)
+                containerCanvasGroup = buttonsContainer.GetComponent<CanvasGroup>();
+                if (containerCanvasGroup == null)
                 {
-                    _containerCanvasGroup = _buttonsContainer.gameObject.AddComponent<CanvasGroup>();
+                    containerCanvasGroup = buttonsContainer.gameObject.AddComponent<CanvasGroup>();
                 }
             }
             
             CreateButtons();
-            OptimizeButtons();
             
-            _mainMenuActions[0] = () => SwitchMenuState(MenuState.Moves);
-            _mainMenuActions[1] = () => SwitchMenuState(MenuState.Items);
-            _mainMenuActions[2] = () => HandleActionSelect(ActionType.Guard, -1);
-            _mainMenuActions[3] = () => HandleActionSelect(ActionType.Taunt, -1);
+            mainMenuActions[0] = () => SwitchMenuState(MenuState.Moves);
+            mainMenuActions[1] = () => SwitchMenuState(MenuState.Items);
+            mainMenuActions[2] = () => HandleActionSelect(ActionType.Guard, -1);
+            mainMenuActions[3] = () => HandleActionSelect(ActionType.Taunt, -1);
             
-            _isInitialized = true;
-            
-            _messageUIManager = FindAnyObjectByType<MessageUIManager>();
+            isInitialized = true;
         }
 
         private void CreateButtons()
         {
-            for (int i = 0; i < _maxButtonCount; i++)
+            for (int i = 0; i < maxButtonCount; i++)
             {
-                GameObject buttonObj = Instantiate(_buttonPrefab, _buttonsContainer);
+                GameObject buttonObj = Instantiate(buttonPrefab, buttonsContainer);
                 buttonObj.SetActive(false);
-                _buttons.Add(buttonObj);
-            }
-        }
-
-        private void OptimizeButtons()
-        {
-            var canvasOptimizer = CanvasOptimizer.Instance;
-            if (canvasOptimizer != null && _buttonsContainer != null)
-            {
-                canvasOptimizer.OptimizeUIElement(_buttonsContainer.gameObject);
+                buttons.Add(buttonObj);
             }
         }
 
         public void Setup(BattleUIController controller, BattleEntity entity, int playerIndex)
         {
-            if (!_isInitialized)
+            if (!isInitialized)
                 Initialize();
             
-            _uiController = controller;
-            _currentEntity = entity;
-            _playerIndex = playerIndex;
-            _currentState = MenuState.Main;
+            uiController = controller;
+            currentEntity = entity;
+            this.playerIndex = playerIndex;
+            currentState = MenuState.Main;
             
             if (entity == null) return;
 
@@ -105,10 +90,10 @@ namespace UI
 
         private void RefreshButtons()
         {
-            if (_messageUIManager != null)
-                _messageUIManager.ShowMessage($"What will {_currentEntity.EntityName} do?", ACTION_MESSAGE_DURATION);
+            if (uiController != null)
+                uiController.ShowMessage($"What will {currentEntity.EntityName} do?", ACTION_MESSAGE_DURATION);
             
-            switch (_currentState)
+            switch (currentState)
             {
                 case MenuState.Main:
                     ShowMainMenu();
@@ -125,10 +110,10 @@ namespace UI
         {
             HideAllButtons();
             
-            for (int i = 0; i < _mainMenuLabels.Length && i < _buttons.Count; i++)
+            for (int i = 0; i < mainMenuLabels.Length && i < buttons.Count; i++)
             {
-                SetupButton(_buttons[i], _mainMenuLabels[i], _mainMenuActions[i]);
-                _buttons[i].SetActive(true);
+                SetupButton(buttons[i], mainMenuLabels[i], mainMenuActions[i]);
+                buttons[i].SetActive(true);
             }
             
             SetContainerActive(true);
@@ -138,19 +123,19 @@ namespace UI
         {
             HideAllButtons();
             
-            ReadOnlySpan<MoveInstance> currentMoves = _currentEntity.MoveInstances;
+            ReadOnlySpan<MoveInstance> currentMoves = currentEntity.MoveInstances;
             int moveCount = currentMoves.Length;
 
-            for (int i = 0; i < moveCount && i < _buttons.Count; i++)
+            for (int i = 0; i < moveCount && i < buttons.Count; i++)
             {
                 int index = i;
                 var moveData = currentMoves[i].Data;
                 
-                SetupButton(_buttons[i], moveData.Name, () => HandleActionSelect(ActionType.Move, index));
-                _buttons[i].SetActive(true);
+                SetupButton(buttons[i], moveData.Name, () => HandleActionSelect(ActionType.Move, index));
+                buttons[i].SetActive(true);
                 
-                var eventTrigger = _buttons[i].GetComponent<EventTrigger>() 
-                                  ?? _buttons[i].gameObject.AddComponent<EventTrigger>();
+                var eventTrigger = buttons[i].GetComponent<EventTrigger>() 
+                                  ?? buttons[i].gameObject.AddComponent<EventTrigger>();
                 
                 eventTrigger.triggers.Clear();
                 
@@ -186,7 +171,7 @@ namespace UI
 
         private void HideAllButtons()
         {
-            foreach (var button in _buttons)
+            foreach (var button in buttons)
             {
                 button.SetActive(false);
             }
@@ -195,39 +180,39 @@ namespace UI
         private void ShowMoveDescription(MoveData moveData)
         {
             string description = $"{moveData.Name}: Power {moveData.Effects[0].Power}, Type: {moveData.Type}\n{moveData.Description}";
-            if (_messageUIManager != null)
-                _messageUIManager.ShowMessage(description, float.MaxValue);
+            if (uiController != null)
+                uiController.ShowMessage(description, float.MaxValue);
         }
 
         private void HideMoveDescription()
         {
-            if (_messageUIManager != null)
-                _messageUIManager.ClearAllMessages();
+            if (uiController != null)
+                uiController.ShowMessage("", 0f);
         }
 
         private void SetContainerActive(bool active)
         {
-            if (_containerCanvasGroup != null)
+            if (containerCanvasGroup != null)
             {
-                _containerCanvasGroup.alpha = active ? 1f : 0f;
-                _containerCanvasGroup.interactable = active;
-                _containerCanvasGroup.blocksRaycasts = active;
+                containerCanvasGroup.alpha = active ? 1f : 0f;
+                containerCanvasGroup.interactable = active;
+                containerCanvasGroup.blocksRaycasts = active;
             }
         }
 
         private void SwitchMenuState(MenuState newState)
         {
-            _currentState = newState;
+            currentState = newState;
             
-            if (_uiController != null)
-                _uiController.OnMenuStateChanged(newState, _playerIndex);
+            if (uiController != null)
+                uiController.OnMenuStateChanged(newState, playerIndex);
                 
             RefreshButtons();
         }
 
         private void HandleActionSelect(ActionType actionType, int actionIndex)
         {
-            _uiController.OnActionSelect(actionType, actionIndex);
+            uiController.OnActionSelect(actionType, actionIndex);
         }
     }
 }

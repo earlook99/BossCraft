@@ -12,39 +12,43 @@ namespace Entity
     public class BossEntity : BattleEntity
     {
         [Header("Shield System")]
-        [SerializeField] private ShieldPattern _shieldPattern;
+        [SerializeField] private ShieldPattern shieldPattern;
         
-        private int _shieldHP = 0;
-        private int _shieldStacks = 0;
-        private int _maxShieldStacks = 3;
-        private int _lastDamageTurn = -1;
+        private int shieldHP = 0;
+        private int shieldStacks = 0;
+        private int maxShieldStacks = 3;
+        private int lastDamageTurn = -1;
+        
+        private BattleManager battleManager;
         
         private const float SHIELD_DAMAGE_REDUCTION = 0.5f;
         private const int SHIELD_BREAK_STUN_DURATION = 1;
 
-        public bool HasShield => _shieldHP > 0;
-        public int ShieldHP => _shieldHP;
-        public int ShieldStacks => _shieldStacks;
-        public int MaxShieldStacks => _maxShieldStacks;
-        public ShieldPattern ShieldPattern => _shieldPattern;
+        public bool HasShield => shieldHP > 0;
+        public int ShieldHP => shieldHP;
+        public int ShieldStacks => shieldStacks;
+        public int MaxShieldStacks => maxShieldStacks;
+        public ShieldPattern ShieldPattern => shieldPattern;
 
         protected override void Start()
         {
             base.Start();
+            
+            battleManager = FindAnyObjectByType<BattleManager>();
     
-            if (_shieldPattern != null)
+            if (shieldPattern != null)
             {
-                _shieldPattern.ResetTriggers();
+                shieldPattern.ResetTriggers();
             }
         }
         
         public ShieldTrigger GetAvailableShieldTrigger(int currentTurn)
         {
-            if (_shieldPattern == null || HasShield) return null;
+            if (shieldPattern == null || HasShield) return null;
             
             float hpRatio = (float)CurrentHP / MaxHP;
             
-            foreach (var trigger in _shieldPattern.Triggers)
+            foreach (var trigger in shieldPattern.Triggers)
             {
                 if (trigger.HasBeenUsed) continue;
                 
@@ -68,9 +72,9 @@ namespace Entity
             if (hpToConvert <= 0) return;
             
             CurrentHP -= hpToConvert;
-            _shieldHP = hpToConvert;
-            _shieldStacks = trigger.StackCount;
-            _maxShieldStacks = trigger.StackCount;
+            shieldHP = hpToConvert;
+            shieldStacks = trigger.StackCount;
+            maxShieldStacks = trigger.StackCount;
             
             trigger.HasBeenUsed = true;
             UpdateDefenseWithShield();
@@ -78,15 +82,15 @@ namespace Entity
 
         private ShieldTrigger GetDefaultTrigger()
         {
-            return _shieldPattern != null && _shieldPattern.Triggers.Length > 0 
-                ? _shieldPattern.Triggers[0] 
+            return shieldPattern != null && shieldPattern.Triggers.Length > 0 
+                ? shieldPattern.Triggers[0] 
                 : null;
         }
 
         private int CalculateHPToConvert(ShieldTrigger trigger)
         {
             int hpToConvert = Mathf.RoundToInt(CurrentHP * trigger.HPConversionRatio);
-            int minimumHP = Mathf.RoundToInt(MaxHP * _shieldPattern.MinimumHPRatio);
+            int minimumHP = Mathf.RoundToInt(MaxHP * shieldPattern.MinimumHPRatio);
             
             return Mathf.Min(hpToConvert, CurrentHP - minimumHP);
         }
@@ -94,12 +98,11 @@ namespace Entity
         public override void TakeDamage(ElementType moveType, int damage)
         {
             int currentTurn = 0;
-            var battleContext = BattleContext.Instance;
-            if (battleContext != null)
+            if (battleManager != null)
             {
-                currentTurn = battleContext.GetCurrentTurn();
+                currentTurn = battleManager.GetCurrentTurn();
             }
-            _lastDamageTurn = currentTurn;
+            lastDamageTurn = currentTurn;
             
             if (!HasShield)
             {
@@ -121,27 +124,27 @@ namespace Entity
 
         private void HandleWeaknessDamage()
         {
-            _shieldStacks--;
+            shieldStacks--;
                 
-            if (_shieldStacks <= 0)
+            if (shieldStacks <= 0)
             {
                 DestroyShield();
                 return;
             }
                 
-            _shieldHP = Mathf.RoundToInt(_shieldHP * (_shieldStacks / (float)_maxShieldStacks));
+            shieldHP = Mathf.RoundToInt(shieldHP * (shieldStacks / (float)maxShieldStacks));
         }
 
         private void HandleNormalDamage(int damage)
         {
             int shieldDamage = Mathf.RoundToInt(damage * GetDefenseFactor() * SHIELD_DAMAGE_REDUCTION);
-            _shieldHP -= shieldDamage;
+            shieldHP -= shieldDamage;
                 
-            if (_shieldHP <= 0)
+            if (shieldHP <= 0)
             {
-                _shieldStacks--;
+                shieldStacks--;
                     
-                if (_shieldStacks <= 0)
+                if (shieldStacks <= 0)
                 {
                     DestroyShield();
                 }
@@ -154,22 +157,22 @@ namespace Entity
 
         private void RecalculateShieldHP()
         {
-            int originalShieldHP = Mathf.RoundToInt((CurrentHP + _shieldHP) * 0.25f);
-            _shieldHP = Mathf.RoundToInt(originalShieldHP * (_shieldStacks / (float)_maxShieldStacks));
+            int originalShieldHP = Mathf.RoundToInt((CurrentHP + shieldHP) * 0.25f);
+            shieldHP = Mathf.RoundToInt(originalShieldHP * (shieldStacks / (float)maxShieldStacks));
         }
         
         private void DestroyShield()
         {
-            _shieldHP = 0;
-            _shieldStacks = 0;
+            shieldHP = 0;
+            shieldStacks = 0;
             UpdateDefenseWithShield();
             ApplyStun(SHIELD_BREAK_STUN_DURATION);
         }
         
         private void UpdateDefenseWithShield()
         {
-            float multiplier = HasShield && _shieldPattern != null 
-                ? _shieldPattern.DefenseMultiplier 
+            float multiplier = HasShield && shieldPattern != null 
+                ? shieldPattern.DefenseMultiplier 
                 : 1f;
             DefBuffMultiplier = multiplier;
         }
@@ -179,9 +182,9 @@ namespace Entity
 
         public override IEnumerator PlayDamageFlash(ElementType attackType, float duration)
         {
-            if (_spriteRenderer == null) yield break;
+            if (SpriteRenderer == null) yield break;
 
-            Color originalColor = _spriteRenderer.color;
+            Color originalColor = SpriteRenderer.color;
 
             float effectiveness = TypeChart.GetEffectiveness(attackType, this.ElementType);
             bool isWeakness = effectiveness > 1f;
@@ -193,14 +196,14 @@ namespace Entity
 
             for (int i = 0; i < flashCount; i++)
             {
-                _spriteRenderer.color = new Color(flashColor.r, flashColor.g, flashColor.b, 0f);
+                SpriteRenderer.color = new Color(flashColor.r, flashColor.g, flashColor.b, 0f);
                 yield return new WaitForSeconds(flashInterval);
         
-                _spriteRenderer.color = flashColor;
+                SpriteRenderer.color = flashColor;
                 yield return new WaitForSeconds(flashInterval);
             }
 
-            _spriteRenderer.color = originalColor;
+            SpriteRenderer.color = originalColor;
         }
     }
 }

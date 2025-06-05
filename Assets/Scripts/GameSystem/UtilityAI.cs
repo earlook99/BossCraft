@@ -11,6 +11,7 @@ namespace GameSystem
         private readonly BattleEntity _boss;
         private readonly BattleEntity[] _party;
         private readonly AIWeights _weights;
+        private readonly int _currentTurn;
         
         private readonly List<int> _validTargetIndices = new List<int>(4);
 
@@ -19,11 +20,12 @@ namespace GameSystem
         private const float SHIELD_PRIORITY_SCORE = 1000f;
         private const int INVALID_MOVE_INDEX = -1;
 
-        public UtilityAI(BattleEntity boss, BattleEntity[] party, AIWeights weights)
+        public UtilityAI(BattleEntity boss, BattleEntity[] party, AIWeights weights, int currentTurn = 0)
         {
             _boss = boss;
             _party = party;
             _weights = weights;
+            _currentTurn = currentTurn;
         }
 
         public MoveDecision Decide()
@@ -54,9 +56,7 @@ namespace GameSystem
             if (!(_boss is BossEntity bossEntity) || bossEntity.HasShield)
                 return false;
 
-            var trigger = bossEntity.GetAvailableShieldTrigger(
-                BattleContext.Instance?.GetCurrentTurn() ?? 0
-            );
+            var trigger = bossEntity.GetAvailableShieldTrigger(_currentTurn);
 
             if (trigger == null)
                 return false;
@@ -137,7 +137,6 @@ namespace GameSystem
 
         private float ScoreSingle(MoveData data, ref EntityType targetOut)
         {
-            // 도발 우선 처리
             for (int i = 0; i < _party.Length; i++)
             {
                 if (_party[i] != null && _party[i].IsTaunting && _party[i].CurrentHP > 0)
