@@ -6,7 +6,6 @@ using AI;
 using GameSystem;
 using UnityEngine;
 using Data;
-using GameSystem.Utils;
 
 namespace Entity
 {
@@ -177,34 +176,31 @@ namespace Entity
         
         protected override float GetWeaknessFactor(ElementType moveType) 
             => TypeChart.GetEffectiveness(moveType, this.ElementType);
-        
-        public override async Task PlayDamageFlashAsync(ElementType attackType, float duration, CancellationToken ct)
+
+        public override IEnumerator PlayDamageFlash(ElementType attackType, float duration)
         {
-            if (_spriteRenderer == null) return;
-    
+            if (_spriteRenderer == null) yield break;
+
             Color originalColor = _spriteRenderer.color;
-    
+
             float effectiveness = TypeChart.GetEffectiveness(attackType, this.ElementType);
             bool isWeakness = effectiveness > 1f;
-    
+
             Color flashColor = isWeakness ? new Color(1f, 0.3f, 0.3f, originalColor.a) : originalColor;
-    
+
             float flashInterval = 0.15f;
             int flashCount = Mathf.FloorToInt(duration / (flashInterval * 2));
-    
-            for (int i = 0; i < flashCount && !ct.IsCancellationRequested; i++)
+
+            for (int i = 0; i < flashCount; i++)
             {
                 _spriteRenderer.color = new Color(flashColor.r, flashColor.g, flashColor.b, 0f);
-                await AsyncUtilities.WaitForSecondsAsync(flashInterval, ct);
+                yield return new WaitForSeconds(flashInterval);
         
                 _spriteRenderer.color = flashColor;
-                await AsyncUtilities.WaitForSecondsAsync(flashInterval, ct);
+                yield return new WaitForSeconds(flashInterval);
             }
-    
-            if (!ct.IsCancellationRequested)
-            {
-                _spriteRenderer.color = originalColor;
-            }
+
+            _spriteRenderer.color = originalColor;
         }
     }
 }

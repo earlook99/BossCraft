@@ -1,10 +1,7 @@
-// PoolableStatusIcon.cs
-using System.Threading;
-using System.Threading.Tasks;
+using System.Collections;
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
-using GameSystem.Utils;
 
 namespace GameSystem.Pooling
 {
@@ -15,6 +12,7 @@ namespace GameSystem.Pooling
         [SerializeField] private float _fadeInDuration = 0.3f;
         
         private CanvasGroup _canvasGroup;
+        private Coroutine _fadeCoroutine;
         
         private void Awake()
         {
@@ -45,7 +43,10 @@ namespace GameSystem.Pooling
                 }
             }
             
-            _ = FadeInAsync(_cts.Token);
+            if (_fadeCoroutine != null)
+                StopCoroutine(_fadeCoroutine);
+                
+            _fadeCoroutine = StartCoroutine(FadeIn());
         }
         
         public void UpdateStack(int stackCount)
@@ -64,27 +65,29 @@ namespace GameSystem.Pooling
             }
         }
         
-        private async Task FadeInAsync(CancellationToken ct)
+        private IEnumerator FadeIn()
         {
             float elapsed = 0f;
             _canvasGroup.alpha = 0f;
             
-            while (elapsed < _fadeInDuration && !ct.IsCancellationRequested)
+            while (elapsed < _fadeInDuration)
             {
                 elapsed += Time.deltaTime;
                 _canvasGroup.alpha = elapsed / _fadeInDuration;
-                await AsyncUtilities.NextFrameAsync(ct);
+                yield return null;
             }
             
-            if (!ct.IsCancellationRequested)
-            {
-                _canvasGroup.alpha = 1f;
-            }
+            _canvasGroup.alpha = 1f;
         }
         
         public override void OnDespawned()
         {
             base.OnDespawned();
+            if (_fadeCoroutine != null)
+            {
+                StopCoroutine(_fadeCoroutine);
+                _fadeCoroutine = null;
+            }
         }
         
         public override void ResetUI()

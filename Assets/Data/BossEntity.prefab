@@ -612,7 +612,7 @@ MonoBehaviour:
   ElementType: 0
   _maxHP: 1000
   _currentHP: 0
-  _attack: 80
+  _attack: 160
   _defense: 80
   MoveSet:
   - {fileID: 11400000, guid: 050df3a77724f614490405b0e9ac7816, type: 2}

@@ -1,5 +1,4 @@
-using System.Threading;
-using System.Threading.Tasks;
+using System.Collections;
 using UnityEngine;
 using Entity;
 using AI;
@@ -8,7 +7,6 @@ using CameraSystem;
 using GameSystem.Events;
 using GameSystem.Factory;
 using GameSystem.UI;
-using GameSystem.Utils;
 
 namespace GameSystem
 {
@@ -32,7 +30,6 @@ namespace GameSystem
         private BattleEffectProcessor _effectProcessor;
         private ActionQueue _actionQueue;
         private BattleContext _battleContext;
-        private CancellationTokenManager _cancellationManager;
         
         private BattleEntity[] _entities;
         private ActionData _pendingAction;
@@ -43,9 +40,9 @@ namespace GameSystem
             SubscribeToEvents();
         }
         
-        private async void Start()
+        private void Start()
         {
-            await InitializeBattleAsync(_cancellationManager.Token);
+            StartCoroutine(InitializeBattle());
         }
         
         private void OnDestroy()
@@ -56,8 +53,6 @@ namespace GameSystem
         
         private void InitializeComponents()
         {
-            _cancellationManager = gameObject.AddComponent<CancellationTokenManager>();
-            
             _battleContext = GetComponent<BattleContext>();
             if (_battleContext == null)
             {
@@ -95,16 +90,16 @@ namespace GameSystem
             UIEvents.ClearAllListeners();
         }
         
-        private async Task InitializeBattleAsync(CancellationToken ct)
+        private IEnumerator InitializeBattle()
         {
-            await AsyncUtilities.WaitForSecondsAsync(0.1f, ct);
+            yield return new WaitForSeconds(0.1f);
             
             CreateEntities();
             
             if (_entities == null || _entities.Length == 0)
             {
                 Debug.LogError("Failed to create entities");
-                return;
+                yield break;
             }
             
             _battleContext.Initialize(_entities, _stateMachine, _turnManager);
@@ -114,7 +109,7 @@ namespace GameSystem
             
             BattleEvents.RaiseBattleStarted(_entities);
             
-            await AsyncUtilities.WaitForSecondsAsync(_battleSettings.TurnStartDelay, ct);
+            yield return new WaitForSeconds(_battleSettings.TurnStartDelay);
             
             _stateMachine.TransitionTo(BattleState.PlayerChoice);
         }
@@ -147,10 +142,10 @@ namespace GameSystem
                     HandlePlayerChoice();
                     break;
                 case BattleState.BossAction:
-                    _actionQueue.EnqueueActionAsync(
+                    _actionQueue.EnqueueAction(
                         new ActionData(),
-                        () => HandleBossTurnAsync(_cancellationManager.Token),
-                        0f
+                        () => HandleBossTurn(),
+                        null
                     );
                     break;
                 case BattleState.CheckBattleEnd:
@@ -175,10 +170,9 @@ namespace GameSystem
             
             if (currentEntity.IsStunned)
             {
-                _actionQueue.EnqueueActionAsync(
+                _actionQueue.EnqueueAction(
                     new ActionData(),
-                    () => ShowStunnedMessageAsync(currentEntity, _cancellationManager.Token),
-                    0f,
+                    () => ShowStunnedMessage(currentEntity),
                     (success) => AdvanceTurn()
                 );
             }
@@ -202,15 +196,15 @@ namespace GameSystem
             }
         }
         
-        private async Task HandleBossTurnAsync(CancellationToken ct)
+        private IEnumerator HandleBossTurn()
         {
             _cameraManager.SwitchCameraTo(CineCamType.ZoomOut);
             SetSpriteAlphaExclusive(-1);
             
-            await AsyncUtilities.WaitForSecondsAsync(_battleSettings.TurnTransitionDelay, ct);
+            yield return new WaitForSeconds(_battleSettings.TurnTransitionDelay);
             
             var boss = _turnManager.GetBoss();
-            if (boss == null) return;
+            if (boss == null) yield break;
             
             ActionData bossAction;
             
@@ -229,7 +223,7 @@ namespace GameSystem
                 var bossAI = new UtilityAI(boss, players, _aiWeights);
                 var decision = bossAI.Decide();
                 
-                if (decision.MoveIndex < 0) return;
+                if (decision.MoveIndex < 0) yield break;
                 
                 bossAction = new ActionData(
                     ActionType.Move,
@@ -239,7 +233,7 @@ namespace GameSystem
                 );
             }
             
-            await _actionExecutor.ExecuteActionAsync(bossAction, ct);
+            yield return _actionExecutor.ExecuteAction(bossAction);
             
             _stateMachine.TransitionTo(BattleState.CheckBattleEnd);
         }
@@ -288,25 +282,24 @@ namespace GameSystem
         
         private void EnqueuePlayerAction(ActionData action)
         {
-            _actionQueue.EnqueueActionAsync(
+            _actionQueue.EnqueueAction(
                 action,
-                () => ExecutePlayerActionAsync(action, _cancellationManager.Token),
-                0f,
+                () => ExecutePlayerAction(action),
                 (success) => AdvanceTurn()
             );
         }
         
-        private async Task ExecutePlayerActionAsync(ActionData action, CancellationToken ct)
+        private IEnumerator ExecutePlayerAction(ActionData action)
         {
             _stateMachine.TransitionTo(BattleState.ExecutingAction);
-            await _actionExecutor.ExecuteActionAsync(action, ct);
+            yield return _actionExecutor.ExecuteAction(action);
         }
         
-        private async Task ShowStunnedMessageAsync(BattleEntity entity, CancellationToken ct)
+        private IEnumerator ShowStunnedMessage(BattleEntity entity)
         {
             entity.StartTurn();
             UIEvents.RaiseShowMessage($"{entity.EntityName} is stunned!", _battleSettings.MessageDuration);
-            await AsyncUtilities.WaitForSecondsAsync(_battleSettings.MessageDuration, ct);
+            yield return new WaitForSeconds(_battleSettings.MessageDuration);
         }
         
         public void QueueCounterAttack(BattleEntity counter)
@@ -314,21 +307,22 @@ namespace GameSystem
             var boss = _entities[GameConstants.Battle.BOSS_INDEX];
             if (boss.CurrentHP > 0)
             {
-                _actionQueue.EnqueueActionAsync(
+                _actionQueue.EnqueueAction(
                     new ActionData(),
-                    async () => {
-                        UIEvents.RaiseShowMessage($"{counter.EntityName} counters!", 1f);
-                        await AsyncUtilities.WaitForSecondsAsync(1f, _cancellationManager.Token);
-                
-                        // 이펙트 제거 - 이미 버프 적용 시 재생됨
-                
-                        int damage = Mathf.RoundToInt(counter.Attack * 0.5f);
-                        boss.TakeDamage(counter.ElementType, damage);
-                        BattleEvents.RaiseDamageDealt(counter, boss, damage, counter.ElementType);
-                    },
-                    0f
+                    () => ExecuteCounterAttack(counter, boss),
+                    null
                 );
             }
+        }
+        
+        private IEnumerator ExecuteCounterAttack(BattleEntity counter, BattleEntity boss)
+        {
+            UIEvents.RaiseShowMessage($"{counter.EntityName} counters!", 1f);
+            yield return new WaitForSeconds(1f);
+            
+            int damage = Mathf.RoundToInt(counter.Attack * 0.5f);
+            boss.TakeDamage(counter.ElementType, damage);
+            BattleEvents.RaiseDamageDealt(counter, boss, damage, counter.ElementType);
         }
         
         private void AdvanceTurn()
@@ -363,16 +357,16 @@ namespace GameSystem
         
         private void HandleEntityDefeated(EntityDefeatedEventArgs args)
         {
-            _actionQueue.EnqueueActionAsync(
+            _actionQueue.EnqueueAction(
                 new ActionData(),
-                () => WaitAndCheckBattleEndAsync(_cancellationManager.Token),
-                float.MaxValue
+                () => WaitAndCheckBattleEnd(),
+                null
             );
         }
         
-        private async Task WaitAndCheckBattleEndAsync(CancellationToken ct)
+        private IEnumerator WaitAndCheckBattleEnd()
         {
-            await AsyncUtilities.WaitForSecondsAsync(0.5f, ct);
+            yield return new WaitForSeconds(0.5f);
             CheckBattleEnd();
         }
         
@@ -426,7 +420,6 @@ namespace GameSystem
         
         private void CleanupBattle()
         {
-            _cancellationManager?.Cancel();
             _actionQueue?.Clear();
             
             var entityFactory = EntityFactory.Instance;

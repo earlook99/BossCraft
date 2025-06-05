@@ -45,11 +45,9 @@ namespace GameSystem
 
         public static float GetEffectiveness(ElementType moveType, ElementType defenderType)
         {
-            // 같은 타입끼리는 보통 효과
             if (moveType == defenderType) 
                 return NORMAL_EFFECTIVENESS;
             
-            // 라이벌 관계 확인
             foreach (var (type1, type2) in RivalPairs)
             {
                 if ((moveType == type1 && defenderType == type2) || 
@@ -59,7 +57,6 @@ namespace GameSystem
                 }
             }
             
-            // 사이클 내 관계 확인
             float cycleEffectiveness = CheckCycleEffectiveness(moveType, defenderType, NatureCycle);
             if (cycleEffectiveness != NORMAL_EFFECTIVENESS)
                 return cycleEffectiveness;
@@ -68,7 +65,6 @@ namespace GameSystem
             if (cycleEffectiveness != NORMAL_EFFECTIVENESS)
                 return cycleEffectiveness;
             
-            // 나머지는 모두 보통 효과
             return NORMAL_EFFECTIVENESS;
         }
         
@@ -77,21 +73,17 @@ namespace GameSystem
             int moveIndex = System.Array.IndexOf(cycle, moveType);
             int defenderIndex = System.Array.IndexOf(cycle, defenderType);
             
-            // 둘 중 하나라도 이 사이클에 없으면 중립
             if (moveIndex == -1 || defenderIndex == -1)
                 return NORMAL_EFFECTIVENESS;
             
-            // 다음 인덱스 (순환하므로 모듈로 연산)
             int nextIndex = (moveIndex + 1) % cycle.Length;
             if (defenderIndex == nextIndex)
                 return SUPER_EFFECTIVE;
             
-            // 이전 인덱스 (순환하므로 음수 처리 필요)
             int prevIndex = (moveIndex - 1 + cycle.Length) % cycle.Length;
             if (defenderIndex == prevIndex)
                 return NOT_VERY_EFFECTIVE;
             
-            // 같은 사이클 내 다른 위치는 중립
             return NORMAL_EFFECTIVENESS;
         }
     }

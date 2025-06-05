@@ -1,12 +1,11 @@
-// BattleEntity.cs 수정
 using System;
+using System.Collections;
 using GameSystem;
 using GameSystem.Interfaces;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Data;
-using GameSystem.Utils;
 using UI;
 using UnityEngine;
 
@@ -24,11 +23,10 @@ namespace Entity
         [SerializeField] private int _attack = 50;
         [SerializeField] private int _defense = 50;
         
-        // 버프 스택 추가
         private int _attackBuffStacks = 0;
         private int _defenseBuffStacks = 0;
         private const int MAX_BUFF_STACKS = 2;
-        private const float BUFF_PER_STACK = 0.2f; // 스택당 20% 증가
+        private const float BUFF_PER_STACK = 0.2f;
         
         public int MaxHP 
         { 
@@ -404,27 +402,24 @@ namespace Entity
             _chargingMoveTarget = target;
         }
         
-        public virtual async Task PlayDamageFlashAsync(ElementType attackType, float duration, CancellationToken ct)
+        public virtual IEnumerator PlayDamageFlash(ElementType attackType, float duration)
         {
-            if (_spriteRenderer == null) return;
-    
+            if (_spriteRenderer == null) yield break;
+
             Color originalColor = _spriteRenderer.color;
             float flashInterval = 0.15f;
             int flashCount = Mathf.FloorToInt(duration / (flashInterval * 2));
-    
-            for (int i = 0; i < flashCount && !ct.IsCancellationRequested; i++)
+
+            for (int i = 0; i < flashCount; i++)
             {
                 _spriteRenderer.color = new Color(originalColor.r, originalColor.g, originalColor.b, 0f);
-                await AsyncUtilities.WaitForSecondsAsync(flashInterval, ct);
+                yield return new WaitForSeconds(flashInterval);
         
                 _spriteRenderer.color = originalColor;
-                await AsyncUtilities.WaitForSecondsAsync(flashInterval, ct);
+                yield return new WaitForSeconds(flashInterval);
             }
     
-            if (!ct.IsCancellationRequested)
-            {
-                _spriteRenderer.color = originalColor;
-            }
+            _spriteRenderer.color = originalColor;
         }
     }
 }

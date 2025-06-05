@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -7,7 +8,6 @@ using System.Linq;
 using SimpleFileBrowser;
 using Data;
 using GameSystem;
-using GameSystem.Utils;
 using TMPro;
 using UI;
 using UnityEngine;
@@ -165,18 +165,17 @@ namespace AI
                 : ServerConfig.HUGGINGFACE_URL;
         }
 
-        private async void Start()
+        private void Start()
         {
             InitializeButtons();
             InitializeUI();
-            await WarmupServerAsync(_cts.Token);
+            StartCoroutine(WarmupServer());
         }
 
         private void OnDestroy()
         {
-            _cts?.Cancel();
-            _cts?.Dispose();
-            
+            // _cts 관련 코드 삭제
+    
             if (uploadedTexture != null) Destroy(uploadedTexture);
             if (generatedImage.texture != null) Destroy(generatedImage.texture);
             if (bossSprite != null && bossSprite.texture != null) Destroy(bossSprite.texture);
@@ -185,8 +184,8 @@ namespace AI
         private void InitializeButtons()
         {
             selectImageButton.onClick.AddListener(SelectImage);
-            generateButton.onClick.AddListener(() => _ = GenerateBossImageAsync());
-            rerollButton.onClick.AddListener(() => _ = GenerateBossImageAsync());
+            generateButton.onClick.AddListener(() => StartCoroutine(GenerateBossImage()));
+            rerollButton.onClick.AddListener(() => StartCoroutine(GenerateBossImage()));
             confirmBossButton.onClick.AddListener(ConfirmBoss);
             returnButton.onClick.AddListener(ReturnToPreviousScene);
             downloadButton.onClick.AddListener(DownloadGeneratedImage);
@@ -209,7 +208,7 @@ namespace AI
             UpdateUIState();
         }
 
-        private async Task WarmupServerAsync(CancellationToken ct)
+        private IEnumerator WarmupServer()
         {
             _isServerReady = false;
             UpdateUIState();
@@ -219,38 +218,22 @@ namespace AI
             _stringBuilder.Append(activeServerUrl).Append(STATUS_ENDPOINT);
             string statusUrl = _stringBuilder.ToString();
 
-            try
+            using (UnityWebRequest www = UnityWebRequest.Get(statusUrl))
             {
-                using (UnityWebRequest www = UnityWebRequest.Get(statusUrl))
+                www.timeout = REQUEST_TIMEOUT;
+        
+                yield return www.SendWebRequest();
+
+                if (www.result == UnityWebRequest.Result.Success)
                 {
-                    www.timeout = REQUEST_TIMEOUT;
-                    
-                    var operation = www.SendWebRequest();
-                    while (!operation.isDone && !ct.IsCancellationRequested)
-                    {
-                        await AsyncUtilities.NextFrameAsync(ct);
-                    }
-
-                    if (ct.IsCancellationRequested) return;
-
-                    if (www.result == UnityWebRequest.Result.Success)
-                    {
-                        ProcessServerStatus(www.downloadHandler.text);
-                    }
-                    else
-                    {
-                        HandleError(www, "Server status check failed");
-                    }
+                    ProcessServerStatus(www.downloadHandler.text);
+                }
+                else
+                {
+                    HandleError(www, "Server status check failed");
                 }
             }
-            catch (Exception e)
-            {
-                _stringBuilder.Clear();
-                _stringBuilder.Append("Server check failed: ").Append(e.Message);
-                UpdateStatus(_stringBuilder.ToString());
-                Debug.LogError($"Warmup error: {e}");
-            }
-            
+    
             UpdateUIState();
         }
 
@@ -333,12 +316,12 @@ namespace AI
 
 
 #if UNITY_EDITOR
-        private async void SelectImageInEditor()
+        private void SelectImageInEditor()
         {
             string path = UnityEditor.EditorUtility.OpenFilePanel("Select Image", "", "png,jpg,jpeg");
             if (!string.IsNullOrEmpty(path))
             {
-                await LoadImageAsync(path);
+                StartCoroutine(LoadImage(path));
             }
         }
 #endif
@@ -353,13 +336,13 @@ namespace AI
                 FileBrowser.PickMode.Files, false, null, null, "Select Boss Image", "Select");
         }
         
-        private async void OnFileSelected(string[] paths)
+        private void OnFileSelected(string[] paths)
         {
             if (paths != null && paths.Length > 0)
             {
                 string selectedPath = paths[0];
                 UpdateStatus(STATUS_MSG_LOADING_IMAGE);
-                await LoadImageAsync(selectedPath);
+                StartCoroutine(LoadImage(selectedPath));
             }
         }
 
@@ -368,21 +351,17 @@ namespace AI
             UpdateStatus("Image selection cancelled.");
         }
 
-        private async Task LoadImageAsync(string path)
+        private IEnumerator LoadImage(string path)
         {
             UpdateStatus(STATUS_MSG_LOADING_IMAGE);
             isProcessing = true;
             UpdateUIState();
 
             string url = path.StartsWith(FILE_PREFIX) ? path : FILE_PREFIX + path;
-            
+    
             using (UnityWebRequest www = UnityWebRequestTexture.GetTexture(url))
             {
-                var operation = www.SendWebRequest();
-                while (!operation.isDone && !_cts.Token.IsCancellationRequested)
-                {
-                    await AsyncUtilities.NextFrameAsync(_cts.Token);
-                }
+                yield return www.SendWebRequest();
 
                 if (www.result == UnityWebRequest.Result.Success)
                 {
@@ -396,7 +375,7 @@ namespace AI
                     _isImageLoaded = false;
                 }
             }
-            
+    
             isProcessing = false;
             UpdateUIState();
         }
@@ -452,19 +431,19 @@ namespace AI
             UpdateStatus(STATUS_MSG_IMAGE_LOADED);
         }
 
-        private async Task GenerateBossImageAsync()
+        private IEnumerator GenerateBossImage()
         {
             if (uploadedTexture == null || isProcessing || !_isServerReady)
             {
                 if (!_isServerReady) UpdateStatus(STATUS_MSG_SERVER_NOT_READY);
                 if (uploadedTexture == null) UpdateStatus(STATUS_MSG_SELECT_IMAGE);
-                return;
+                yield break;
             }
-            
-            await GenerateImageAsync(_cts.Token);
+    
+            yield return GenerateImage();
         }
 
-        private async Task GenerateImageAsync(CancellationToken ct)
+        private IEnumerator GenerateImage()
         {
             isProcessing = true;
             UpdateUIState();
@@ -473,30 +452,25 @@ namespace AI
             float startTime = Time.time;
 
             UpdateStatus(STATUS_MSG_ENCODING);
-            await AsyncUtilities.NextFrameAsync(ct);
+            yield return null;
 
             string requestJson = CreateGenerationRequest();
 
             using (var www = CreatePredictRequest(requestJson))
             {
-                var progressTask = ShowProgressAsync(startTime, STATUS_MSG_GENERATING, ct);
-                
-                var operation = www.SendWebRequest();
-                while (!operation.isDone && !ct.IsCancellationRequested)
-                {
-                    await AsyncUtilities.NextFrameAsync(ct);
-                }
+                Coroutine progressCoroutine = StartCoroutine(ShowProgress(startTime, STATUS_MSG_GENERATING));
+        
+                yield return www.SendWebRequest();
+        
+                StopCoroutine(progressCoroutine);
 
-                if (!ct.IsCancellationRequested)
+                if (www.result == UnityWebRequest.Result.Success)
                 {
-                    if (www.result == UnityWebRequest.Result.Success)
-                    {
-                        ProcessServerResponse(www.downloadHandler.text);
-                    }
-                    else
-                    {
-                        HandleError(www, "Image generation failed");
-                    }
+                    ProcessServerResponse(www.downloadHandler.text);
+                }
+                else
+                {
+                    HandleError(www, "Image generation failed");
                 }
             }
 
@@ -523,10 +497,9 @@ namespace AI
         {
             byte[] jsonBytes = System.Text.Encoding.UTF8.GetBytes(json);
             
-            _stringBuilder.Clear();
-            _stringBuilder.Append(activeServerUrl).Append(PREDICT_ENDPOINT);
+            string url = activeServerUrl + PREDICT_ENDPOINT;
             
-            var www = new UnityWebRequest(_stringBuilder.ToString(), "POST");
+            var www = new UnityWebRequest(url, "POST");
             www.uploadHandler = new UploadHandlerRaw(jsonBytes);
             www.downloadHandler = new DownloadHandlerBuffer();
             www.SetRequestHeader("Content-Type", "application/json");
@@ -535,13 +508,13 @@ namespace AI
             return www;
         }
 
-        private async Task ShowProgressAsync(float startTime, string prefix, CancellationToken ct)
+        private IEnumerator ShowProgress(float startTime, string prefix)
         {
             int dotCount = 0;
-            while (isProcessing && !ct.IsCancellationRequested)
+            while (isProcessing)
             {
                 float elapsed = Time.time - startTime;
-                
+        
                 _stringBuilder.Clear();
                 _stringBuilder.Append(prefix);
                 for (int i = 0; i < dotCount; i++)
@@ -549,11 +522,11 @@ namespace AI
                     _stringBuilder.Append('.');
                 }
                 _stringBuilder.Append(" (").Append(Mathf.FloorToInt(elapsed)).Append("s)");
-                
+        
                 UpdateStatus(_stringBuilder.ToString());
 
                 dotCount = (dotCount + 1) % 4;
-                await AsyncUtilities.WaitForSecondsAsync(PROGRESS_UPDATE_INTERVAL, ct);
+                yield return new WaitForSeconds(PROGRESS_UPDATE_INTERVAL);
             }
         }
 
@@ -577,21 +550,13 @@ namespace AI
             switch (www.result)
             {
                 case UnityWebRequest.Result.ConnectionError:
-                    _stringBuilder.Clear();
-                    _stringBuilder.Append("Connection error: ").Append(www.error);
-                    return _stringBuilder.ToString();
+                    return $"Connection error: {www.error}";
                 case UnityWebRequest.Result.ProtocolError:
-                    _stringBuilder.Clear();
-                    _stringBuilder.Append("HTTP error: ").Append(www.responseCode).Append(" - ").Append(www.error);
-                    return _stringBuilder.ToString();
+                    return $"HTTP error: {www.responseCode} - {www.error}";
                 case UnityWebRequest.Result.DataProcessingError:
-                    _stringBuilder.Clear();
-                    _stringBuilder.Append("Data processing error: ").Append(www.error);
-                    return _stringBuilder.ToString();
+                    return $"Data processing error: {www.error}";
                 default:
-                    _stringBuilder.Clear();
-                    _stringBuilder.Append("Unknown error or timeout: ").Append(www.error);
-                    return _stringBuilder.ToString();
+                    return $"Unknown error or timeout: {www.error}";
             }
         }
 
@@ -602,9 +567,7 @@ namespace AI
                 case UnityWebRequest.Result.ConnectionError:
                     return ERROR_MSG_CONNECTION;
                 case UnityWebRequest.Result.ProtocolError:
-                    _stringBuilder.Clear();
-                    _stringBuilder.Append("Server error (").Append(responseCode).Append("). Please try again later.");
-                    return _stringBuilder.ToString();
+                    return $"Server error ({responseCode}). Please try again later.";
                 case UnityWebRequest.Result.DataProcessingError:
                     return "Error processing data from server.";
                 default:
@@ -629,9 +592,7 @@ namespace AI
             }
             catch (Exception e)
             {
-                _stringBuilder.Clear();
-                _stringBuilder.Append("Failed to process server response: ").Append(e.Message);
-                UpdateStatus(_stringBuilder.ToString());
+                UpdateStatus($"Failed to process server response: {e.Message}");
                 Debug.LogError($"Error parsing response: {e}");
             }
         }
@@ -651,9 +612,7 @@ namespace AI
             UpdateStatus(STATUS_MSG_BOSS_GENERATED);
             if (response.duration > 0) 
             {
-                _stringBuilder.Clear();
-                _stringBuilder.Append("Generation took ").AppendFormat("{0:F2}", response.duration).Append(" seconds");
-                Debug.Log(_stringBuilder.ToString());
+                Debug.Log($"Generation took {response.duration:F2} seconds");
             }
 
             CreateBossSprite(generatedTexture);
@@ -770,7 +729,6 @@ namespace AI
                 return;
             }
 
-            // Runtime File Browser로 저장 위치 선택
             string defaultFileName = GenerateFileName();
             FileBrowser.ShowSaveDialog(OnSaveLocationSelected, OnSaveCancelled, 
                 FileBrowser.PickMode.Files, false, null, defaultFileName, 
@@ -797,7 +755,6 @@ namespace AI
                 Texture2D textureToSave = generatedImage.texture as Texture2D;
                 byte[] imageBytes = textureToSave.EncodeToPNG();
         
-                // 확장자 확인 및 추가
                 if (!savePath.EndsWith(".png", System.StringComparison.OrdinalIgnoreCase))
                 {
                     savePath += ".png";

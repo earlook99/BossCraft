@@ -1,10 +1,7 @@
-// PoolableDamageText.cs
-using System.Threading;
-using System.Threading.Tasks;
+using System.Collections;
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
-using GameSystem.Utils;
 
 namespace GameSystem.Pooling
 {
@@ -17,6 +14,7 @@ namespace GameSystem.Pooling
         
         private RectTransform _rectTransform;
         private CanvasGroup _canvasGroup;
+        private Coroutine _animationCoroutine;
         
         private void Awake()
         {
@@ -42,15 +40,18 @@ namespace GameSystem.Pooling
             
             _canvasGroup.alpha = 1f;
             
-            _ = AnimateDamageTextAsync(_cts.Token);
+            if (_animationCoroutine != null)
+                StopCoroutine(_animationCoroutine);
+                
+            _animationCoroutine = StartCoroutine(AnimateDamageText());
         }
         
-        private async Task AnimateDamageTextAsync(CancellationToken ct)
+        private IEnumerator AnimateDamageText()
         {
             float elapsed = 0f;
             Vector2 startPosition = _rectTransform.anchoredPosition;
             
-            while (elapsed < _lifetime && !ct.IsCancellationRequested)
+            while (elapsed < _lifetime)
             {
                 elapsed += Time.deltaTime;
                 float progress = elapsed / _lifetime;
@@ -63,18 +64,20 @@ namespace GameSystem.Pooling
                     _canvasGroup.alpha = 1f - fadeProgress;
                 }
                 
-                await AsyncUtilities.NextFrameAsync(ct);
+                yield return null;
             }
             
-            if (!ct.IsCancellationRequested)
-            {
-                ReturnToPool();
-            }
+            ReturnToPool();
         }
         
         public override void OnDespawned()
         {
             base.OnDespawned();
+            if (_animationCoroutine != null)
+            {
+                StopCoroutine(_animationCoroutine);
+                _animationCoroutine = null;
+            }
         }
         
         public override void ResetUI()

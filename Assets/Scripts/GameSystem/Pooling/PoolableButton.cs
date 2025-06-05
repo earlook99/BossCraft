@@ -1,4 +1,3 @@
-// PoolableButton.cs
 using System;
 using UnityEngine;
 using UnityEngine.UI;
@@ -71,7 +70,6 @@ namespace GameSystem.Pooling
         
         protected override void OnDestroy()
         {
-            base.OnDestroy();
             if (_button != null)
             {
                 _button.onClick.RemoveListener(HandleClick);

@@ -16,11 +16,11 @@ MonoBehaviour:
   Category: 0
   AllowedTargetSide: 3
   Type: 0
-  Cooldown: 2
+  Cooldown: 0
   RequiresCharge: 0
   Effects:
   - EffectType: 0
-    Power: 8
+    Power: 80
     BuffsType: 0
     Accuracy: 1
     CritChance: 0

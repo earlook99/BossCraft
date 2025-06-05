@@ -50,12 +50,6 @@ namespace GameSystem
         public bool NextTurn()
         {
             _currentTurnIndex++;
-            
-            if (_currentTurnIndex >= _turnOrder.Count)
-            {
-                return false;
-            }
-            
             SkipDeadEntities();
             
             if (_currentTurnIndex >= _turnOrder.Count)
@@ -92,7 +86,19 @@ namespace GameSystem
         
         public bool IsRoundComplete()
         {
-            return _currentTurnIndex >= _turnOrder.Count - 1;
+            return _currentTurnIndex >= _turnOrder.Count;
+        }
+        
+        public bool ShouldGoToBossTurn()
+        {
+            for (int i = _currentTurnIndex; i < _turnOrder.Count; i++)
+            {
+                if (_turnOrder[i] is BossEntity && _turnOrder[i].CurrentHP > 0)
+                {
+                    return true;
+                }
+            }
+            return false;
         }
         
         public void EndCurrentTurn()

@@ -573,7 +573,7 @@ MonoBehaviour:
   _maxHP: 200
   _currentHP: 0
   _attack: 50
-  _defense: 50
+  _defense: 10
   MoveSet:
   - {fileID: 11400000, guid: 014fee8802fac374aa10addcae551549, type: 2}
   - {fileID: 11400000, guid: 705647aba36362c419caec066f493681, type: 2}
