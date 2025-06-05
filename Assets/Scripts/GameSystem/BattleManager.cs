@@ -4,7 +4,6 @@ using Entity;
 using AI;
 using Data;
 using CameraSystem;
-using GameSystem.Factory;
 using GameSystem.UI;
 
 namespace GameSystem
@@ -23,10 +22,18 @@ namespace GameSystem
         [SerializeField] private StatusUIManager _statusUIManager;
         [SerializeField] private MessageUIManager _messageUIManager;
         
-        [Header("Entity Configuration")]
-        [SerializeField] private string[] _playerEntityNames;
+        [Header("Entity Prefabs")]
+        [SerializeField] private GameObject[] _playerPrefabs = new GameObject[4];
+        [SerializeField] private GameObject _bossPrefab;
+        
+        [Header("Boss Configuration")]
+        [SerializeField] private ShieldPattern _defaultShieldPattern;
+        [SerializeField] private MoveData _bossShieldMove;
+        
+        [Header("Spawn Configuration")]
         [SerializeField] private Transform[] _playerSpawnPoints;
         [SerializeField] private Transform _bossSpawnPoint;
+        [SerializeField] private Transform _entityContainer;
         
         private BattleStateMachine _stateMachine;
         private TurnManager _turnManager;
@@ -126,22 +133,129 @@ namespace GameSystem
         
         private void CreateEntities()
         {
-            var entityFactory = EntityFactory.Instance;
-            if (entityFactory == null)
+            _entities = new BattleEntity[GameConstants.Battle.TOTAL_ENTITIES];
+            
+            if (_entityContainer == null)
             {
-                Debug.LogError("EntityFactory not found");
-                return;
+                GameObject containerObj = new GameObject("EntityContainer");
+                _entityContainer = containerObj.transform;
             }
             
-            Vector3[] playerPositions = new Vector3[GameConstants.Battle.PLAYER_COUNT];
-            for (int i = 0; i < _playerSpawnPoints.Length && i < playerPositions.Length; i++)
+            for (int i = 0; i < GameConstants.Battle.PLAYER_COUNT; i++)
             {
-                playerPositions[i] = _playerSpawnPoints[i].position;
+                if (i < _playerPrefabs.Length && _playerPrefabs[i] != null && i < _playerSpawnPoints.Length)
+                {
+                    GameObject playerObj = Instantiate(_playerPrefabs[i], _playerSpawnPoints[i].position, Quaternion.identity, _entityContainer);
+                    BattleEntity entity = playerObj.GetComponent<BattleEntity>();
+                    
+                    if (entity != null)
+                    {
+                        entity.Initialize();
+                        _entities[i] = entity;
+                    }
+                    else
+                    {
+                        Debug.LogError($"Player prefab at index {i} missing BattleEntity component");
+                        Destroy(playerObj);
+                    }
+                }
             }
             
-            Vector3 bossPosition = _bossSpawnPoint != null ? _bossSpawnPoint.position : Vector3.zero;
+            if (_bossPrefab != null && _bossSpawnPoint != null)
+            {
+                GameObject bossObj = Instantiate(_bossPrefab, _bossSpawnPoint.position, Quaternion.identity, _entityContainer);
+                BossEntity boss = bossObj.GetComponent<BossEntity>();
+                
+                if (boss != null)
+                {
+                    ConfigureBoss(boss);
+                    boss.Initialize();
+                    _entities[GameConstants.Battle.BOSS_INDEX] = boss;
+                }
+                else
+                {
+                    Debug.LogError("Boss prefab missing BossEntity component");
+                    Destroy(bossObj);
+                }
+            }
+        }
+        
+        private void ConfigureBoss(BossEntity boss)
+        {
+            if (BossContainer.Instance != null)
+            {
+                var container = BossContainer.Instance;
+                
+                if (!string.IsNullOrEmpty(container.CurrentBossName))
+                {
+                    boss.EntityName = container.CurrentBossName;
+                }
+                
+                boss.ElementType = container.CurrentBossType;
+                
+                if (container.CurrentBossImageData != null)
+                {
+                    SetBossSprite(boss, container.CurrentBossImageData);
+                }
+            }
             
-            _entities = entityFactory.CreateBattleEntities(playerPositions, bossPosition);
+            if (_defaultShieldPattern != null)
+            {
+                var shieldPatternField = typeof(BossEntity).GetField("_shieldPattern", 
+                    System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+                    
+                if (shieldPatternField != null)
+                {
+                    shieldPatternField.SetValue(boss, _defaultShieldPattern);
+                }
+            }
+            
+            EnsureBossHasShieldMove(boss);
+        }
+        
+        private void SetBossSprite(BossEntity boss, byte[] imageData)
+        {
+            var texture = new Texture2D(2, 2);
+            if (!texture.LoadImage(imageData)) return;
+            
+            var sprite = Sprite.Create(
+                texture,
+                new Rect(0, 0, texture.width, texture.height),
+                new Vector2(0.5f, 0.5f),
+                0.7f
+            );
+            
+            var spriteRenderer = boss.GetComponentInChildren<SpriteRenderer>();
+            if (spriteRenderer != null)
+            {
+                spriteRenderer.sprite = sprite;
+            }
+        }
+        
+        private void EnsureBossHasShieldMove(BossEntity boss)
+        {
+            bool hasShieldMove = false;
+            
+            foreach (var move in boss.MoveSet)
+            {
+                if (move == null) continue;
+                
+                foreach (var effect in move.Effects)
+                {
+                    if (effect.EffectType == MoveEffectType.Shield)
+                    {
+                        hasShieldMove = true;
+                        break;
+                    }
+                }
+                
+                if (hasShieldMove) break;
+            }
+            
+            if (!hasShieldMove && _bossShieldMove != null)
+            {
+                boss.MoveSet.Add(_bossShieldMove);
+            }
         }
         
         private void HandleStateChanged(BattleState previousState, BattleState newState)
@@ -437,18 +551,17 @@ namespace GameSystem
         {
             _actionQueue?.Clear();
             
-            var entityFactory = EntityFactory.Instance;
-            if (entityFactory != null)
+            if (_entityContainer != null)
             {
-                entityFactory.DestroyAllEntities();
+                foreach (Transform child in _entityContainer)
+                {
+                    Destroy(child.gameObject);
+                }
             }
         }
         
         public void OnTurnStarted(BattleEntity entity, int turnNumber)
         {
-            // Turn start logic is handled in HandlePlayerChoice for players
-            // This method is called from TurnManager but the actual UI update
-            // happens through the state machine
         }
     }
 }

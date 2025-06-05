@@ -3,7 +3,7 @@ using System.Collections;
 using UnityEngine;
 using Entity;
 using Data;
-using Effect;
+using Effects;
 using GameSystem.UI;
 
 namespace GameSystem
@@ -252,16 +252,18 @@ namespace GameSystem
         
         private IEnumerator SpawnEffect(BattleEntity target, MoveData moveData)
         {
-            var effectPoolManager = Pooling.EffectPoolManager.Instance;
-            if (effectPoolManager != null && moveData.VFXPrefab != null)
+            if (moveData.VFXPrefab != null)
             {
-                var effect = effectPoolManager.GetEffect(moveData.VFXPrefab);
-                if (effect != null)
+                GameObject effectObj = Instantiate(moveData.VFXPrefab, target.transform.position, Quaternion.identity);
+                Effect effectComponent = effectObj.GetComponent<Effect>();
+                
+                if (effectComponent == null)
                 {
-                    effect.transform.position = target.transform.position;
-                    yield return new WaitForSeconds(EFFECT_DURATION);
-                    effectPoolManager.ReturnEffect(effect);
+                    effectComponent = effectObj.AddComponent<Effect>();
+                    effectComponent.SetLifetime(EFFECT_DURATION);
                 }
+                
+                yield return null;
             }
         }
         

@@ -1,15 +1,14 @@
 using System;
 using System.Collections;
-using GameSystem;
-using GameSystem.Interfaces;
 using System.Collections.Generic;
 using Data;
+using GameSystem;
 using UI;
 using UnityEngine;
 
 namespace Entity
 {
-    public class BattleEntity : MonoBehaviour, IBattleEntity
+    public class BattleEntity : MonoBehaviour
     {
         [Header("Basic Information")]
         public string EntityName;
@@ -112,11 +111,7 @@ namespace Entity
         public float AttackMultiplier => AtkBuffMultiplier;
         public float DefenseMultiplier => DefBuffMultiplier * (1f + (_defenseBuffStacks * BUFF_PER_STACK));
         public bool CanBeHealed => IsAlive && _currentHP < _maxHP;
-        
-        int GameSystem.Interfaces.IBattleEntity.Attack => _attack;
-        int GameSystem.Interfaces.IBattleEntity.Defense => _defense;
-        int GameSystem.Interfaces.IDamageable.CurrentHP => _currentHP;
-        int GameSystem.Interfaces.IDamageable.MaxHP => _maxHP;
+        public bool CanTakeTurn() => IsAlive && !IsStunned;
         
         protected virtual void Awake()
         {
@@ -341,11 +336,6 @@ namespace Entity
                 _tauntTurnsLeft--;
                 if (_tauntTurnsLeft <= 0) _isTaunting = false;
             }
-        }
-        
-        public bool CanTakeTurn()
-        {
-            return IsAlive && !IsStunned;
         }
 
         public void ApplyStun(int turns)

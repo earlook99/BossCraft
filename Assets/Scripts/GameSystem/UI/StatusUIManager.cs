@@ -3,7 +3,6 @@ using Data;
 using UnityEngine;
 using Entity;
 using UI;
-using GameSystem.Pooling;
 
 namespace GameSystem.UI
 {
@@ -16,6 +15,8 @@ namespace GameSystem.UI
         [Header("Prefabs")]
         [SerializeField] private CharacterStatusUI _playerStatusPrefab;
         [SerializeField] private CharacterStatusUI _bossStatusPrefab;
+        [SerializeField] private GameObject _statusIconPrefab;
+        [SerializeField] private GameObject _damageTextPrefab;
         
         [Header("Canvas Assignment")]
         [SerializeField] private CanvasType _statusCanvasType = CanvasType.Dynamic;
@@ -25,7 +26,7 @@ namespace GameSystem.UI
         [SerializeField] private Sprite _defenseBuffIcon;
         
         private Dictionary<int, CharacterStatusUI> _entityStatusUIs = new Dictionary<int, CharacterStatusUI>(5);
-        private Dictionary<(int entityIndex, BuffsType buffType), PoolableStatusIcon> _buffIcons = new Dictionary<(int, BuffsType), PoolableStatusIcon>();
+        private Dictionary<(int entityIndex, BuffsType buffType), StatusIcon> _buffIcons = new Dictionary<(int, BuffsType), StatusIcon>();
         private BattleEntity[] _entities;
         private int[] _lastKnownHP = new int[5];
         private bool _isInitialized = false;
@@ -83,6 +84,13 @@ namespace GameSystem.UI
                     Destroy(kvp.Value.gameObject);
             }
             _entityStatusUIs.Clear();
+            
+            foreach (var kvp in _buffIcons)
+            {
+                if (kvp.Value != null && kvp.Value.gameObject != null)
+                    Destroy(kvp.Value.gameObject);
+            }
+            _buffIcons.Clear();
         }
         
         private void CreateBossStatusUI()
@@ -132,6 +140,24 @@ namespace GameSystem.UI
         public void OnDamageDealt(BattleEntity target)
         {
             UpdateEntityHP(target);
+            ShowDamageText(target);
+        }
+        
+        private void ShowDamageText(BattleEntity target)
+        {
+            if (_damageTextPrefab == null) return;
+            
+            var canvas = CanvasOptimizer.Instance?.GetCanvas(CanvasType.Dynamic);
+            if (canvas == null) return;
+            
+            GameObject damageTextObj = Instantiate(_damageTextPrefab, canvas.transform);
+            DamageText damageText = damageTextObj.GetComponent<DamageText>();
+            
+            if (damageText != null)
+            {
+                int damage = _lastKnownHP[System.Array.IndexOf(_entities, target)] - target.CurrentHP;
+                damageText.Setup(target.transform.position, Mathf.Abs(damage), Color.red);
+            }
         }
         
         public void OnHealingReceived(BattleEntity target)
@@ -190,7 +216,7 @@ namespace GameSystem.UI
             {
                 if (_buffIcons.TryGetValue(key, out var icon))
                 {
-                    UIPoolManager.Instance?.ReturnUI(icon);
+                    Destroy(icon.gameObject);
                     _buffIcons.Remove(key);
                 }
             }
@@ -210,17 +236,18 @@ namespace GameSystem.UI
         private void CreateBuffIcon(int entityIndex, BuffsType buffType, int stackCount)
         {
             if (!_entityStatusUIs.TryGetValue(entityIndex, out var statusUI)) return;
+            if (_statusIconPrefab == null) return;
         
-            var poolManager = UIPoolManager.Instance;
-            if (poolManager == null) return;
-        
-            var icon = poolManager.GetUI<PoolableStatusIcon>(UIPoolManager.STATUS_ICON_POOL);
-            if (icon == null) return;
+            GameObject iconObj = Instantiate(_statusIconPrefab, statusUI.transform);
+            StatusIcon icon = iconObj.GetComponent<StatusIcon>();
+            
+            if (icon == null)
+            {
+                icon = iconObj.AddComponent<StatusIcon>();
+            }
         
             Sprite sprite = buffType == BuffsType.Attack ? _attackBuffIcon : _defenseBuffIcon;
             icon.Setup(sprite, stackCount);
-        
-            icon.transform.SetParent(statusUI.transform, false);
         
             _buffIcons[(entityIndex, buffType)] = icon;
         }
