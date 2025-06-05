@@ -2,7 +2,6 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using TMPro;
-using GameSystem.Events;
 
 namespace GameSystem.UI
 {
@@ -40,13 +39,10 @@ namespace GameSystem.UI
         private void Awake()
         {
             InitializeReferences();
-            SubscribeToEvents();
         }
         
         private void OnDestroy()
         {
-            UnsubscribeFromEvents();
-            
             if (_messageCoroutine != null)
             {
                 StopCoroutine(_messageCoroutine);
@@ -97,21 +93,6 @@ namespace GameSystem.UI
             }
         }
         
-        private void SubscribeToEvents()
-        {
-            UIEvents.OnShowMessage += HandleShowMessage;
-        }
-        
-        private void UnsubscribeFromEvents()
-        {
-            UIEvents.OnShowMessage -= HandleShowMessage;
-        }
-        
-        private void HandleShowMessage(ShowMessageEventArgs args)
-        {
-            ShowMessage(args.Message, args.Duration);
-        }
-        
         public void ShowMessage(string message, float duration = DEFAULT_MESSAGE_DURATION)
         {
             if (string.IsNullOrEmpty(message)) return;
@@ -160,66 +141,9 @@ namespace GameSystem.UI
             {
                 _battleMessageText.text = message;
                 _lastMessage = message;
-        
-                // if (!_isPanelVisible)
-                // {
-                //     yield return FadeInPanel();
-                // }
-        
-                // duration 후 자동 사라짐 제거
-                // yield return new WaitForSeconds(duration);
-        
-                // 메시지 큐가 비어있을 때만 사라짐
-                // if (_messageQueue.Count == 0)
-                // {
-                //     yield return FadeOutPanel();
-                // }
                 yield break;
             }
         }
-        
-        // private IEnumerator FadeInPanel()
-        // {
-        //     SetPanelVisibility(true, false);
-        //     
-        //     if (_messageCanvasGroup != null && _fadeInDuration > 0)
-        //     {
-        //         float elapsed = 0f;
-        //         _messageCanvasGroup.alpha = 0f;
-        //         
-        //         while (elapsed < _fadeInDuration)
-        //         {
-        //             elapsed += Time.deltaTime;
-        //             _messageCanvasGroup.alpha = elapsed / _fadeInDuration;
-        //             yield return null;
-        //         }
-        //         
-        //         _messageCanvasGroup.alpha = 1f;
-        //     }
-        //     
-        //     _isPanelVisible = true;
-        // }
-        //
-        // private IEnumerator FadeOutPanel()
-        // {
-        //     if (_messageCanvasGroup != null && _fadeOutDuration > 0)
-        //     {
-        //         float elapsed = 0f;
-        //         _messageCanvasGroup.alpha = 1f;
-        //         
-        //         while (elapsed < _fadeOutDuration)
-        //         {
-        //             elapsed += Time.deltaTime;
-        //             _messageCanvasGroup.alpha = 1f - (elapsed / _fadeOutDuration);
-        //             yield return null;
-        //         }
-        //         
-        //         _messageCanvasGroup.alpha = 0f;
-        //     }
-        //     
-        //     SetPanelVisibility(false, true);
-        //     _isPanelVisible = false;
-        // }
         
         private void SetPanelVisibility(bool visible, bool immediate = false)
         {

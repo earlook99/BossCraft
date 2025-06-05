@@ -2,7 +2,6 @@ using CameraSystem;
 using Data;
 using UnityEngine;
 using Entity;
-using GameSystem.Events;
 using UI;
 
 namespace GameSystem.UI
@@ -23,6 +22,9 @@ namespace GameSystem.UI
         [Header("Battle Entities")]
         [SerializeField] private BattleEntity[] _battleEntities = new BattleEntity[5];
         
+        [Header("Manager References")]
+        [SerializeField] private BattleManager _battleManager;
+        
         private StatusUIManager _statusUIManager;
         private MessageUIManager _messageUIManager;
         private CanvasOptimizer _canvasOptimizer;
@@ -39,12 +41,6 @@ namespace GameSystem.UI
             InitializeComponents();
             SetupCanvases();
             OptimizeUIElements();
-            SubscribeToEvents();
-        }
-        
-        private void OnDestroy()
-        {
-            UnsubscribeFromEvents();
         }
         
         private void InitializeComponents()
@@ -73,6 +69,9 @@ namespace GameSystem.UI
                 
                 SetActionMenuVisible(false);
             }
+            
+            if (_battleManager == null)
+                _battleManager = FindAnyObjectByType<BattleManager>();
         }
         
         private void SetupCanvases()
@@ -117,27 +116,9 @@ namespace GameSystem.UI
             _targetSelectionUI = targetSelectionGO.AddComponent<TargetSelectionUI>();
         }
         
-        private void SubscribeToEvents()
+        public void OnBattleStarted(BattleEntity[] entities)
         {
-            BattleEvents.OnBattleStarted += HandleBattleStarted;
-            BattleEvents.OnBattleEnded += HandleBattleEnded;
-            BattleEvents.OnTurnStarted += HandleTurnStarted;
-            
-            UIEvents.OnMenuStateChanged += HandleMenuStateChanged;
-        }
-        
-        private void UnsubscribeFromEvents()
-        {
-            BattleEvents.OnBattleStarted -= HandleBattleStarted;
-            BattleEvents.OnBattleEnded -= HandleBattleEnded;
-            BattleEvents.OnTurnStarted -= HandleTurnStarted;
-            
-            UIEvents.OnMenuStateChanged -= HandleMenuStateChanged;
-        }
-        
-        private void HandleBattleStarted(BattleStartedEventArgs args)
-        {
-            _battleEntities = args.Entities;
+            _battleEntities = entities;
             
             _statusUIManager.Initialize(_battleEntities);
             
@@ -145,30 +126,10 @@ namespace GameSystem.UI
                 _targetSelectionUI.Setup(this, _battleEntities);
         }
         
-        private void HandleBattleEnded(BattleEndedEventArgs args)
+        public void OnBattleEnded(bool playerWon)
         {
             if (_battleEndUI != null)
-                _battleEndUI.ShowBattleEnd(args.PlayerWon);
-        }
-        
-        private void HandleTurnStarted(TurnStartedEventArgs args)
-        {
-            if (args.Entity is BossEntity)
-                return;
-                
-            for (int i = 0; i < 4; i++)
-            {
-                if (_battleEntities[i] == args.Entity)
-                {
-                    ShowActionMenuForPlayer(i);
-                    break;
-                }
-            }
-        }
-        
-        private void HandleMenuStateChanged(MenuStateChangedEventArgs args)
-        {
-            _currentPlayerIndex = args.PlayerIndex;
+                _battleEndUI.ShowBattleEnd(playerWon);
         }
         
         public void ShowActionMenuForPlayer(int playerIndex)
@@ -216,7 +177,8 @@ namespace GameSystem.UI
             }
             else
             {
-                UIEvents.RaiseActionSelected(actionType, actionIndex, _currentPlayerIndex);
+                if (_battleManager != null)
+                    _battleManager.OnActionSelected(actionType, actionIndex, _currentPlayerIndex);
             }
         }
         
@@ -272,13 +234,19 @@ namespace GameSystem.UI
         
         private void CompleteActionWithTarget(EntityType target)
         {
-            UIEvents.RaiseActionSelected(_pendingActionType, _pendingActionIndex, _currentPlayerIndex);
-            
-            var battleManager = FindAnyObjectByType<BattleManager>();
-            if (battleManager != null)
+            if (_battleManager != null)
             {
-                battleManager.OnTargetSelected(target);
+                _battleManager.OnActionSelected(_pendingActionType, _pendingActionIndex, _currentPlayerIndex);
+                _battleManager.OnTargetSelected(target);
             }
         }
+        
+        public void OnMenuStateChanged(MenuState newState, int playerIndex)
+        {
+            _currentPlayerIndex = playerIndex;
+        }
+        
+        public StatusUIManager GetStatusUIManager() => _statusUIManager;
+        public MessageUIManager GetMessageUIManager() => _messageUIManager;
     }
 }

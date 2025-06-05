@@ -3,7 +3,6 @@ using Data;
 using UnityEngine;
 using Entity;
 using UI;
-using GameSystem.Events;
 using GameSystem.Pooling;
 
 namespace GameSystem.UI
@@ -30,40 +29,6 @@ namespace GameSystem.UI
         private BattleEntity[] _entities;
         private int[] _lastKnownHP = new int[5];
         private bool _isInitialized = false;
-        
-        private void Awake()
-        {
-            SubscribeToEvents();
-        }
-        
-        private void OnDestroy()
-        {
-            UnsubscribeFromEvents();
-        }
-        
-        private void SubscribeToEvents()
-        {
-            BattleEvents.OnDamageDealt += HandleDamageDealt;
-            BattleEvents.OnHealingReceived += HandleHealingReceived;
-            BattleEvents.OnShieldActivated += HandleShieldActivated;
-            BattleEvents.OnShieldBroken += HandleShieldBroken;
-            BattleEvents.OnBuffStackChanged += HandleBuffStackChanged;
-            
-            UIEvents.OnUpdateHPBar += HandleUpdateHPBar;
-            UIEvents.OnUpdateShield += HandleUpdateShield;
-        }
-        
-        private void UnsubscribeFromEvents()
-        {
-            BattleEvents.OnDamageDealt -= HandleDamageDealt;
-            BattleEvents.OnHealingReceived -= HandleHealingReceived;
-            BattleEvents.OnShieldActivated -= HandleShieldActivated;
-            BattleEvents.OnShieldBroken -= HandleShieldBroken;
-            BattleEvents.OnBuffStackChanged -= HandleBuffStackChanged;
-            
-            UIEvents.OnUpdateHPBar -= HandleUpdateHPBar;
-            UIEvents.OnUpdateShield -= HandleUpdateShield;
-        }
         
         public void Initialize(BattleEntity[] entities)
         {
@@ -164,66 +129,65 @@ namespace GameSystem.UI
             }
         }
         
-        private void HandleDamageDealt(DamageDealtEventArgs args)
+        public void OnDamageDealt(BattleEntity target)
         {
-            UpdateEntityHP(args.Target);
+            UpdateEntityHP(target);
         }
         
-        private void HandleHealingReceived(HealingReceivedEventArgs args)
+        public void OnHealingReceived(BattleEntity target)
         {
-            UpdateEntityHP(args.Target);
+            UpdateEntityHP(target);
         }
         
-        private void HandleShieldActivated(ShieldActivatedEventArgs args)
+        public void OnShieldActivated(BossEntity boss, int shieldHP)
         {
             if (_entityStatusUIs.TryGetValue((int)EntityType.Boss, out var statusUI))
             {
-                int previousHP = args.Boss.CurrentHP + args.ShieldHP;
-                statusUI.AnimateShieldConversion(previousHP, args.Boss.CurrentHP, args.ShieldHP);
+                int previousHP = boss.CurrentHP + shieldHP;
+                statusUI.AnimateShieldConversion(previousHP, boss.CurrentHP, shieldHP);
             }
         }
         
-        private void HandleShieldBroken(ShieldBrokenEventArgs args)
+        public void OnShieldBroken(BossEntity boss)
         {
-            UpdateEntityHP(args.Boss);
+            UpdateEntityHP(boss);
         }
         
-        private void HandleUpdateHPBar(UpdateHPBarEventArgs args)
+        public void UpdateHPBar(int entityIndex, int currentHP, int maxHP)
         {
             if (!_isInitialized) return;
             
-            if (args.EntityIndex >= 0 && args.EntityIndex < _lastKnownHP.Length)
+            if (entityIndex >= 0 && entityIndex < _lastKnownHP.Length)
             {
-                if (_lastKnownHP[args.EntityIndex] != args.CurrentHP)
+                if (_lastKnownHP[entityIndex] != currentHP)
                 {
-                    _lastKnownHP[args.EntityIndex] = args.CurrentHP;
+                    _lastKnownHP[entityIndex] = currentHP;
                     
-                    if (_entityStatusUIs.TryGetValue(args.EntityIndex, out var statusUI))
+                    if (_entityStatusUIs.TryGetValue(entityIndex, out var statusUI))
                     {
-                        statusUI.UpdateHP(args.CurrentHP);
+                        statusUI.UpdateHP(currentHP);
                     }
                 }
             }
         }
         
-        private void HandleUpdateShield(UpdateShieldEventArgs args)
+        public void UpdateShield(BossEntity boss)
         {
             if (_entityStatusUIs.TryGetValue((int)EntityType.Boss, out var statusUI))
             {
-                statusUI.UpdateShield(args.Boss.ShieldStacks, args.Boss.MaxShieldStacks, args.Boss.ShieldHP);
+                statusUI.UpdateShield(boss.ShieldStacks, boss.MaxShieldStacks, boss.ShieldHP);
             }
         }
         
-        private void HandleBuffStackChanged(BuffStackChangedEventArgs args)
+        public void OnBuffStackChanged(BattleEntity entity, BuffsType buffType, int newStackCount)
         {
-            int entityIndex = System.Array.IndexOf(_entities, args.Entity);
+            int entityIndex = System.Array.IndexOf(_entities, entity);
             if (entityIndex < 0) return;
         
-            var key = (entityIndex, args.BuffType);
+            var key = (entityIndex, buffType);
         
-            if (args.NewStackCount == 0)
+            if (newStackCount == 0)
             {
-                // 버프 제거
                 if (_buffIcons.TryGetValue(key, out var icon))
                 {
                     UIPoolManager.Instance?.ReturnUI(icon);
@@ -232,14 +196,13 @@ namespace GameSystem.UI
             }
             else
             {
-                // 버프 추가/업데이트
                 if (_buffIcons.TryGetValue(key, out var icon))
                 {
-                    icon.UpdateStack(args.NewStackCount);
+                    icon.UpdateStack(newStackCount);
                 }
                 else
                 {
-                    CreateBuffIcon(entityIndex, args.BuffType, args.NewStackCount);
+                    CreateBuffIcon(entityIndex, buffType, newStackCount);
                 }
             }
         }
@@ -257,7 +220,6 @@ namespace GameSystem.UI
             Sprite sprite = buffType == BuffsType.Attack ? _attackBuffIcon : _defenseBuffIcon;
             icon.Setup(sprite, stackCount);
         
-            // 아이콘 위치를 해당 엔티티의 StatusUI 근처에 배치
             icon.transform.SetParent(statusUI.transform, false);
         
             _buffIcons[(entityIndex, buffType)] = icon;

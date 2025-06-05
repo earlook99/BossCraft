@@ -4,7 +4,7 @@ using UnityEngine;
 using Entity;
 using Data;
 using Effect;
-using GameSystem.Events;
+using GameSystem.UI;
 
 namespace GameSystem
 {
@@ -12,6 +12,11 @@ namespace GameSystem
     {
         private BattleEntity[] _entities;
         private GameObject _defaultEffectPrefab;
+        
+        private BattleUIController _battleUIController;
+        private StatusUIManager _statusUIManager;
+        private MessageUIManager _messageUIManager;
+        private BattleManager _battleManager;
         
         private const float EFFECT_DURATION = 2f;
         private const float HP_ANIMATION_DURATION = 1f;
@@ -25,6 +30,22 @@ namespace GameSystem
         {
             _entities = entities;
             _defaultEffectPrefab = defaultEffectPrefab;
+            
+            if (_battleManager == null)
+                _battleManager = GetComponent<BattleManager>();
+        }
+        
+        public void SetUIReferences(BattleUIController battleUI, StatusUIManager statusUI, MessageUIManager messageUI)
+        {
+            _battleUIController = battleUI;
+            _statusUIManager = statusUI;
+            _messageUIManager = messageUI;
+        }
+        
+        public void OnDamageDealt(BattleEntity source, BattleEntity target, int damage, ElementType element)
+        {
+            if (_statusUIManager != null)
+                _statusUIManager.OnDamageDealt(target);
         }
         
         public IEnumerator ProcessEffect(BattleEntity source, BattleEntity target, MoveInstance moveInst, MoveEffect effect)
@@ -69,7 +90,8 @@ namespace GameSystem
     
             if (!hit.IsHit)
             {
-                UIEvents.RaiseShowMessage("Miss!", 1f);
+                if (_messageUIManager != null)
+                    _messageUIManager.ShowMessage("Miss!", 1f);
                 yield break;
             }
     
@@ -79,21 +101,23 @@ namespace GameSystem
             int prevHP = target.CurrentHP;
             target.TakeDamage(moveInst.Data.Type, hit.Damage);
     
-            BattleEvents.RaiseDamageDealt(source, target, hit.Damage, moveInst.Data.Type);
+            if (_statusUIManager != null)
+                _statusUIManager.OnDamageDealt(target);
     
-            // 동시 실행: HP 애니메이션과 데미지 플래시
             StartCoroutine(AnimateHPChange(target, prevHP, target.CurrentHP));
             yield return target.PlayDamageFlash(moveInst.Data.Type, HP_ANIMATION_DURATION);
     
             if (isWeakness && target is BossEntity)
             {
-                UIEvents.RaiseShowMessage("효과가 굉장했다!", 2f);
+                if (_messageUIManager != null)
+                    _messageUIManager.ShowMessage("효과가 굉장했다!", 2f);
                 yield return new WaitForSeconds(2f);
             }
     
             if (target.CurrentHP <= 0)
             {
-                BattleEvents.RaiseEntityDefeated(target);
+                if (_battleManager != null)
+                    _battleManager.OnEntityDefeated(target);
             }
         }
         
@@ -104,7 +128,8 @@ namespace GameSystem
             int prevHP = target.CurrentHP;
             target.CurrentHP = Mathf.Min(target.CurrentHP + effect.Power, target.MaxHP);
             
-            BattleEvents.RaiseHealingReceived(source, target, effect.Power);
+            if (_statusUIManager != null)
+                _statusUIManager.OnHealingReceived(target);
             
             yield return AnimateHPChange(target, prevHP, target.CurrentHP);
         }
@@ -112,14 +137,28 @@ namespace GameSystem
         private IEnumerator ProcessBuff(BattleEntity source, BattleEntity target, MoveInstance moveInst, MoveEffect effect)
         {
             ApplyStatModifier(target, effect, true);
-            BattleEvents.RaiseStatusEffectApplied(source, target, effect.EffectType);
+            
+            if (_statusUIManager != null && effect.BuffsType != BuffsType.None)
+            {
+                int stackCount = effect.BuffsType == BuffsType.Attack ? 
+                    target.AttackBuffStacks : target.DefenseBuffStacks;
+                _statusUIManager.OnBuffStackChanged(target, effect.BuffsType, stackCount);
+            }
+            
             yield return SpawnEffect(target, moveInst.Data);
         }
         
         private IEnumerator ProcessDebuff(BattleEntity source, BattleEntity target, MoveInstance moveInst, MoveEffect effect)
         {
             ApplyStatModifier(target, effect, false);
-            BattleEvents.RaiseStatusEffectApplied(source, target, effect.EffectType);
+            
+            if (_statusUIManager != null && effect.BuffsType != BuffsType.None)
+            {
+                int stackCount = effect.BuffsType == BuffsType.Attack ? 
+                    target.AttackBuffStacks : target.DefenseBuffStacks;
+                _statusUIManager.OnBuffStackChanged(target, effect.BuffsType, stackCount);
+            }
+            
             yield return SpawnEffect(target, moveInst.Data);
         }
         
@@ -136,8 +175,11 @@ namespace GameSystem
                     int previousHP = boss.CurrentHP;
                     boss.ActivateShield(trigger);
                     
-                    BattleEvents.RaiseShieldActivated(boss, boss.ShieldHP);
-                    UIEvents.RaiseShowMessage($"{boss.EntityName} activates shield!", 1.5f);
+                    if (_statusUIManager != null)
+                        _statusUIManager.OnShieldActivated(boss, boss.ShieldHP);
+                        
+                    if (_messageUIManager != null)
+                        _messageUIManager.ShowMessage($"{boss.EntityName} activates shield!", 1.5f);
                     
                     yield return new WaitForSeconds(0.5f);
                     yield return SpawnEffect(target, moveInst.Data);
@@ -150,7 +192,6 @@ namespace GameSystem
             if (DamageFormula.CheckStun(effect.Accuracy))
             {
                 target.ApplyStun(SHIELD_BREAK_STUN_DURATION);
-                BattleEvents.RaiseStatusEffectApplied(source, target, effect.EffectType);
                 yield return SpawnEffect(target, moveInst.Data);
             }
         }
@@ -158,24 +199,30 @@ namespace GameSystem
         private IEnumerator ProcessStealth(BattleEntity source, BattleEntity target, MoveInstance moveInst, MoveEffect effect)
         {
             target.ApplyStealth(2);
-            BattleEvents.RaiseStatusEffectApplied(source, target, effect.EffectType);
-            UIEvents.RaiseShowMessage($"{target.EntityName} becomes stealthed!", 1.5f);
+            
+            if (_messageUIManager != null)
+                _messageUIManager.ShowMessage($"{target.EntityName} becomes stealthed!", 1.5f);
+                
             yield return new WaitForSeconds(1.5f);
         }
         
         private IEnumerator ProcessCounter(BattleEntity source, BattleEntity target, MoveInstance moveInst, MoveEffect effect)
         {
             target.ApplyStatusEffect(MoveEffectType.Counter, 3);
-            BattleEvents.RaiseStatusEffectApplied(source, target, effect.EffectType);
-            UIEvents.RaiseShowMessage($"{target.EntityName} prepares to counter!", 1.5f);
+            
+            if (_messageUIManager != null)
+                _messageUIManager.ShowMessage($"{target.EntityName} prepares to counter!", 1.5f);
+                
             yield return new WaitForSeconds(1.5f);
         }
 
         private IEnumerator ProcessTaunt(BattleEntity source, BattleEntity target, MoveInstance moveInst, MoveEffect effect)
         {
             target.ApplyStatusEffect(MoveEffectType.Taunt, 2);
-            BattleEvents.RaiseStatusEffectApplied(source, target, effect.EffectType);
-            UIEvents.RaiseShowMessage($"{target.EntityName} taunts the enemy!", 1.5f);
+            
+            if (_messageUIManager != null)
+                _messageUIManager.ShowMessage($"{target.EntityName} taunts the enemy!", 1.5f);
+                
             yield return new WaitForSeconds(1.5f);
         }
         
@@ -229,12 +276,14 @@ namespace GameSystem
                 float t = elapsed / HP_ANIMATION_DURATION;
                 int currentHP = (int)Mathf.Lerp(startHP, endHP, t);
                 
-                UIEvents.RaiseUpdateHPBar(entityIndex, currentHP, target.MaxHP);
+                if (_statusUIManager != null)
+                    _statusUIManager.UpdateHPBar(entityIndex, currentHP, target.MaxHP);
                 
                 yield return null;
             }
             
-            UIEvents.RaiseUpdateHPBar(entityIndex, endHP, target.MaxHP);
+            if (_statusUIManager != null)
+                _statusUIManager.UpdateHPBar(entityIndex, endHP, target.MaxHP);
         }
     }
 }

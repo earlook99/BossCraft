@@ -31,6 +31,8 @@ namespace UI
         private List<PoolableButton> _activeButtons = new List<PoolableButton>(8);
         private CanvasGroup _containerCanvasGroup;
         private bool _isInitialized = false;
+        
+        private MessageUIManager _messageUIManager;
 
         private const float ACTION_MESSAGE_DURATION = 1f;
         
@@ -61,6 +63,8 @@ namespace UI
             _mainMenuActions[3] = () => HandleActionSelect(ActionType.Taunt, -1);
             
             _isInitialized = true;
+            
+            _messageUIManager = FindAnyObjectByType<MessageUIManager>();
         }
 
         private void OptimizeButtons()
@@ -89,7 +93,8 @@ namespace UI
 
         private void RefreshButtons()
         {
-            GameSystem.Events.UIEvents.RaiseShowMessage($"What will {_currentEntity.EntityName} do?", ACTION_MESSAGE_DURATION);
+            if (_messageUIManager != null)
+                _messageUIManager.ShowMessage($"What will {_currentEntity.EntityName} do?", ACTION_MESSAGE_DURATION);
             
             switch (_currentState)
             {
@@ -138,19 +143,16 @@ namespace UI
                         () => HandleActionSelect(ActionType.Move, index)
                     );
             
-                    // Hover 이벤트 추가
                     var eventTrigger = _activeButtons[i].GetComponent<EventTrigger>() 
                                        ?? _activeButtons[i].gameObject.AddComponent<EventTrigger>();
             
                     eventTrigger.triggers.Clear();
             
-                    // PointerEnter
                     var enterEntry = new EventTrigger.Entry();
                     enterEntry.eventID = EventTriggerType.PointerEnter;
                     enterEntry.callback.AddListener((_) => ShowMoveDescription(moveData));
                     eventTrigger.triggers.Add(enterEntry);
             
-                    // PointerExit
                     var exitEntry = new EventTrigger.Entry();
                     exitEntry.eventID = EventTriggerType.PointerExit;
                     exitEntry.callback.AddListener((_) => HideMoveDescription());
@@ -164,13 +166,14 @@ namespace UI
         private void ShowMoveDescription(MoveData moveData)
         {
             string description = $"{moveData.Name}: Power {moveData.Effects[0].Power}, Type: {moveData.Type}\n{moveData.Description}";
-            GameSystem.Events.UIEvents.RaiseShowMessage(description, float.MaxValue);
+            if (_messageUIManager != null)
+                _messageUIManager.ShowMessage(description, float.MaxValue);
         }
 
         private void HideMoveDescription()
         {
-            var messageManager = FindAnyObjectByType<GameSystem.UI.MessageUIManager>();
-            messageManager?.ClearAllMessages();
+            if (_messageUIManager != null)
+                _messageUIManager.ClearAllMessages();
         }
 
         private void PrepareButtons(int count)
@@ -236,6 +239,10 @@ namespace UI
         private void SwitchMenuState(MenuState newState)
         {
             _currentState = newState;
+            
+            if (_uiController != null)
+                _uiController.OnMenuStateChanged(newState, _playerIndex);
+                
             RefreshButtons();
         }
 

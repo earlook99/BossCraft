@@ -2,7 +2,6 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using Entity;
-using GameSystem.Events;
 
 namespace GameSystem
 {
@@ -12,12 +11,19 @@ namespace GameSystem
         private int _currentTurnIndex;
         private int _turnCount;
         
+        private BattleManager _battleManager;
+        
         public BattleEntity CurrentEntity => _currentTurnIndex < _turnOrder.Count ? _turnOrder[_currentTurnIndex] : null;
         public int TurnCount => _turnCount;
         public bool IsPlayerTurn => CurrentEntity != null && !(CurrentEntity is BossEntity);
         public bool IsBossTurn => CurrentEntity is BossEntity;
         
         private const int PLAYER_COUNT = 4;
+        
+        public void SetBattleManager(BattleManager battleManager)
+        {
+            _battleManager = battleManager;
+        }
         
         public void Initialize(BattleEntity[] entities)
         {
@@ -57,7 +63,11 @@ namespace GameSystem
                 return false;
             }
             
-            BattleEvents.RaiseTurnStarted(CurrentEntity, _turnCount);
+            if (_battleManager != null && CurrentEntity != null)
+            {
+                _battleManager.OnTurnStarted(CurrentEntity, _turnCount);
+            }
+            
             return true;
         }
         
@@ -105,7 +115,7 @@ namespace GameSystem
         {
             if (CurrentEntity != null)
             {
-                BattleEvents.RaiseTurnEnded(CurrentEntity);
+                CurrentEntity.EndTurn();
             }
         }
         

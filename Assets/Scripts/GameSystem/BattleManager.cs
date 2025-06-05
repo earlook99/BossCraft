@@ -4,7 +4,6 @@ using Entity;
 using AI;
 using Data;
 using CameraSystem;
-using GameSystem.Events;
 using GameSystem.Factory;
 using GameSystem.UI;
 
@@ -18,6 +17,11 @@ namespace GameSystem
         [Header("Components")]
         [SerializeField] private CameraManager _cameraManager;
         [SerializeField] private AIWeights _aiWeights;
+        
+        [Header("UI References")]
+        [SerializeField] private BattleUIController _battleUIController;
+        [SerializeField] private StatusUIManager _statusUIManager;
+        [SerializeField] private MessageUIManager _messageUIManager;
         
         [Header("Entity Configuration")]
         [SerializeField] private string[] _playerEntityNames;
@@ -64,15 +68,23 @@ namespace GameSystem
             _actionExecutor = gameObject.AddComponent<ActionExecutor>();
             _effectProcessor = gameObject.AddComponent<BattleEffectProcessor>();
             _actionQueue = gameObject.AddComponent<ActionQueue>();
+            
+            if (_battleUIController == null)
+                _battleUIController = FindAnyObjectByType<BattleUIController>();
+            if (_statusUIManager == null)
+                _statusUIManager = FindAnyObjectByType<StatusUIManager>();
+            if (_messageUIManager == null)
+                _messageUIManager = FindAnyObjectByType<MessageUIManager>();
+                
+            _actionExecutor.SetUIReferences(_battleUIController, _statusUIManager, _messageUIManager);
+            _effectProcessor.SetUIReferences(_battleUIController, _statusUIManager, _messageUIManager);
+            _turnManager.SetBattleManager(this);
         }
         
         private void SubscribeToEvents()
         {
             _stateMachine.OnStateChanged += HandleStateChanged;
             _actionQueue.OnQueueEmpty += HandleQueueEmpty;
-            
-            BattleEvents.OnEntityDefeated += HandleEntityDefeated;
-            UIEvents.OnActionSelected += HandleActionSelected;
         }
         
         private void UnsubscribeFromEvents()
@@ -82,12 +94,6 @@ namespace GameSystem
                 
             if (_actionQueue != null)
                 _actionQueue.OnQueueEmpty -= HandleQueueEmpty;
-                
-            BattleEvents.OnEntityDefeated -= HandleEntityDefeated;
-            UIEvents.OnActionSelected -= HandleActionSelected;
-            
-            BattleEvents.ClearAllListeners();
-            UIEvents.ClearAllListeners();
         }
         
         private IEnumerator InitializeBattle()
@@ -107,7 +113,11 @@ namespace GameSystem
             _actionExecutor.Initialize(_entities);
             _effectProcessor.Initialize(_entities, null);
             
-            BattleEvents.RaiseBattleStarted(_entities);
+            if (_statusUIManager != null)
+                _statusUIManager.Initialize(_entities);
+                
+            if (_battleUIController != null)
+                _battleUIController.OnBattleStarted(_entities);
             
             yield return new WaitForSeconds(_battleSettings.TurnStartDelay);
             
@@ -188,10 +198,9 @@ namespace GameSystem
             }
             else
             {
-                var uiController = FindAnyObjectByType<BattleUIController>();
-                if (uiController != null)
+                if (_battleUIController != null)
                 {
-                    uiController.ShowActionMenuForPlayer(playerIndex);
+                    _battleUIController.ShowActionMenuForPlayer(playerIndex);
                 }
             }
         }
@@ -238,23 +247,23 @@ namespace GameSystem
             _stateMachine.TransitionTo(BattleState.CheckBattleEnd);
         }
         
-        private void HandleActionSelected(ActionSelectedEventArgs args)
+        public void OnActionSelected(ActionType actionType, int actionIndex, int playerIndex)
         {
-            if (args.ActionType == ActionType.Move)
+            if (actionType == ActionType.Move)
             {
-                var entity = _entities[args.PlayerIndex];
-                var moveData = entity.GetMoveData(args.ActionIndex);
+                var entity = _entities[playerIndex];
+                var moveData = entity.GetMoveData(actionIndex);
 
                 EntityType defaultTarget = EntityType.Boss;
                 if (moveData != null && moveData.AllowedTargetSide == TargetSide.Self)
                 {
-                    defaultTarget = (EntityType)args.PlayerIndex;
+                    defaultTarget = (EntityType)playerIndex;
                 }
 
                 _pendingAction = new ActionData(
-                    args.ActionType,
-                    args.ActionIndex,
-                    (EntityType)args.PlayerIndex,
+                    actionType,
+                    actionIndex,
+                    (EntityType)playerIndex,
                     defaultTarget
                 );
 
@@ -263,9 +272,9 @@ namespace GameSystem
             else
             {
                 var action = new ActionData(
-                    args.ActionType,
-                    args.ActionIndex,
-                    (EntityType)args.PlayerIndex,
+                    actionType,
+                    actionIndex,
+                    (EntityType)playerIndex,
                     EntityType.Boss
                 );
                 EnqueuePlayerAction(action);
@@ -298,7 +307,8 @@ namespace GameSystem
         private IEnumerator ShowStunnedMessage(BattleEntity entity)
         {
             entity.StartTurn();
-            UIEvents.RaiseShowMessage($"{entity.EntityName} is stunned!", _battleSettings.MessageDuration);
+            if (_messageUIManager != null)
+                _messageUIManager.ShowMessage($"{entity.EntityName} is stunned!", _battleSettings.MessageDuration);
             yield return new WaitForSeconds(_battleSettings.MessageDuration);
         }
         
@@ -317,12 +327,15 @@ namespace GameSystem
         
         private IEnumerator ExecuteCounterAttack(BattleEntity counter, BattleEntity boss)
         {
-            UIEvents.RaiseShowMessage($"{counter.EntityName} counters!", 1f);
+            if (_messageUIManager != null)
+                _messageUIManager.ShowMessage($"{counter.EntityName} counters!", 1f);
             yield return new WaitForSeconds(1f);
             
             int damage = Mathf.RoundToInt(counter.Attack * 0.5f);
             boss.TakeDamage(counter.ElementType, damage);
-            BattleEvents.RaiseDamageDealt(counter, boss, damage, counter.ElementType);
+            
+            if (_effectProcessor != null)
+                _effectProcessor.OnDamageDealt(counter, boss, damage, counter.ElementType);
         }
         
         private void AdvanceTurn()
@@ -355,7 +368,7 @@ namespace GameSystem
             }
         }
         
-        private void HandleEntityDefeated(EntityDefeatedEventArgs args)
+        public void OnEntityDefeated(BattleEntity entity)
         {
             _actionQueue.EnqueueAction(
                 new ActionData(),
@@ -400,7 +413,9 @@ namespace GameSystem
             _actionQueue.Clear();
             
             bool playerWon = _entities[GameConstants.Battle.BOSS_INDEX].CurrentHP <= 0;
-            BattleEvents.RaiseBattleEnded(playerWon);
+            
+            if (_battleUIController != null)
+                _battleUIController.OnBattleEnded(playerWon);
         }
         
         private void SetSpriteAlphaExclusive(int activeIndex)
@@ -427,6 +442,13 @@ namespace GameSystem
             {
                 entityFactory.DestroyAllEntities();
             }
+        }
+        
+        public void OnTurnStarted(BattleEntity entity, int turnNumber)
+        {
+            // Turn start logic is handled in HandlePlayerChoice for players
+            // This method is called from TurnManager but the actual UI update
+            // happens through the state machine
         }
     }
 }

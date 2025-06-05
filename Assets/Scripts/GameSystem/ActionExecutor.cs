@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using Entity;
 using Data;
-using GameSystem.Events;
+using GameSystem.UI;
 
 namespace GameSystem
 {
@@ -13,6 +13,10 @@ namespace GameSystem
         
         private BattleEntity[] _entities;
         private readonly List<int> _validTargetIndices = new List<int>(5);
+        
+        private BattleUIController _battleUIController;
+        private StatusUIManager _statusUIManager;
+        private MessageUIManager _messageUIManager;
         
         private const float MESSAGE_DURATION = 1f;
         private const float EFFECT_DURATION = 2f;
@@ -25,6 +29,13 @@ namespace GameSystem
             _entities = entities;
         }
         
+        public void SetUIReferences(BattleUIController battleUI, StatusUIManager statusUI, MessageUIManager messageUI)
+        {
+            _battleUIController = battleUI;
+            _statusUIManager = statusUI;
+            _messageUIManager = messageUI;
+        }
+        
         public IEnumerator ExecuteAction(ActionData action)
         {
             var source = _entities[(int)action.Source];
@@ -33,8 +44,6 @@ namespace GameSystem
             {
                 source.SetGuardState(false);
             }
-            
-            BattleEvents.RaiseActionExecuted(source, action);
             
             switch (action.Action)
             {
@@ -59,12 +68,14 @@ namespace GameSystem
             if (moveInst.Data.RequiresCharge && !source.IsCharging)
             {
                 source.SetChargingState(true, action.ActionIndex, action.Target);
-                UIEvents.RaiseShowMessage($"{source.EntityName} is charging up!", MESSAGE_DURATION);
+                if (_messageUIManager != null)
+                    _messageUIManager.ShowMessage($"{source.EntityName} is charging up!", MESSAGE_DURATION);
                 yield return new WaitForSeconds(MESSAGE_DURATION);
                 yield break;
             }
             
-            UIEvents.RaiseShowMessage($"{source.EntityName} used {moveInst.Data.Name}!", MESSAGE_DURATION);
+            if (_messageUIManager != null)
+                _messageUIManager.ShowMessage($"{source.EntityName} used {moveInst.Data.Name}!", MESSAGE_DURATION);
             yield return new WaitForSeconds(MESSAGE_DURATION);
             
             yield return ApplyMoveEffects(source, action.Target, moveInst);
@@ -80,13 +91,15 @@ namespace GameSystem
         private IEnumerator ExecuteGuard(BattleEntity source)
         {
             source.SetGuardState(true);
-            UIEvents.RaiseShowMessage($"{source.EntityName} takes a defensive stance!", MESSAGE_DURATION);
+            if (_messageUIManager != null)
+                _messageUIManager.ShowMessage($"{source.EntityName} takes a defensive stance!", MESSAGE_DURATION);
             yield return new WaitForSeconds(MESSAGE_DURATION);
         }
         
         private IEnumerator ExecuteTaunt(BattleEntity source)
         {
-            UIEvents.RaiseShowMessage($"{source.EntityName} taunts the enemy!", MESSAGE_DURATION);
+            if (_messageUIManager != null)
+                _messageUIManager.ShowMessage($"{source.EntityName} taunts the enemy!", MESSAGE_DURATION);
             yield return new WaitForSeconds(MESSAGE_DURATION);
         }
         
@@ -211,6 +224,7 @@ namespace GameSystem
             {
                 processor = gameObject.AddComponent<BattleEffectProcessor>();
                 processor.Initialize(_entities, _defaultEffectPrefab);
+                processor.SetUIReferences(_battleUIController, _statusUIManager, _messageUIManager);
             }
             
             yield return processor.ProcessEffect(source, target, moveInst, effect);

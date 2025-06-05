@@ -3,8 +3,6 @@ using System.Collections;
 using GameSystem;
 using GameSystem.Interfaces;
 using System.Collections.Generic;
-using System.Threading;
-using System.Threading.Tasks;
 using Data;
 using UI;
 using UnityEngine;
@@ -218,14 +216,14 @@ namespace Entity
                     if (_attackBuffStacks < MAX_BUFF_STACKS)
                     {
                         _attackBuffStacks++;
-                        GameSystem.Events.BattleEvents.RaiseBuffStackChanged(this, buffType, _attackBuffStacks);
+                        NotifyBuffStackChanged(buffType, _attackBuffStacks);
                     }
                     break;
                 case BuffsType.Defense:
                     if (_defenseBuffStacks < MAX_BUFF_STACKS)
                     {
                         _defenseBuffStacks++;
-                        GameSystem.Events.BattleEvents.RaiseBuffStackChanged(this, buffType, _defenseBuffStacks);
+                        NotifyBuffStackChanged(buffType, _defenseBuffStacks);
                     }
                     break;
             }
@@ -239,16 +237,29 @@ namespace Entity
                     if (_attackBuffStacks > 0)
                     {
                         _attackBuffStacks--;
-                        GameSystem.Events.BattleEvents.RaiseBuffStackChanged(this, buffType, _attackBuffStacks);
+                        NotifyBuffStackChanged(buffType, _attackBuffStacks);
                     }
                     break;
                 case BuffsType.Defense:
                     if (_defenseBuffStacks > 0)
                     {
                         _defenseBuffStacks--;
-                        GameSystem.Events.BattleEvents.RaiseBuffStackChanged(this, buffType, _defenseBuffStacks);
+                        NotifyBuffStackChanged(buffType, _defenseBuffStacks);
                     }
                     break;
+            }
+        }
+        
+        private void NotifyBuffStackChanged(BuffsType buffType, int newStackCount)
+        {
+            var battleUIController = FindAnyObjectByType<GameSystem.UI.BattleUIController>();
+            if (battleUIController != null)
+            {
+                var statusUIManager = battleUIController.GetStatusUIManager();
+                if (statusUIManager != null)
+                {
+                    statusUIManager.OnBuffStackChanged(this, buffType, newStackCount);
+                }
             }
         }
         
@@ -276,12 +287,12 @@ namespace Entity
             if (_attackBuffStacks > 0)
             {
                 _attackBuffStacks = 0;
-                GameSystem.Events.BattleEvents.RaiseBuffStackChanged(this, BuffsType.Attack, 0);
+                NotifyBuffStackChanged(BuffsType.Attack, 0);
             }
             if (_defenseBuffStacks > 0)
             {
                 _defenseBuffStacks = 0;
-                GameSystem.Events.BattleEvents.RaiseBuffStackChanged(this, BuffsType.Defense, 0);
+                NotifyBuffStackChanged(BuffsType.Defense, 0);
             }
             DefBuffMultiplier = 1f;
         }
