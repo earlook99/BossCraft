@@ -33,8 +33,6 @@ namespace UI
         private CanvasGroup containerCanvasGroup;
         private bool isInitialized = false;
 
-        private const float ACTION_MESSAGE_DURATION = 1f;
-        
         private readonly Action[] mainMenuActions = new Action[4];
         private readonly string[] mainMenuLabels = { "Fight", "Item", "Guard", "Taunt" };
         
@@ -114,7 +112,7 @@ namespace UI
         private void RefreshButtons()
         {
             if (uiController != null)
-                uiController.ShowMessage($"What will {currentEntity.EntityName} do?", ACTION_MESSAGE_DURATION);
+                uiController.ShowMessage($"What will {currentEntity.EntityName} do?");
             
             switch (currentState)
             {
@@ -199,13 +197,13 @@ namespace UI
         {
             string description = $"{moveData.Name}: Power {moveData.Effects[0].Power}, Type: {moveData.Type}\n{moveData.Description}";
             if (uiController != null)
-                uiController.ShowMessage(description, float.MaxValue);
+                uiController.ShowMessage(description);
         }
 
         private void HideMoveDescription()
         {
-            if (uiController != null)
-                uiController.ShowMessage("", 0f);
+            if (uiController != null && currentEntity != null)
+                uiController.ShowMessage($"What will {currentEntity.EntityName} do?");
         }
 
         private void SetContainerActive(bool active)

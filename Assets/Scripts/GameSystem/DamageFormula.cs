@@ -27,10 +27,10 @@ namespace GameSystem
             {
                 return new RawHit(0, false, false);
             }
-            
-            float raw = effectPower * source.Attack;
+    
+            float raw = effectPower * source.Attack * source.AttackMultiplier;
             bool isCrit = Random.value < effectCrit;
-            
+    
             if (isCrit) 
                 raw *= CRITICAL_MULTIPLIER;
 
@@ -46,19 +46,19 @@ namespace GameSystem
         public static float GetExpectedRawDamage(BattleEntity source, MoveData data)
         {
             float totalExpectedDamage = 0f;
-    
+
             foreach (var effect in data.Effects)
             {
                 if (effect.EffectType == MoveEffectType.Damage)
                 {
-                    float raw = effect.Power * source.Attack;
+                    float raw = effect.Power * source.Attack * source.AttackMultiplier;
                     raw *= (1f + effect.CritChance * (CRITICAL_MULTIPLIER - 1f));
                     raw *= effect.Accuracy;
-                    
+            
                     totalExpectedDamage += raw;
                 }
             }
-            
+    
             return totalExpectedDamage;
         }
     }

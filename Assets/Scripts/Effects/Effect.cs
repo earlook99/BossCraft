@@ -9,28 +9,32 @@ namespace Effects
         [SerializeField] private bool _autoDestroy = true;
         [SerializeField] private float _lifetime = 2f;
         
-        private ParticleSystem[] _particleSystems;
         private Animator _animator;
         
         private void Awake()
         {
-            _particleSystems = GetComponentsInChildren<ParticleSystem>();
             _animator = GetComponent<Animator>();
         }
         
         private void OnEnable()
         {
-            if (_particleSystems != null)
+            if (_animator != null && _animator.runtimeAnimatorController != null)
             {
-                foreach (var ps in _particleSystems)
+                // Play 트리거가 있는지 확인
+                bool hasPlayTrigger = false;
+                foreach (var param in _animator.parameters)
                 {
-                    ps.Play();
+                    if (param.name == "Play" && param.type == AnimatorControllerParameterType.Trigger)
+                    {
+                        hasPlayTrigger = true;
+                        break;
+                    }
                 }
-            }
-            
-            if (_animator != null)
-            {
-                _animator.SetTrigger("Play");
+                
+                if (hasPlayTrigger)
+                {
+                    _animator.SetTrigger("Play");
+                }
             }
             
             if (_autoDestroy)
@@ -39,9 +43,29 @@ namespace Effects
             }
         }
         
+        public float GetDuration()
+        {
+            if (_animator != null && _animator.runtimeAnimatorController != null)
+            {
+                AnimatorClipInfo[] clipInfo = _animator.GetCurrentAnimatorClipInfo(0);
+                if (clipInfo.Length > 0)
+                {
+                    return clipInfo[0].clip.length;
+                }
+                
+                AnimatorStateInfo stateInfo = _animator.GetCurrentAnimatorStateInfo(0);
+                if (stateInfo.length > 0)
+                {
+                    return stateInfo.length;
+                }
+            }
+            
+            return _lifetime;
+        }
+        
         private IEnumerator AutoDestroyAfterDelay()
         {
-            yield return new WaitForSeconds(_lifetime);
+            yield return new WaitForSeconds(GetDuration());
             Destroy(gameObject);
         }
         

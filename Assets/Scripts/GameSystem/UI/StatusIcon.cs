@@ -9,7 +9,6 @@ namespace GameSystem.UI
     {
         [SerializeField] private Image _iconImage;
         [SerializeField] private TextMeshProUGUI _stackText;
-        [SerializeField] private float _fadeInDuration = 0.3f;
         
         private CanvasGroup _canvasGroup;
         
@@ -30,7 +29,12 @@ namespace GameSystem.UI
             }
             
             UpdateStack(stackCount);
-            StartCoroutine(FadeIn());
+            
+            // 즉시 표시
+            if (_canvasGroup != null)
+            {
+                _canvasGroup.alpha = 1f;
+            }
         }
         
         public void UpdateStack(int stackCount)
@@ -47,21 +51,6 @@ namespace GameSystem.UI
                     _stackText.gameObject.SetActive(false);
                 }
             }
-        }
-        
-        private IEnumerator FadeIn()
-        {
-            float elapsed = 0f;
-            _canvasGroup.alpha = 0f;
-            
-            while (elapsed < _fadeInDuration)
-            {
-                elapsed += Time.deltaTime;
-                _canvasGroup.alpha = elapsed / _fadeInDuration;
-                yield return null;
-            }
-            
-            _canvasGroup.alpha = 1f;
         }
     }
 }

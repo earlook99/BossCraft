@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using Data;
 using Entity;
+using UnityEngine;
 using Random = UnityEngine.Random;
 using static GameSystem.GameConstants.AI;
 
@@ -84,17 +85,25 @@ namespace GameSystem
         private void EvaluateAllMoves(ref MoveDecision best, ref MoveDecision second, ref MoveDecision third)
         {
             MoveInstance[] moves = _boss.MoveInstances;
-            
+    
+            Debug.Log($"보스 스킬 평가 시작. 총 {moves.Length}개");
+    
             for (int i = 0; i < moves.Length; i++)
             {
                 MoveInstance move = moves[i];
-
+        
+                Debug.Log($"스킬 {i}: {move.Data.Name}, 쿨다운: {move.CooldownLeft}");
+        
                 if (move.CooldownLeft > 0)
                     continue;
 
                 MoveDecision decision = EvaluateMove(i, move.Data);
+                Debug.Log($"스킬 {i} 점수: {decision.UtilityScore}");
+        
                 UpdateTopDecisions(ref best, ref second, ref third, decision);
             }
+    
+            Debug.Log($"최종 베스트 점수: {best.UtilityScore}");
         }
 
         private MoveDecision SelectFinalDecision(MoveDecision best, MoveDecision second, MoveDecision third)
@@ -133,16 +142,17 @@ namespace GameSystem
 
         private float ScoreSingle(MoveData data, ref EntityType targetOut)
         {
-            // 도발 중인 적 우선 타겟
             for (int i = 0; i < _party.Length; i++)
             {
                 if (_party[i] != null && _party[i].IsTaunting && _party[i].CurrentHP > 0)
                 {
                     targetOut = (EntityType)i;
-                    return CalculateMoveUtility(_boss, _party[i], data) * _weights.SingleHit * 2f;
+                    float tauntScore = CalculateMoveUtility(_boss, _party[i], data) * _weights.SingleHit * 2f;
+                    Debug.Log($"[ScoreSingle] Taunt target found: {_party[i].EntityName}, Score: {tauntScore}");
+                    return tauntScore;
                 }
             }
-            
+    
             float bestScore = -1f;
             EntityType bestTarget = EntityType.Boss;
 
@@ -150,10 +160,10 @@ namespace GameSystem
             {
                 var player = _party[i];
                 if (player == null || player.CurrentHP <= 0) continue;
-        
                 if (player.IsStealthed) continue;
-        
+
                 float localScore = CalculateMoveUtility(_boss, player, data) * _weights.SingleHit;
+                Debug.Log($"[ScoreSingle] Evaluating {player.EntityName}: Base utility: {CalculateMoveUtility(_boss, player, data)}, SingleHit weight: {_weights.SingleHit}, Final: {localScore}");
 
                 if (localScore > bestScore)
                 {
@@ -163,6 +173,7 @@ namespace GameSystem
             }
 
             targetOut = bestTarget;
+            Debug.Log($"[ScoreSingle] Best target: {bestTarget}, Best score: {bestScore}");
             return bestScore;
         }
 
@@ -232,6 +243,10 @@ namespace GameSystem
         {
             float raw = DamageFormula.GetExpectedRawDamage(boss, data);
             float actual = target.PreviewMitigate(raw, data);
+    
+            Debug.Log($"[DamageUtility] Target: {target.EntityName}, Raw: {raw}, Actual: {actual}");
+            Debug.Log($"[DamageUtility] Boss Attack: {boss.Attack}, AttackMultiplier: {boss.AttackMultiplier}");
+            Debug.Log($"[DamageUtility] Target Defense: {target.Defense}, DefenseMultiplier: {target.DefenseMultiplier}");
 
             float killBonus = 0f;
             if (target.CurrentHP <= actual)
@@ -239,7 +254,10 @@ namespace GameSystem
                 killBonus = _weights.KillBonus * effect.Accuracy;
             }
 
-            return actual + killBonus;
+            float totalUtility = actual + killBonus;
+            Debug.Log($"[DamageUtility] Kill bonus: {killBonus}, Total utility: {totalUtility}");
+    
+            return totalUtility;
         }
 
         private static void UpdateTopDecisions(ref MoveDecision best, ref MoveDecision second, 

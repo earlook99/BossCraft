@@ -26,6 +26,8 @@ namespace Entity
         private const int MAX_BUFF_STACKS = 2;
         private const float BUFF_PER_STACK = 0.2f;
         
+        public bool IsInitialized { get; private set; } = false;
+        
         public int MaxHP 
         { 
             get => maxHP; 
@@ -58,7 +60,7 @@ namespace Entity
         private Collider2D entityCollider;
         private MoveInstance[] moveInstances;
         
-        private BattleManager battleManager;
+        protected BattleManager battleManager;
         private BattleUIController uiController;
         
         private bool isCharging = false;
@@ -116,11 +118,14 @@ namespace Entity
             CacheComponents();
         }
         
-        protected virtual void Start()
+        protected virtual IEnumerator Start()
         {
-            Initialize();
             battleManager = FindAnyObjectByType<BattleManager>();
             uiController = FindAnyObjectByType<BattleUIController>();
+            
+            yield return null;
+            
+            IsInitialized = true;
         }
         
         private void CacheComponents()
@@ -159,7 +164,7 @@ namespace Entity
             => ref moveInstances[index];
         
         protected float GetDefenseFactor() 
-            => GameConstants.Battle.DEFENSE_FORMULA_BASE / (GameConstants.Battle.DEFENSE_FORMULA_BASE + defense);
+            => (float)GameConstants.Battle.DEFENSE_FORMULA_BASE / (GameConstants.Battle.DEFENSE_FORMULA_BASE + defense);
         
         protected virtual float GetWeaknessFactor(ElementType moveType) => 1f;
         
@@ -173,16 +178,23 @@ namespace Entity
 
         public virtual float PreviewMitigate(float rawDamage, MoveData move)
         {
-            return rawDamage * GetDefenseFactor() * GetWeaknessFactor(move.Type);
+            float defenseFactor = GetDefenseFactor();
+            float weaknessFactor = GetWeaknessFactor(move.Type);
+            float mitigatedDamage = rawDamage * defenseFactor * weaknessFactor;
+    
+            Debug.Log($"[PreviewMitigate] {EntityName} - Raw: {rawDamage}, DefenseFactor: {defenseFactor}, WeaknessFactor: {weaknessFactor}, Final: {mitigatedDamage}");
+            Debug.Log($"[PreviewMitigate] Defense stat: {defense}, Calculation: {GameConstants.Battle.DEFENSE_FORMULA_BASE} / ({GameConstants.Battle.DEFENSE_FORMULA_BASE} + {defense})");
+    
+            return mitigatedDamage;
         }
         
         public virtual void TakeDamage(ElementType moveType, int damage)
         {
-            int finalDamage = Mathf.RoundToInt(damage * GetDefenseFactor() * GetWeaknessFactor(moveType));
+            int finalDamage = Mathf.RoundToInt(damage * GetDefenseFactor() * GetWeaknessFactor(moveType) / DefenseMultiplier);
             finalDamage = Mathf.Max(finalDamage, 1);
 
             CurrentHP = Mathf.Clamp(CurrentHP - finalDamage, 0, MaxHP);
-            
+    
             if (hasCounter && CurrentHP > 0 && battleManager != null)
             {
                 battleManager.QueueCounterAttack(this);

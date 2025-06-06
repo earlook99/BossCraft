@@ -35,6 +35,7 @@ namespace GameSystem.UI
         [Header("Message UI")]
         [SerializeField] private GameObject battleMessagePanel;
         [SerializeField] private TextMeshProUGUI battleMessageText;
+        [SerializeField] private GameObject clickPrompt;
         
         [Header("Buff Icons")]
         [SerializeField] private Sprite attackBuffIcon;
@@ -51,7 +52,6 @@ namespace GameSystem.UI
         
         private CanvasGroup actionMenuCanvasGroup;
         private CanvasGroup messageCanvasGroup;
-        private Coroutine messageCoroutine;
         
         private static readonly Color COLOR_RED = Color.red;
         private static readonly Color COLOR_WHITE = Color.white;
@@ -76,6 +76,8 @@ namespace GameSystem.UI
                 messageCanvasGroup = battleMessagePanel.GetComponent<CanvasGroup>();
                 if (messageCanvasGroup == null)
                     messageCanvasGroup = battleMessagePanel.AddComponent<CanvasGroup>();
+                    
+                messageCanvasGroup.alpha = 1f;
             }
             
             if (targetSelectionUI == null)
@@ -313,33 +315,50 @@ namespace GameSystem.UI
             currentPlayerIndex = playerIndex;
         }
         
-        public void ShowMessage(string message, float duration = 2f)
+        public void ShowMessage(string message)
         {
-            if (string.IsNullOrEmpty(message)) return;
-            
             if (battleMessageText != null)
                 battleMessageText.text = message;
                 
-            if (messageCoroutine != null)
-                StopCoroutine(messageCoroutine);
-                
-            messageCoroutine = StartCoroutine(ShowMessageCoroutine(duration));
-        }
-        
-        private IEnumerator ShowMessageCoroutine(float duration)
-        {
             if (messageCanvasGroup != null)
             {
                 messageCanvasGroup.alpha = 1f;
-                yield return new WaitForSeconds(duration);
-                messageCanvasGroup.alpha = 0f;
             }
             else if (battleMessagePanel != null)
             {
                 battleMessagePanel.SetActive(true);
-                yield return new WaitForSeconds(duration);
-                battleMessagePanel.SetActive(false);
             }
+            
+            if (clickPrompt != null)
+                clickPrompt.SetActive(false);
+        }
+        
+        // 자동 진행 메시지 (일정 시간 후 자동으로 넘어감)
+        public IEnumerator ShowMessageAuto(string message, float duration = 1.0f)
+        {
+            ShowMessage(message);
+            yield return new WaitForSeconds(duration);
+        }
+        
+        // 클릭 대기 메시지 (중요한 메시지)
+        public IEnumerator ShowMessageAndWaitForClick(string message)
+        {
+            ShowMessage(message);
+            
+            if (clickPrompt != null)
+                clickPrompt.SetActive(true);
+            
+            // 실수 클릭 방지를 위한 짧은 딜레이
+            yield return new WaitForSeconds(0.2f);
+            
+            // 클릭 대기
+            while (!Input.GetMouseButtonDown(0))
+            {
+                yield return null;
+            }
+            
+            if (clickPrompt != null)
+                clickPrompt.SetActive(false);
         }
         
         public void UpdateEntityHP(BattleEntity entity)
@@ -419,8 +438,6 @@ namespace GameSystem.UI
         
         private void OnDestroy()
         {
-            if (messageCoroutine != null)
-                StopCoroutine(messageCoroutine);
         }
     }
 }

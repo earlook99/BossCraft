@@ -76,16 +76,37 @@ namespace GameSystem
         {
             currentState = BattleState.Initializing;
             
-            yield return new WaitForSeconds(0.1f);
-            
             CreateEntities();
+            
+            // 모든 엔티티의 초기화 대기
+            yield return WaitForAllEntitiesReady();
+            
             InitializeTurnOrder();
             
             uiController.Initialize(entities, this);
             
-            yield return new WaitForSeconds(battleSettings.TurnStartDelay);
+            yield return new WaitForSeconds(0.3f); // UI 초기화 대기
             
             TransitionToState(BattleState.PlayerChoice);
+        }
+        
+        private IEnumerator WaitForAllEntitiesReady()
+        {
+            while (true)
+            {
+                bool allReady = true;
+                foreach (var entity in entities)
+                {
+                    if (entity != null && !entity.IsInitialized)
+                    {
+                        allReady = false;
+                        break;
+                    }
+                }
+                
+                if (allReady) break;
+                yield return null;
+            }
         }
         
         private void CreateEntities()
@@ -144,7 +165,7 @@ namespace GameSystem
             
             if (defaultShieldPattern != null)
             {
-                var shieldPatternField = typeof(BossEntity).GetField("_shieldPattern", 
+                var shieldPatternField = typeof(BossEntity).GetField("shieldPattern", 
                     System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
                 if (shieldPatternField != null)
                     shieldPatternField.SetValue(boss, defaultShieldPattern);
@@ -268,8 +289,8 @@ namespace GameSystem
         private IEnumerator ShowStunnedAndAdvance(BattleEntity entity)
         {
             entity.StartTurn();
-            uiController.ShowMessage($"{entity.EntityName} is stunned!", battleSettings.MessageDuration);
-            yield return new WaitForSeconds(battleSettings.MessageDuration);
+            // 스턴 메시지는 자동 진행
+            yield return uiController.ShowMessageAuto($"{entity.EntityName} is stunned!", 1.0f);
             AdvanceTurn();
         }
         
@@ -277,11 +298,14 @@ namespace GameSystem
         {
             cameraManager.SwitchCameraTo(CineCamType.ZoomOut);
             SetSpriteAlphaExclusive(-1);
-            
+    
             yield return new WaitForSeconds(battleSettings.TurnTransitionDelay);
-            
+    
             var boss = GetBoss();
             if (boss == null) yield break;
+            
+            Debug.Log($"보스 Attack: {boss.Attack}");
+            Debug.Log($"보스 Defense: {boss.Defense}");
             
             ActionData bossAction;
             
@@ -297,10 +321,18 @@ namespace GameSystem
             else
             {
                 var players = GetAlivePlayersArray();
+                Debug.Log($"살아있는 플레이어 수: {players.Length}");
+    
                 var bossAI = new UtilityAI(boss, players, aiWeights, turnCount);
                 var decision = bossAI.Decide();
-                
-                if (decision.MoveIndex < 0) yield break;
+    
+                Debug.Log($"AI 결정 - MoveIndex: {decision.MoveIndex}, Target: {decision.TargetEntity}");
+    
+                if (decision.MoveIndex < 0) 
+                {
+                    Debug.LogError("보스 AI가 스킬을 선택하지 못함!");
+                    yield break;
+                }
                 
                 bossAction = new ActionData(
                     ActionType.Move,
@@ -410,13 +442,12 @@ namespace GameSystem
             if (moveInst.Data.RequiresCharge && !source.IsCharging)
             {
                 source.SetChargingState(true, action.ActionIndex, action.Target);
-                uiController.ShowMessage($"{source.EntityName} is charging up!", battleSettings.MessageDuration);
-                yield return new WaitForSeconds(battleSettings.MessageDuration);
+                yield return uiController.ShowMessageAuto($"{source.EntityName} is charging up!", 1.5f);
                 yield break;
             }
             
-            uiController.ShowMessage($"{source.EntityName} used {moveInst.Data.Name}!", battleSettings.MessageDuration);
-            yield return new WaitForSeconds(battleSettings.MessageDuration);
+            // 스킬 사용은 자동 진행
+            yield return uiController.ShowMessageAuto($"{source.EntityName} used {moveInst.Data.Name}!", 1.0f);
             
             yield return ApplyMoveEffects(source, action.Target, moveInst);
             
@@ -429,14 +460,12 @@ namespace GameSystem
         private IEnumerator ExecuteGuard(BattleEntity source)
         {
             source.SetGuardState(true);
-            uiController.ShowMessage($"{source.EntityName} takes a defensive stance!", battleSettings.MessageDuration);
-            yield return new WaitForSeconds(battleSettings.MessageDuration);
+            yield return uiController.ShowMessageAuto($"{source.EntityName} takes a defensive stance!", 1.0f);
         }
         
         private IEnumerator ExecuteTaunt(BattleEntity source)
         {
-            uiController.ShowMessage($"{source.EntityName} taunts the enemy!", battleSettings.MessageDuration);
-            yield return new WaitForSeconds(battleSettings.MessageDuration);
+            yield return uiController.ShowMessageAuto($"{source.EntityName} taunts the enemy!", 1.0f);
         }
         
         private IEnumerator ApplyMoveEffects(BattleEntity source, EntityType targetType, MoveInstance moveInst)
@@ -581,28 +610,36 @@ namespace GameSystem
         {
             var hit = DamageFormula.GetRawHit(source, effect.Power, effect.Accuracy, effect.CritChance);
             
+            // 1. 이펙트 재생
             yield return SpawnEffect(target, moveInst.Data);
+            
+            yield return new WaitForSeconds(0.3f);
             
             if (!hit.IsHit)
             {
-                uiController.ShowMessage("Miss!", 1f);
+                // Miss는 클릭 대기
+                yield return uiController.ShowMessageAndWaitForClick("Miss!");
                 yield break;
             }
             
             float effectiveness = TypeChart.GetEffectiveness(moveInst.Data.Type, target.ElementType);
             bool isWeakness = effectiveness > 1f;
             
+            // 2. 데미지 플래시 (깜빡임)
             int prevHP = target.CurrentHP;
             target.TakeDamage(moveInst.Data.Type, hit.Damage);
-            
-            uiController.UpdateEntityHP(target);
-            
             yield return target.PlayDamageFlash(moveInst.Data.Type, battleSettings.MessageDuration);
             
+            // 3. HP바 업데이트
+            uiController.UpdateEntityHP(target);
+            
+            // 4. HP바 감소 애니메이션 대기 + 약간의 딜레이
+            yield return new WaitForSeconds(0.5f);
+            
+            // 5. 특수 메시지는 클릭 대기
             if (isWeakness && target is BossEntity)
             {
-                uiController.ShowMessage("효과가 굉장했다!", 2f);
-                yield return new WaitForSeconds(2f);
+                yield return uiController.ShowMessageAndWaitForClick("효과가 굉장했다!");
             }
             
             if (target.CurrentHP <= 0)
@@ -617,8 +654,6 @@ namespace GameSystem
             target.CurrentHP = Mathf.Min(target.CurrentHP + effect.Power, target.MaxHP);
             
             uiController.UpdateEntityHP(target);
-            
-            yield return new WaitForSeconds(0.5f);
         }
         
         private IEnumerator ProcessBuff(BattleEntity source, BattleEntity target, MoveInstance moveInst, MoveEffect effect)
@@ -649,9 +684,8 @@ namespace GameSystem
                     boss.ActivateShield(trigger);
                     
                     uiController.AnimateShieldConversion(boss, previousHP, boss.CurrentHP, boss.ShieldHP);
-                    uiController.ShowMessage($"{boss.EntityName} activates shield!", 1.5f);
+                    yield return uiController.ShowMessageAndWaitForClick($"{boss.EntityName} activates shield!");
                     
-                    yield return new WaitForSeconds(0.5f);
                     yield return SpawnEffect(target, moveInst.Data);
                 }
             }
@@ -663,28 +697,29 @@ namespace GameSystem
             {
                 target.ApplyStun(battleSettings.ShieldBreakStunDuration);
                 yield return SpawnEffect(target, moveInst.Data);
+                yield return uiController.ShowMessageAndWaitForClick($"{target.EntityName} is stunned!");
             }
         }
         
         private IEnumerator ProcessStealth(BattleEntity source, BattleEntity target, MoveInstance moveInst, MoveEffect effect)
         {
             target.ApplyStealth(2);
-            uiController.ShowMessage($"{target.EntityName} becomes stealthed!", 1.5f);
-            yield return new WaitForSeconds(1.5f);
+            yield return SpawnEffect(target, moveInst.Data);
+            yield return uiController.ShowMessageAndWaitForClick($"{target.EntityName} becomes stealthed!");
         }
         
         private IEnumerator ProcessCounter(BattleEntity source, BattleEntity target, MoveInstance moveInst, MoveEffect effect)
         {
             target.ApplyStatusEffect(MoveEffectType.Counter, 3);
-            uiController.ShowMessage($"{target.EntityName} prepares to counter!", 1.5f);
-            yield return new WaitForSeconds(1.5f);
+            yield return SpawnEffect(target, moveInst.Data);
+            yield return uiController.ShowMessageAndWaitForClick($"{target.EntityName} prepares to counter!");
         }
         
         private IEnumerator ProcessTaunt(BattleEntity source, BattleEntity target, MoveInstance moveInst, MoveEffect effect)
         {
             target.ApplyStatusEffect(MoveEffectType.Taunt, 2);
-            uiController.ShowMessage($"{target.EntityName} taunts the enemy!", 1.5f);
-            yield return new WaitForSeconds(1.5f);
+            yield return SpawnEffect(target, moveInst.Data);
+            yield return uiController.ShowMessageAndWaitForClick($"{target.EntityName} taunts the enemy!");
         }
         
         private IEnumerator SpawnEffect(BattleEntity target, MoveData moveData)
@@ -697,10 +732,10 @@ namespace GameSystem
                 if (effectComponent == null)
                 {
                     effectComponent = effectObj.AddComponent<Effects.Effect>();
-                    effectComponent.SetLifetime(battleSettings.EffectDuration);
                 }
                 
-                yield return null;
+                // 애니메이션 길이만큼 대기
+                yield return new WaitForSeconds(effectComponent.GetDuration());
             }
         }
         
@@ -715,8 +750,7 @@ namespace GameSystem
         
         private IEnumerator ExecuteCounterAttack(BattleEntity counter, BattleEntity boss)
         {
-            uiController.ShowMessage($"{counter.EntityName} counters!", 1f);
-            yield return new WaitForSeconds(1f);
+            yield return uiController.ShowMessageAndWaitForClick($"{counter.EntityName} counters!");
             
             int damage = Mathf.RoundToInt(counter.Attack * 0.5f);
             boss.TakeDamage(counter.ElementType, damage);
@@ -728,21 +762,19 @@ namespace GameSystem
         {
             if (currentTurnIndex < turnOrder.Count)
                 turnOrder[currentTurnIndex].EndTurn();
-            
+    
             currentTurnIndex++;
             SkipDeadEntities();
-            
-            if (currentTurnIndex >= turnOrder.Count)
+    
+            // 현재 엔티티가 보스인지 확인
+            if (currentTurnIndex < turnOrder.Count && turnOrder[currentTurnIndex] is BossEntity)
             {
-                if (ShouldGoToBossTurn())
-                {
-                    TransitionToState(BattleState.BossAction);
-                }
-                else
-                {
-                    StartNewRound();
-                    TransitionToState(BattleState.PlayerChoice);
-                }
+                TransitionToState(BattleState.BossAction);
+            }
+            else if (currentTurnIndex >= turnOrder.Count)
+            {
+                StartNewRound();
+                TransitionToState(BattleState.PlayerChoice);
             }
             else
             {
@@ -827,8 +859,11 @@ namespace GameSystem
         {
             for (int i = 0; i < PLAYER_COUNT; i++)
             {
-                var sr = entities[i].SpriteRenderer;
-                if (!sr) continue;
+                var entity = entities[i];
+                if (entity == null) continue;
+                
+                var sr = entity.SpriteRenderer;
+                if (sr == null) continue;
                 
                 var color = sr.color;
                 color.a = (activeIndex < 0 || i == activeIndex) 

@@ -16,20 +16,16 @@ namespace Entity
         private int maxShieldStacks = 3;
         private int lastDamageTurn = -1;
         
-        private BattleManager battleManager;
-
         public bool HasShield => shieldHP > 0;
         public int ShieldHP => shieldHP;
         public int ShieldStacks => shieldStacks;
         public int MaxShieldStacks => maxShieldStacks;
         public ShieldPattern ShieldPattern => shieldPattern;
 
-        protected override void Start()
+        protected override IEnumerator Start()
         {
-            base.Start();
+            yield return base.Start();
             
-            battleManager = FindAnyObjectByType<BattleManager>();
-    
             if (shieldPattern != null)
             {
                 shieldPattern.ResetTriggers();

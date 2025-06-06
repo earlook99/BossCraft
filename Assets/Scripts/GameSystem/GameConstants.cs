@@ -44,8 +44,8 @@ namespace GameSystem
             public const float DIVIDER_DELAY = 0.05f;
             
             public const float ACTIVE_SPRITE_ALPHA = 1f;
-            public const float INACTIVE_SPRITE_ALPHA = 0.01f;
-            public const float STEALTH_ALPHA = 0.3f;
+            public const float INACTIVE_SPRITE_ALPHA = 0.1f;
+            public const float STEALTH_ALPHA = 0.5f;
         }
         
         public static class Camera
