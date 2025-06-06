@@ -19,28 +19,28 @@ namespace GameSystem
         private const float NOT_VERY_EFFECTIVE = 0.5f;
         private const float NORMAL_EFFECTIVENESS = 1.0f;
 
-        // 사이클 1: 자연계 - 물리적인 원소들의 순환
+        // 자연계 순환: 불 → 자연 → 물 → 대지 → 불
         private static readonly ElementType[] NatureCycle = {
-            ElementType.Blaze,   // 불
-            ElementType.Nature,  // 자연
-            ElementType.Tide,    // 물
-            ElementType.Terra    // 대지
+            ElementType.Blaze,
+            ElementType.Nature,
+            ElementType.Tide,
+            ElementType.Terra
         };
         
-        // 사이클 2: 에너지계 - 에너지와 현상들의 순환
+        // 에너지계 순환: 빛 → 어둠 → 신비 → 폭풍 → 빛
         private static readonly ElementType[] EnergyCycle = {
-            ElementType.Light,   // 빛
-            ElementType.Dark,    // 어둠
-            ElementType.Mystic,  // 신비
-            ElementType.Storm    // 폭풍
+            ElementType.Light,
+            ElementType.Dark,
+            ElementType.Mystic,
+            ElementType.Storm
         };
         
-        // 라이벌 관계 - 각 위치의 속성들끼리 서로 강함
+        // 라이벌 관계: 서로 강함
         private static readonly (ElementType, ElementType)[] RivalPairs = {
-            (ElementType.Blaze, ElementType.Light),    // 불 ↔ 빛
-            (ElementType.Nature, ElementType.Dark),    // 자연 ↔ 어둠
-            (ElementType.Tide, ElementType.Mystic),    // 물 ↔ 신비
-            (ElementType.Terra, ElementType.Storm)     // 대지 ↔ 폭풍
+            (ElementType.Blaze, ElementType.Light),
+            (ElementType.Nature, ElementType.Dark),
+            (ElementType.Tide, ElementType.Mystic),
+            (ElementType.Terra, ElementType.Storm)
         };
 
         public static float GetEffectiveness(ElementType moveType, ElementType defenderType)

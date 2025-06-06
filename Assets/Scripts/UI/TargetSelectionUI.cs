@@ -5,7 +5,6 @@ using UnityEngine;
 using Data;
 using Entity;
 using GameSystem;
-using GameSystem.UI;
 
 namespace UI
 {

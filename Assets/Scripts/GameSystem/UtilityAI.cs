@@ -106,6 +106,7 @@ namespace GameSystem
         {
             float randomRoll = Random.value;
             
+            // 65% 확률로 최선, 20% 확률로 차선, 15% 확률로 차차선
             if (randomRoll < BEST_CHOICE_PROBABILITY) 
                 return best;
             else if (randomRoll < BEST_CHOICE_PROBABILITY + SECOND_CHOICE_PROBABILITY)
@@ -137,6 +138,7 @@ namespace GameSystem
 
         private float ScoreSingle(MoveData data, ref EntityType targetOut)
         {
+            // 도발 중인 적 우선 타겟
             for (int i = 0; i < _party.Length; i++)
             {
                 if (_party[i] != null && _party[i].IsTaunting && _party[i].CurrentHP > 0)
