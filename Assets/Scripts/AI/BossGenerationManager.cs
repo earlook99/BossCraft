@@ -11,6 +11,8 @@ using UnityEngine;
 using UnityEngine.Networking;
 using UnityEngine.UI;
 using WebGL;
+using static GameSystem.GameConstants.Network;
+using static GameSystem.GameConstants.Scene;
 
 namespace AI
 {
@@ -108,8 +110,6 @@ namespace AI
         private string bossName = "";
         private byte[] _tempImageData;
         
-        private static readonly StringBuilder _stringBuilder = new StringBuilder(256);
-        
         private const string STATUS_MSG_CHECKING = "Checking server status...";
         private const string STATUS_MSG_READY = "Server is ready! Select an image to start.";
         private const string STATUS_MSG_MODELS_LOADING = "Server online, but models are still loading. Please wait...";
@@ -138,15 +138,7 @@ namespace AI
         private const string FILE_PREFIX = "file://";
         private const string DEFAULT_BOSS_NAME = "GeneratedBoss";
 
-        private const int REQUEST_TIMEOUT = 60;
-        private const int GENERATION_TIMEOUT = 180;
-        private const int JPEG_QUALITY = 85;
         private const float SPRITE_PIXELS_PER_UNIT = 0.7f;
-        private const float PROGRESS_UPDATE_INTERVAL = 0.5f;
-        private const string STATUS_ENDPOINT = "/status";
-        private const string PREDICT_ENDPOINT = "/api/predict";
-        private const string DATA_IMAGE_PREFIX = "data:image/";
-        private const char DATA_SEPARATOR = ',';
 
         private void Awake()
         {
@@ -207,9 +199,7 @@ namespace AI
             UpdateUIState();
             UpdateStatus(STATUS_MSG_CHECKING);
 
-            _stringBuilder.Clear();
-            _stringBuilder.Append(activeServerUrl).Append(STATUS_ENDPOINT);
-            string statusUrl = _stringBuilder.ToString();
+            string statusUrl = activeServerUrl + STATUS_ENDPOINT;
 
             using (UnityWebRequest www = UnityWebRequest.Get(statusUrl))
             {
@@ -360,9 +350,7 @@ namespace AI
                 }
                 else
                 {
-                    _stringBuilder.Clear();
-                    _stringBuilder.Append("Failed to load image: ").Append(www.error);
-                    UpdateStatus(_stringBuilder.ToString());
+                    UpdateStatus("Failed to load image: " + www.error);
                     _isImageLoaded = false;
                 }
             }
@@ -453,9 +441,7 @@ namespace AI
         {
             byte[] jsonBytes = System.Text.Encoding.UTF8.GetBytes(json);
             
-            _stringBuilder.Clear();
-            _stringBuilder.Append(activeServerUrl).Append(PREDICT_ENDPOINT);
-            string url = _stringBuilder.ToString();
+            string url = activeServerUrl + PREDICT_ENDPOINT;
             
             var www = new UnityWebRequest(url, "POST");
             www.uploadHandler = new UploadHandlerRaw(jsonBytes);
@@ -469,19 +455,21 @@ namespace AI
         private IEnumerator ShowProgress(float startTime, string prefix)
         {
             int dotCount = 0;
+            StringBuilder progressBuilder = new StringBuilder(64);
+            
             while (isProcessing)
             {
                 float elapsed = Time.time - startTime;
         
-                _stringBuilder.Clear();
-                _stringBuilder.Append(prefix);
+                progressBuilder.Clear();
+                progressBuilder.Append(prefix);
                 for (int i = 0; i < dotCount; i++)
                 {
-                    _stringBuilder.Append('.');
+                    progressBuilder.Append('.');
                 }
-                _stringBuilder.Append(" (").Append(Mathf.FloorToInt(elapsed)).Append("s)");
+                progressBuilder.Append(" (").Append(Mathf.FloorToInt(elapsed)).Append("s)");
         
-                UpdateStatus(_stringBuilder.ToString());
+                UpdateStatus(progressBuilder.ToString());
 
                 dotCount = (dotCount + 1) % 4;
                 yield return new WaitForSeconds(PROGRESS_UPDATE_INTERVAL);
@@ -690,11 +678,8 @@ namespace AI
             {
                 SaveBossData();
                 
-                _stringBuilder.Clear();
-                _stringBuilder.Append(STATUS_MSG_BOSS_CREATED_PREFIX)
-                    .Append(bossName)
-                    .Append(STATUS_MSG_BOSS_CREATED_SUFFIX);
-                UpdateStatus(_stringBuilder.ToString());
+                string statusMessage = STATUS_MSG_BOSS_CREATED_PREFIX + bossName + STATUS_MSG_BOSS_CREATED_SUFFIX;
+                UpdateStatus(statusMessage);
                 
                 _hasConfirmedBoss = true;
                 UpdateUIState();
@@ -782,18 +767,12 @@ namespace AI
                 ? bossName.Replace(" ", "_") 
                 : DEFAULT_BOSS_NAME;
             
-            _stringBuilder.Clear();
-            _stringBuilder.Append(safeName)
-                .Append('_')
-                .Append(DateTime.Now.ToString("yyyyMMdd_HHmmss"))
-                .Append(".png");
-            
-            return _stringBuilder.ToString();
+            return safeName + "_" + DateTime.Now.ToString("yyyyMMdd_HHmmss") + ".png";
         }
 
         private void ReturnToPreviousScene()
         {
-            UnityEngine.SceneManagement.SceneManager.LoadScene(GameConstants.Scene.MAIN_MENU_SCENE);
+            UnityEngine.SceneManagement.SceneManager.LoadScene(MAIN_MENU_SCENE);
         }
 
         private void UpdateStatus(string message)

@@ -610,16 +610,16 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   EntityName: TestBoss
   ElementType: 0
-  _maxHP: 1000
-  _currentHP: 0
-  _attack: 160
-  _defense: 80
+  maxHP: 100
+  currentHP: 0
+  attack: 50
+  defense: 50
   MoveSet:
   - {fileID: 11400000, guid: 050df3a77724f614490405b0e9ac7816, type: 2}
   - {fileID: 11400000, guid: 8c44da4450382304081b7681b8669a61, type: 2}
   - {fileID: 11400000, guid: 35c9a0a2903421844ba8f3cde8c1652d, type: 2}
   - {fileID: 11400000, guid: a5984b6be7dce16448d70af97c5a072f, type: 2}
-  _shieldPattern: {fileID: 11400000, guid: f01e615967cb0014b99fd5327f3a7de2, type: 2}
+  shieldPattern: {fileID: 11400000, guid: f01e615967cb0014b99fd5327f3a7de2, type: 2}
 --- !u!114 &1019301443152924501
 MonoBehaviour:
   m_ObjectHideFlags: 0

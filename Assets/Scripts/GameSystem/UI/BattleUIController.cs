@@ -1,14 +1,14 @@
 using System.Collections;
 using System.Collections.Generic;
-using UnityEngine;
-using GameSystem;
-using TMPro;
-using Entity;
-using Data;
 using CameraSystem;
-using GameSystem.UI;
+using Data;
+using Entity;
+using TMPro;
+using UI;
+using UnityEngine;
+using static GameSystem.GameConstants.Battle;
 
-namespace UI
+namespace GameSystem.UI
 {
     public class BattleUIController : MonoBehaviour
     {
@@ -52,9 +52,6 @@ namespace UI
         private CanvasGroup actionMenuCanvasGroup;
         private CanvasGroup messageCanvasGroup;
         private Coroutine messageCoroutine;
-        
-        private const int PLAYER_COUNT = 4;
-        private const int BOSS_INDEX = 4;
         
         private static readonly Color COLOR_RED = Color.red;
         private static readonly Color COLOR_WHITE = Color.white;

@@ -5,6 +5,7 @@ using UnityEngine.UI;
 using System.Collections;
 using System.Collections.Generic;
 using System.Text;
+using static GameSystem.GameConstants.UI; 
 
 namespace UI
 {
@@ -46,15 +47,6 @@ namespace UI
         private float _currentDisplayHP;
         private float _targetHP;
         private bool _isAnimatingHP;
-
-        private const float HP_ANIMATION_SPEED = 2f;
-        private const float HP_FLASH_DURATION = 0.2f;
-        private const float SHIELD_ANIM_DURATION = 0.3f;
-        private const float SHIELD_INITIAL_SCALE = 1.3f;
-        private const float SHIELD_ALPHA = 0.9f;
-        private const float DIVIDER_WIDTH = 4f;
-        private const float DIVIDER_FADE_TIME = 0.1f;
-        private const float DIVIDER_DELAY = 0.05f;
 
         private void Awake()
         {

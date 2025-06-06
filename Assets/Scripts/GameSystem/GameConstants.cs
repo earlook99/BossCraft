@@ -31,6 +31,7 @@ namespace GameSystem
         public static class UI
         {
             public const float HP_ANIMATION_DURATION = 1f;
+            public const float HP_ANIMATION_SPEED = 2f;
             public const float DEFAULT_MESSAGE_DURATION = 2f;
             
             public const float HP_FLASH_DURATION = 0.2f;
@@ -44,6 +45,7 @@ namespace GameSystem
             
             public const float ACTIVE_SPRITE_ALPHA = 1f;
             public const float INACTIVE_SPRITE_ALPHA = 0.01f;
+            public const float STEALTH_ALPHA = 0.3f;
         }
         
         public static class Camera

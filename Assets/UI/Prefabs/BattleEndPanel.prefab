@@ -90,8 +90,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   battleEndPanel: {fileID: 1367538617768996107}
-  resultText: {fileID: 0}
-  subText: {fileID: 0}
+  resultText: {fileID: 8058145766621285701}
+  subText: {fileID: 9084972371747703775}
 --- !u!1 &1455838965052592378
 GameObject:
   m_ObjectHideFlags: 0

@@ -5,7 +5,9 @@ using Entity;
 using AI;
 using Data;
 using CameraSystem;
+using GameSystem.UI;
 using UI;
+using static GameSystem.GameConstants.Battle;
 
 namespace GameSystem
 {
@@ -56,10 +58,6 @@ namespace GameSystem
         private bool isProcessingQueue;
         
         private List<int> validTargetIndices = new List<int>(5);
-        
-        private const int PLAYER_COUNT = 4;
-        private const int BOSS_INDEX = 4;
-        private const int TOTAL_ENTITIES = 5;
         
         private void Awake()
         {

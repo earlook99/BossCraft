@@ -1,6 +1,7 @@
 using UnityEngine;
 using Data;
 using Entity;
+using static GameSystem.GameConstants.Battle;
 
 namespace GameSystem
 {
@@ -20,9 +21,6 @@ namespace GameSystem
 
     public static class DamageFormula
     {
-        private const float CRITICAL_MULTIPLIER = 1.5f;
-        private const int MINIMUM_DAMAGE = 1;
-
         public static RawHit GetRawHit(BattleEntity source, int effectPower, float effectAcc, float effectCrit)
         {
             if (Random.value > effectAcc)

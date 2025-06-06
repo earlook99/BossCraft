@@ -1,9 +1,8 @@
-using System;
 using System.Collections;
-using AI;
 using GameSystem;
 using UnityEngine;
 using Data;
+using static GameSystem.GameConstants.Battle;
 
 namespace Entity
 {
@@ -18,9 +17,6 @@ namespace Entity
         private int lastDamageTurn = -1;
         
         private BattleManager battleManager;
-        
-        private const float SHIELD_DAMAGE_REDUCTION = 0.5f;
-        private const int SHIELD_BREAK_STUN_DURATION = 1;
 
         public bool HasShield => shieldHP > 0;
         public int ShieldHP => shieldHP;

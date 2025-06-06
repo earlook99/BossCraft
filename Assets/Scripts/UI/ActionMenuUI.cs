@@ -4,6 +4,7 @@ using Data;
 using UnityEngine;
 using GameSystem;
 using Entity;
+using GameSystem.UI;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
 using TMPro;
@@ -145,7 +146,7 @@ namespace UI
         {
             HideAllButtons();
             
-            ReadOnlySpan<MoveInstance> currentMoves = currentEntity.MoveInstances;
+            MoveInstance[] currentMoves = currentEntity.MoveInstances;
             int moveCount = currentMoves.Length;
 
             for (int i = 0; i < moveCount && i < buttons.Count; i++)

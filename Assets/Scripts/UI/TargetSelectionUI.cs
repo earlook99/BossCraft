@@ -5,7 +5,9 @@ using UnityEngine;
 using Data;
 using Entity;
 using GameSystem;
-
+using GameSystem.UI;
+using static GameSystem.GameConstants.Battle;
+using static GameSystem.GameConstants.UI; 
 namespace UI
 {
     public class TargetSelectionUI : MonoBehaviour
@@ -29,9 +31,7 @@ namespace UI
         [SerializeField] private GameObject _targetingOverlay;
         [SerializeField] private Color _validTargetColor = new Color(0, 1, 0, 0.3f);
         [SerializeField] private Color _invalidTargetColor = new Color(1, 0, 0, 0.3f);
-
-        private const int PLAYER_COUNT = 4;
-        private const int BOSS_INDEX = 4;
+        
         private const float MOUSE_MOVE_THRESHOLD = 0.1f;
         
         private static readonly Color COLOR_VALID = new Color(0, 1, 0, 0.3f);

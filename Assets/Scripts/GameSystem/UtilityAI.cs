@@ -1,8 +1,8 @@
-using System;
 using System.Collections.Generic;
 using Data;
 using Entity;
 using Random = UnityEngine.Random;
+using static GameSystem.GameConstants.AI;
 
 namespace GameSystem
 {
@@ -14,11 +14,6 @@ namespace GameSystem
         private readonly int _currentTurn;
         
         private readonly List<int> _validTargetIndices = new List<int>(4);
-
-        private const float BEST_CHOICE_PROBABILITY = 0.65f;
-        private const float SECOND_CHOICE_PROBABILITY = 0.20f;
-        private const float SHIELD_PRIORITY_SCORE = 1000f;
-        private const int INVALID_MOVE_INDEX = -1;
 
         public UtilityAI(BattleEntity boss, BattleEntity[] party, AIWeights weights, int currentTurn = 0)
         {
@@ -67,7 +62,7 @@ namespace GameSystem
         
         private int GetShieldMoveIndex()
         {
-            ReadOnlySpan<MoveInstance> moves = _boss.MoveInstances;
+            MoveInstance[] moves = _boss.MoveInstances;
             
             for (int i = 0; i < moves.Length; i++)
             {
@@ -88,11 +83,11 @@ namespace GameSystem
 
         private void EvaluateAllMoves(ref MoveDecision best, ref MoveDecision second, ref MoveDecision third)
         {
-            ReadOnlySpan<MoveInstance> moves = _boss.MoveInstances;
+            MoveInstance[] moves = _boss.MoveInstances;
             
             for (int i = 0; i < moves.Length; i++)
             {
-                ref readonly MoveInstance move = ref moves[i];
+                MoveInstance move = moves[i];
 
                 if (move.CooldownLeft > 0)
                     continue;

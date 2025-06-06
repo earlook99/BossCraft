@@ -1,10 +1,11 @@
-using System;
 using System.Collections;
 using System.Collections.Generic;
 using Data;
 using GameSystem;
+using GameSystem.UI;
 using UI;
 using UnityEngine;
+using static GameSystem.GameConstants.UI; 
 
 namespace Entity
 {
@@ -78,16 +79,11 @@ namespace Entity
         
         public bool HasCounter => hasCounter;
         public bool IsTaunting => isTaunting;
-        
-        private const float DEFAULT_SPRITE_ALPHA = 0.1f;
-        private const float GUARD_DEFENSE_MULTIPLIER = 2f;
-        private const int DEFENSE_FORMULA_BASE = 100;
-        private const float STEALTH_ALPHA = 0.3f;
 
         public SpriteRenderer SpriteRenderer => spriteRenderer;
         public SpriteOutlineToggle OutlineToggle => outlineToggle;
         public Collider2D EntityCollider => entityCollider;
-        public ReadOnlySpan<MoveInstance> MoveInstances => moveInstances;
+        public MoveInstance[] MoveInstances => moveInstances;
         public bool IsStunned { get; private set; }
         public int StunTurnsLeft { get; private set; }
         public bool IsCharging => isCharging;
@@ -148,7 +144,7 @@ namespace Entity
             }
             else
             {
-                moveInstances = Array.Empty<MoveInstance>();
+                moveInstances = new MoveInstance[0];
             }
     
             if (spriteRenderer != null && this is not BossEntity)
