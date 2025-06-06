@@ -15,7 +15,7 @@ MonoBehaviour:
   Name: Stealth
   Category: 0
   AllowedTargetSide: 0
-  Type: 5
+  Type: 7
   Cooldown: 0
   RequiresCharge: 0
   Effects:

@@ -1,0 +1,1255 @@
+fileFormatVersion: 2
+guid: 0dee892eef8d5d2489e5468faecb8003
+TextureImporter:
+  internalIDToNameTable:
+  - first:
+      213: 8664944360685653691
+    second: DS_DSi_-_Pokemon_HeartGold_SoulSilver_-_Battle_Bases-removebg-preview_0
+  - first:
+      213: -6274391436705357398
+    second: DS_DSi_-_Pokemon_HeartGold_SoulSilver_-_Battle_Bases-removebg-preview_1
+  - first:
+      213: -68332465666894032
+    second: DS_DSi_-_Pokemon_HeartGold_SoulSilver_-_Battle_Bases-removebg-preview_2
+  - first:
+      213: 115962694182624584
+    second: DS_DSi_-_Pokemon_HeartGold_SoulSilver_-_Battle_Bases-removebg-preview_3
+  - first:
+      213: 6300705439824502890
+    second: DS_DSi_-_Pokemon_HeartGold_SoulSilver_-_Battle_Bases-removebg-preview_4
+  - first:
+      213: -967519686184538392
+    second: DS_DSi_-_Pokemon_HeartGold_SoulSilver_-_Battle_Bases-removebg-preview_5
+  - first:
+      213: 829956319819940897
+    second: DS_DSi_-_Pokemon_HeartGold_SoulSilver_-_Battle_Bases-removebg-preview_6
+  - first:
+      213: 7859779505204773846
+    second: DS_DSi_-_Pokemon_HeartGold_SoulSilver_-_Battle_Bases-removebg-preview_7
+  - first:
+      213: -5893834013823359022
+    second: DS_DSi_-_Pokemon_HeartGold_SoulSilver_-_Battle_Bases-removebg-preview_8
+  - first:
+      213: -5687383015352254797
+    second: DS_DSi_-_Pokemon_HeartGold_SoulSilver_-_Battle_Bases-removebg-preview_9
+  - first:
+      213: -1942234574810208218
+    second: DS_DSi_-_Pokemon_HeartGold_SoulSilver_-_Battle_Bases-removebg-preview_10
+  - first:
+      213: -3964277995362116850
+    second: DS_DSi_-_Pokemon_HeartGold_SoulSilver_-_Battle_Bases-removebg-preview_11
+  - first:
+      213: -6705216823435523300
+    second: DS_DSi_-_Pokemon_HeartGold_SoulSilver_-_Battle_Bases-removebg-preview_12
+  - first:
+      213: 6363597331296654817
+    second: DS_DSi_-_Pokemon_HeartGold_SoulSilver_-_Battle_Bases-removebg-preview_13
+  - first:
+      213: 1691515300870409641
+    second: DS_DSi_-_Pokemon_HeartGold_SoulSilver_-_Battle_Bases-removebg-preview_14
+  - first:
+      213: -282294753018004668
+    second: DS_DSi_-_Pokemon_HeartGold_SoulSilver_-_Battle_Bases-removebg-preview_15
+  - first:
+      213: 8802593195042463784
+    second: DS_DSi_-_Pokemon_HeartGold_SoulSilver_-_Battle_Bases-removebg-preview_16
+  - first:
+      213: 630023869713285784
+    second: DS_DSi_-_Pokemon_HeartGold_SoulSilver_-_Battle_Bases-removebg-preview_17
+  - first:
+      213: -2099105728850206264
+    second: DS_DSi_-_Pokemon_HeartGold_SoulSilver_-_Battle_Bases-removebg-preview_18
+  - first:
+      213: -6369693341269448346
+    second: DS_DSi_-_Pokemon_HeartGold_SoulSilver_-_Battle_Bases-removebg-preview_19
+  - first:
+      213: 7126576214702881415
+    second: DS_DSi_-_Pokemon_HeartGold_SoulSilver_-_Battle_Bases-removebg-preview_20
+  - first:
+      213: -5762956464243049116
+    second: DS_DSi_-_Pokemon_HeartGold_SoulSilver_-_Battle_Bases-removebg-preview_21
+  - first:
+      213: 4469218237103021578
+    second: DS_DSi_-_Pokemon_HeartGold_SoulSilver_-_Battle_Bases-removebg-preview_22
+  - first:
+      213: -4289340992305160968
+    second: DS_DSi_-_Pokemon_HeartGold_SoulSilver_-_Battle_Bases-removebg-preview_23
+  - first:
+      213: -8589385632383156580
+    second: DS_DSi_-_Pokemon_HeartGold_SoulSilver_-_Battle_Bases-removebg-preview_24
+  - first:
+      213: 7784783042293864177
+    second: DS_DSi_-_Pokemon_HeartGold_SoulSilver_-_Battle_Bases-removebg-preview_25
+  - first:
+      213: 5735259717202008297
+    second: DS_DSi_-_Pokemon_HeartGold_SoulSilver_-_Battle_Bases-removebg-preview_26
+  - first:
+      213: -7608873556156844162
+    second: DS_DSi_-_Pokemon_HeartGold_SoulSilver_-_Battle_Bases-removebg-preview_27
+  - first:
+      213: 627624337982061978
+    second: DS_DSi_-_Pokemon_HeartGold_SoulSilver_-_Battle_Bases-removebg-preview_28
+  - first:
+      213: 1257028772355276423
+    second: DS_DSi_-_Pokemon_HeartGold_SoulSilver_-_Battle_Bases-removebg-preview_29
+  - first:
+      213: 7447849904065032119
+    second: DS_DSi_-_Pokemon_HeartGold_SoulSilver_-_Battle_Bases-removebg-preview_30
+  - first:
+      213: 4986983722977904641
+    second: DS_DSi_-_Pokemon_HeartGold_SoulSilver_-_Battle_Bases-removebg-preview_31
+  - first:
+      213: -2760266052572804217
+    second: DS_DSi_-_Pokemon_HeartGold_SoulSilver_-_Battle_Bases-removebg-preview_32
+  - first:
+      213: 2941684045769703560
+    second: DS_DSi_-_Pokemon_HeartGold_SoulSilver_-_Battle_Bases-removebg-preview_33
+  - first:
+      213: 3657078236922489467
+    second: DS_DSi_-_Pokemon_HeartGold_SoulSilver_-_Battle_Bases-removebg-preview_34
+  - first:
+      213: 7889613066852296826
+    second: DS_DSi_-_Pokemon_HeartGold_SoulSilver_-_Battle_Bases-removebg-preview_35
+  - first:
+      213: 4357456585966807192
+    second: DS_DSi_-_Pokemon_HeartGold_SoulSilver_-_Battle_Bases-removebg-preview_36
+  - first:
+      213: 330614162088673283
+    second: DS_DSi_-_Pokemon_HeartGold_SoulSilver_-_Battle_Bases-removebg-preview_37
+  - first:
+      213: -3117868919082228659
+    second: DS_DSi_-_Pokemon_HeartGold_SoulSilver_-_Battle_Bases-removebg-preview_38
+  - first:
+      213: 5049895821250883531
+    second: DS_DSi_-_Pokemon_HeartGold_SoulSilver_-_Battle_Bases-removebg-preview_39
+  - first:
+      213: -4147975583605149398
+    second: DS_DSi_-_Pokemon_HeartGold_SoulSilver_-_Battle_Bases-removebg-preview_40
+  - first:
+      213: 3423683185953197649
+    second: DS_DSi_-_Pokemon_HeartGold_SoulSilver_-_Battle_Bases-removebg-preview_41
+  - first:
+      213: 6519446344097665618
+    second: DS_DSi_-_Pokemon_HeartGold_SoulSilver_-_Battle_Bases-removebg-preview_42
+  - first:
+      213: -8182847028482447406
+    second: DS_DSi_-_Pokemon_HeartGold_SoulSilver_-_Battle_Bases-removebg-preview_43
+  - first:
+      213: -3922159039149327479
+    second: DS_DSi_-_Pokemon_HeartGold_SoulSilver_-_Battle_Bases-removebg-preview_44
+  externalObjects: {}
+  serializedVersion: 13
+  mipmaps:
+    mipMapMode: 0
+    enableMipMap: 0
+    sRGBTexture: 1
+    linearTexture: 0
+    fadeOut: 0
+    borderMipMap: 0
+    mipMapsPreserveCoverage: 0
+    alphaTestReferenceValue: 0.5
+    mipMapFadeDistanceStart: 1
+    mipMapFadeDistanceEnd: 3
+  bumpmap:
+    convertToNormalMap: 0
+    externalNormalMap: 0
+    heightScale: 0.25
+    normalMapFilter: 0
+    flipGreenChannel: 0
+  isReadable: 0
+  streamingMipmaps: 0
+  streamingMipmapsPriority: 0
+  vTOnly: 0
+  ignoreMipmapLimit: 0
+  grayScaleToAlpha: 0
+  generateCubemap: 6
+  cubemapConvolution: 0
+  seamlessCubemap: 0
+  textureFormat: 1
+  maxTextureSize: 2048
+  textureSettings:
+    serializedVersion: 2
+    filterMode: 1
+    aniso: 1
+    mipBias: 0
+    wrapU: 1
+    wrapV: 1
+    wrapW: 1
+  nPOTScale: 0
+  lightmap: 0
+  compressionQuality: 50
+  spriteMode: 2
+  spriteExtrude: 1
+  spriteMeshType: 1
+  alignment: 0
+  spritePivot: {x: 0.5, y: 0.5}
+  spritePixelsToUnits: 100
+  spriteBorder: {x: 0, y: 0, z: 0, w: 0}
+  spriteGenerateFallbackPhysicsShape: 1
+  alphaUsage: 1
+  alphaIsTransparency: 1
+  spriteTessellationDetail: -1
+  textureType: 8
+  textureShape: 1
+  singleChannelComponent: 0
+  flipbookRows: 1
+  flipbookColumns: 1
+  maxTextureSizeSet: 0
+  compressionQualitySet: 0
+  textureFormatSet: 0
+  ignorePngGamma: 0
+  applyGammaDecoding: 0
+  swizzle: 50462976
+  cookieLightType: 0
+  platformSettings:
+  - serializedVersion: 4
+    buildTarget: DefaultTexturePlatform
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Standalone
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: WebGL
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  spriteSheet:
+    serializedVersion: 2
+    sprites:
+    - serializedVersion: 2
+      name: DS_DSi_-_Pokemon_HeartGold_SoulSilver_-_Battle_Bases-removebg-preview_0
+      rect:
+        serializedVersion: 2
+        x: 14
+        y: 410
+        width: 147
+        height: 27
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: bbe4139bcf0104870800000000000000
+      internalID: 8664944360685653691
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: DS_DSi_-_Pokemon_HeartGold_SoulSilver_-_Battle_Bases-removebg-preview_1
+      rect:
+        serializedVersion: 2
+        x: 16
+        y: 386
+        width: 154
+        height: 24
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: aa1ac614b32ece8a0800000000000000
+      internalID: -6274391436705357398
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: DS_DSi_-_Pokemon_HeartGold_SoulSilver_-_Battle_Bases-removebg-preview_2
+      rect:
+        serializedVersion: 2
+        x: 185
+        y: 405
+        width: 89
+        height: 28
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 0375c490cfb3d0ff0800000000000000
+      internalID: -68332465666894032
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: DS_DSi_-_Pokemon_HeartGold_SoulSilver_-_Battle_Bases-removebg-preview_3
+      rect:
+        serializedVersion: 2
+        x: 275
+        y: 408
+        width: 91
+        height: 27
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 84dd3f9b47bfb9100800000000000000
+      internalID: 115962694182624584
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: DS_DSi_-_Pokemon_HeartGold_SoulSilver_-_Battle_Bases-removebg-preview_4
+      rect:
+        serializedVersion: 2
+        x: 370
+        y: 404
+        width: 89
+        height: 28
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a606c17073a907750800000000000000
+      internalID: 6300705439824502890
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: DS_DSi_-_Pokemon_HeartGold_SoulSilver_-_Battle_Bases-removebg-preview_5
+      rect:
+        serializedVersion: 2
+        x: 464
+        y: 399
+        width: 88
+        height: 41
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 8eee5c7b8fda292f0800000000000000
+      internalID: -967519686184538392
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: DS_DSi_-_Pokemon_HeartGold_SoulSilver_-_Battle_Bases-removebg-preview_6
+      rect:
+        serializedVersion: 2
+        x: 16
+        y: 359
+        width: 154
+        height: 25
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 12445f520e8948b00800000000000000
+      internalID: 829956319819940897
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: DS_DSi_-_Pokemon_HeartGold_SoulSilver_-_Battle_Bases-removebg-preview_7
+      rect:
+        serializedVersion: 2
+        x: 19
+        y: 332
+        width: 148
+        height: 20
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 6d340ac21db831d60800000000000000
+      internalID: 7859779505204773846
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: DS_DSi_-_Pokemon_HeartGold_SoulSilver_-_Battle_Bases-removebg-preview_8
+      rect:
+        serializedVersion: 2
+        x: 185
+        y: 359
+        width: 89
+        height: 25
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 2d7a1f8f035e43ea0800000000000000
+      internalID: -5893834013823359022
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: DS_DSi_-_Pokemon_HeartGold_SoulSilver_-_Battle_Bases-removebg-preview_9
+      rect:
+        serializedVersion: 2
+        x: 278
+        y: 354
+        width: 88
+        height: 29
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 3beb654d74b5211b0800000000000000
+      internalID: -5687383015352254797
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: DS_DSi_-_Pokemon_HeartGold_SoulSilver_-_Battle_Bases-removebg-preview_10
+      rect:
+        serializedVersion: 2
+        x: 370
+        y: 348
+        width: 89
+        height: 47
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 628a4f1d1fbcb05e0800000000000000
+      internalID: -1942234574810208218
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: DS_DSi_-_Pokemon_HeartGold_SoulSilver_-_Battle_Bases-removebg-preview_11
+      rect:
+        serializedVersion: 2
+        x: 464
+        y: 349
+        width: 91
+        height: 34
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e0b1b87ba2e0cf8c0800000000000000
+      internalID: -3964277995362116850
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: DS_DSi_-_Pokemon_HeartGold_SoulSilver_-_Battle_Bases-removebg-preview_12
+      rect:
+        serializedVersion: 2
+        x: 14
+        y: 277
+        width: 156
+        height: 28
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c1b072923d842f2a0800000000000000
+      internalID: -6705216823435523300
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: DS_DSi_-_Pokemon_HeartGold_SoulSilver_-_Battle_Bases-removebg-preview_13
+      rect:
+        serializedVersion: 2
+        x: 19
+        y: 304
+        width: 148
+        height: 23
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 1e59f899e0a005850800000000000000
+      internalID: 6363597331296654817
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: DS_DSi_-_Pokemon_HeartGold_SoulSilver_-_Battle_Bases-removebg-preview_14
+      rect:
+        serializedVersion: 2
+        x: 186
+        y: 310
+        width: 89
+        height: 37
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 9adc4804438797710800000000000000
+      internalID: 1691515300870409641
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: DS_DSi_-_Pokemon_HeartGold_SoulSilver_-_Battle_Bases-removebg-preview_15
+      rect:
+        serializedVersion: 2
+        x: 277
+        y: 310
+        width: 89
+        height: 37
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 44bb764fa66151cf0800000000000000
+      internalID: -282294753018004668
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: DS_DSi_-_Pokemon_HeartGold_SoulSilver_-_Battle_Bases-removebg-preview_16
+      rect:
+        serializedVersion: 2
+        x: 370
+        y: 304
+        width: 90
+        height: 42
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 820e6cc6fd7192a70800000000000000
+      internalID: 8802593195042463784
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: DS_DSi_-_Pokemon_HeartGold_SoulSilver_-_Battle_Bases-removebg-preview_17
+      rect:
+        serializedVersion: 2
+        x: 463
+        y: 309
+        width: 90
+        height: 24
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 892074a1f5b4eb800800000000000000
+      internalID: 630023869713285784
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: DS_DSi_-_Pokemon_HeartGold_SoulSilver_-_Battle_Bases-removebg-preview_18
+      rect:
+        serializedVersion: 2
+        x: 4
+        y: 249
+        width: 177
+        height: 26
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 8c165ed067a7ed2e0800000000000000
+      internalID: -2099105728850206264
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: DS_DSi_-_Pokemon_HeartGold_SoulSilver_-_Battle_Bases-removebg-preview_19
+      rect:
+        serializedVersion: 2
+        x: 184
+        y: 250
+        width: 90
+        height: 47
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 669a67977ad4a97a0800000000000000
+      internalID: -6369693341269448346
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: DS_DSi_-_Pokemon_HeartGold_SoulSilver_-_Battle_Bases-removebg-preview_20
+      rect:
+        serializedVersion: 2
+        x: 278
+        y: 250
+        width: 89
+        height: 40
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 78afc1e1f4fa6e260800000000000000
+      internalID: 7126576214702881415
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: DS_DSi_-_Pokemon_HeartGold_SoulSilver_-_Battle_Bases-removebg-preview_21
+      rect:
+        serializedVersion: 2
+        x: 371
+        y: 260
+        width: 89
+        height: 24
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 46d70c411add500b0800000000000000
+      internalID: -5762956464243049116
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: DS_DSi_-_Pokemon_HeartGold_SoulSilver_-_Battle_Bases-removebg-preview_22
+      rect:
+        serializedVersion: 2
+        x: 463
+        y: 260
+        width: 90
+        height: 38
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a0e1936ce4ad50e30800000000000000
+      internalID: 4469218237103021578
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: DS_DSi_-_Pokemon_HeartGold_SoulSilver_-_Battle_Bases-removebg-preview_23
+      rect:
+        serializedVersion: 2
+        x: 17
+        y: 223
+        width: 152
+        height: 23
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 8fc1129e7133974c0800000000000000
+      internalID: -4289340992305160968
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: DS_DSi_-_Pokemon_HeartGold_SoulSilver_-_Battle_Bases-removebg-preview_24
+      rect:
+        serializedVersion: 2
+        x: 197
+        y: 223
+        width: 152
+        height: 20
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c9e35fe964f5cc880800000000000000
+      internalID: -8589385632383156580
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: DS_DSi_-_Pokemon_HeartGold_SoulSilver_-_Battle_Bases-removebg-preview_25
+      rect:
+        serializedVersion: 2
+        x: 371
+        y: 200
+        width: 88
+        height: 35
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 1f619617eea190c60800000000000000
+      internalID: 7784783042293864177
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: DS_DSi_-_Pokemon_HeartGold_SoulSilver_-_Battle_Bases-removebg-preview_26
+      rect:
+        serializedVersion: 2
+        x: 464
+        y: 211
+        width: 93
+        height: 34
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 9e8de6a735cb79f40800000000000000
+      internalID: 5735259717202008297
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: DS_DSi_-_Pokemon_HeartGold_SoulSilver_-_Battle_Bases-removebg-preview_27
+      rect:
+        serializedVersion: 2
+        x: 16
+        y: 195
+        width: 154
+        height: 20
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e77786070d9d76690800000000000000
+      internalID: -7608873556156844162
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: DS_DSi_-_Pokemon_HeartGold_SoulSilver_-_Battle_Bases-removebg-preview_28
+      rect:
+        serializedVersion: 2
+        x: 197
+        y: 195
+        width: 153
+        height: 20
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a9d7fc59205c5b800800000000000000
+      internalID: 627624337982061978
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: DS_DSi_-_Pokemon_HeartGold_SoulSilver_-_Battle_Bases-removebg-preview_29
+      rect:
+        serializedVersion: 2
+        x: 16
+        y: 168
+        width: 154
+        height: 23
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 78e7ea8220dd17110800000000000000
+      internalID: 1257028772355276423
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: DS_DSi_-_Pokemon_HeartGold_SoulSilver_-_Battle_Bases-removebg-preview_30
+      rect:
+        serializedVersion: 2
+        x: 197
+        y: 168
+        width: 153
+        height: 20
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 7bf293007041c5760800000000000000
+      internalID: 7447849904065032119
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: DS_DSi_-_Pokemon_HeartGold_SoulSilver_-_Battle_Bases-removebg-preview_31
+      rect:
+        serializedVersion: 2
+        x: 371
+        y: 163
+        width: 88
+        height: 23
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 108c0cc1643553540800000000000000
+      internalID: 4986983722977904641
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: DS_DSi_-_Pokemon_HeartGold_SoulSilver_-_Battle_Bases-removebg-preview_32
+      rect:
+        serializedVersion: 2
+        x: 464
+        y: 163
+        width: 93
+        height: 23
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 78b04d256a091b9d0800000000000000
+      internalID: -2760266052572804217
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: DS_DSi_-_Pokemon_HeartGold_SoulSilver_-_Battle_Bases-removebg-preview_33
+      rect:
+        serializedVersion: 2
+        x: 4
+        y: 141
+        width: 177
+        height: 25
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 880898dcd06f2d820800000000000000
+      internalID: 2941684045769703560
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: DS_DSi_-_Pokemon_HeartGold_SoulSilver_-_Battle_Bases-removebg-preview_34
+      rect:
+        serializedVersion: 2
+        x: 197
+        y: 141
+        width: 153
+        height: 20
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b7aa39bc74d80c230800000000000000
+      internalID: 3657078236922489467
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: DS_DSi_-_Pokemon_HeartGold_SoulSilver_-_Battle_Bases-removebg-preview_35
+      rect:
+        serializedVersion: 2
+        x: 432
+        y: 6
+        width: 120
+        height: 142
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a78e20988498d7d60800000000000000
+      internalID: 7889613066852296826
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: DS_DSi_-_Pokemon_HeartGold_SoulSilver_-_Battle_Bases-removebg-preview_36
+      rect:
+        serializedVersion: 2
+        x: 4
+        y: 113
+        width: 177
+        height: 26
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 898ecba9dabc87c30800000000000000
+      internalID: 4357456585966807192
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: DS_DSi_-_Pokemon_HeartGold_SoulSilver_-_Battle_Bases-removebg-preview_37
+      rect:
+        serializedVersion: 2
+        x: 4
+        y: 85
+        width: 177
+        height: 27
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 300420924d3969400800000000000000
+      internalID: 330614162088673283
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: DS_DSi_-_Pokemon_HeartGold_SoulSilver_-_Battle_Bases-removebg-preview_38
+      rect:
+        serializedVersion: 2
+        x: 4
+        y: 58
+        width: 177
+        height: 27
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d446fddbcba1bb4d0800000000000000
+      internalID: -3117868919082228659
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: DS_DSi_-_Pokemon_HeartGold_SoulSilver_-_Battle_Bases-removebg-preview_39
+      rect:
+        serializedVersion: 2
+        x: 190
+        y: 109
+        width: 160
+        height: 25
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: bcf63627e75d41640800000000000000
+      internalID: 5049895821250883531
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: DS_DSi_-_Pokemon_HeartGold_SoulSilver_-_Battle_Bases-removebg-preview_40
+      rect:
+        serializedVersion: 2
+        x: 192
+        y: 1
+        width: 75
+        height: 75
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a21b8320f2e6f66c0800000000000000
+      internalID: -4147975583605149398
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: DS_DSi_-_Pokemon_HeartGold_SoulSilver_-_Battle_Bases-removebg-preview_41
+      rect:
+        serializedVersion: 2
+        x: 197
+        y: 33
+        width: 153
+        height: 73
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 15ec73ad7bd538f20800000000000000
+      internalID: 3423683185953197649
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: DS_DSi_-_Pokemon_HeartGold_SoulSilver_-_Battle_Bases-removebg-preview_42
+      rect:
+        serializedVersion: 2
+        x: 371
+        y: 62
+        width: 88
+        height: 75
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 252192098e9b97a50800000000000000
+      internalID: 6519446344097665618
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: DS_DSi_-_Pokemon_HeartGold_SoulSilver_-_Battle_Bases-removebg-preview_43
+      rect:
+        serializedVersion: 2
+        x: 4
+        y: 31
+        width: 177
+        height: 26
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 2d761ff6bffa07e80800000000000000
+      internalID: -8182847028482447406
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: DS_DSi_-_Pokemon_HeartGold_SoulSilver_-_Battle_Bases-removebg-preview_44
+      rect:
+        serializedVersion: 2
+        x: 4
+        y: 4
+        width: 177
+        height: 28
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 98bbae66221b199c0800000000000000
+      internalID: -3922159039149327479
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    outline: []
+    customData: 
+    physicsShape: []
+    bones: []
+    spriteID: 
+    internalID: 0
+    vertices: []
+    indices: 
+    edges: []
+    weights: []
+    secondaryTextures: []
+    spriteCustomMetadata:
+      entries: []
+    nameFileIdTable: {}
+  mipmapLimitGroupName: 
+  pSDRemoveMatte: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

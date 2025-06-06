@@ -11,15 +11,17 @@ namespace GameSystem
     {
         private readonly BattleEntity _boss;
         private readonly BattleEntity[] _party;
+        private readonly BattleEntity[] _allEntities;
         private readonly AIWeights _weights;
         private readonly int _currentTurn;
         
         private readonly List<int> _validTargetIndices = new List<int>(4);
 
-        public UtilityAI(BattleEntity boss, BattleEntity[] party, AIWeights weights, int currentTurn = 0)
+        public UtilityAI(BattleEntity boss, BattleEntity[] party, BattleEntity[] allEntities, AIWeights weights, int currentTurn = 0)
         {
             _boss = boss;
             _party = party;
+            _allEntities = allEntities;
             _weights = weights;
             _currentTurn = currentTurn;
         }
@@ -110,7 +112,6 @@ namespace GameSystem
         {
             float randomRoll = Random.value;
             
-            // 65% 확률로 최선, 20% 확률로 차선, 15% 확률로 차차선
             if (randomRoll < BEST_CHOICE_PROBABILITY) 
                 return best;
             else if (randomRoll < BEST_CHOICE_PROBABILITY + SECOND_CHOICE_PROBABILITY)
@@ -146,7 +147,7 @@ namespace GameSystem
             {
                 if (_party[i] != null && _party[i].IsTaunting && _party[i].CurrentHP > 0)
                 {
-                    targetOut = (EntityType)i;
+                    targetOut = (EntityType)FindEntityIndex(_party[i]);
                     float tauntScore = CalculateMoveUtility(_boss, _party[i], data) * _weights.SingleHit * 2f;
                     Debug.Log($"[ScoreSingle] Taunt target found: {_party[i].EntityName}, Score: {tauntScore}");
                     return tauntScore;
@@ -168,13 +169,25 @@ namespace GameSystem
                 if (localScore > bestScore)
                 {
                     bestScore = localScore;
-                    bestTarget = (EntityType)i;
+                    bestTarget = (EntityType)FindEntityIndex(player);
                 }
             }
 
             targetOut = bestTarget;
             Debug.Log($"[ScoreSingle] Best target: {bestTarget}, Best score: {bestScore}");
             return bestScore;
+        }
+
+        private int FindEntityIndex(BattleEntity target)
+        {
+            for (int i = 0; i < _allEntities.Length; i++)
+            {
+                if (_allEntities[i] == target)
+                    return i;
+            }
+            
+            Debug.LogError($"[UtilityAI] Could not find entity {target.EntityName} in allEntities array!");
+            return 0; // 기본값으로 첫 번째 엔티티 반환
         }
 
         private float ScoreAOE(MoveData data)

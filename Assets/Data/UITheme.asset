@@ -1,0 +1,27 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bd318b87caff6a648b70efabb665e1f0, type: 3}
+  m_Name: UITheme
+  m_EditorClassIdentifier: 
+  fightSprite: {fileID: 1267750428597405013, guid: f875e14afdd4fe7429f1019599c042e0, type: 3}
+  itemSprite: {fileID: 1267750428597405013, guid: f875e14afdd4fe7429f1019599c042e0, type: 3}
+  guardSprite: {fileID: 1267750428597405013, guid: f875e14afdd4fe7429f1019599c042e0, type: 3}
+  tauntSprite: {fileID: 1267750428597405013, guid: f875e14afdd4fe7429f1019599c042e0, type: 3}
+  blazeSprite: {fileID: 6868369658462998761, guid: f875e14afdd4fe7429f1019599c042e0, type: 3}
+  tideSprite: {fileID: 3198994556618642858, guid: f875e14afdd4fe7429f1019599c042e0, type: 3}
+  mysticSprite: {fileID: -3850255850521188933, guid: f875e14afdd4fe7429f1019599c042e0, type: 3}
+  terraSprite: {fileID: 5596616595111939665, guid: f875e14afdd4fe7429f1019599c042e0, type: 3}
+  natureSprite: {fileID: -3209069372712622670, guid: f875e14afdd4fe7429f1019599c042e0, type: 3}
+  darkSprite: {fileID: 839955554246846907, guid: f875e14afdd4fe7429f1019599c042e0, type: 3}
+  lightSprite: {fileID: 9017004367729530558, guid: f875e14afdd4fe7429f1019599c042e0, type: 3}
+  stormSprite: {fileID: -1807275023576606265, guid: f875e14afdd4fe7429f1019599c042e0, type: 3}
+  defaultButtonSprite: {fileID: 1267750428597405013, guid: f875e14afdd4fe7429f1019599c042e0, type: 3}

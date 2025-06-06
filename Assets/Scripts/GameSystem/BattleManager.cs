@@ -80,14 +80,13 @@ namespace GameSystem
             
             CreateEntities();
             
-            // 모든 엔티티의 초기화 대기
             yield return WaitForAllEntitiesReady();
             
             InitializeTurnOrder();
             
             uiController.Initialize(entities, this);
             
-            yield return new WaitForSeconds(0.3f); // UI 초기화 대기
+            yield return new WaitForSeconds(0.3f);
             
             TransitionToState(BattleState.PlayerChoice);
         }
@@ -291,7 +290,6 @@ namespace GameSystem
         private IEnumerator ShowStunnedAndAdvance(BattleEntity entity)
         {
             entity.StartTurn();
-            // 스턴 메시지는 자동 진행
             yield return uiController.ShowMessageAuto($"{entity.EntityName} is stunned!", 1.0f);
             AdvanceTurn();
         }
@@ -325,7 +323,7 @@ namespace GameSystem
                 var players = GetAlivePlayersArray();
                 Debug.Log($"살아있는 플레이어 수: {players.Length}");
 
-                var bossAI = new UtilityAI(boss, players, aiWeights, turnCount);
+                var bossAI = new UtilityAI(boss, players, entities, aiWeights, turnCount);
                 var decision = bossAI.Decide();
 
                 Debug.Log($"AI 결정 - MoveIndex: {decision.MoveIndex}, Target: {decision.TargetEntity}");
@@ -346,7 +344,6 @@ namespace GameSystem
     
             yield return ExecuteAction(bossAction);
     
-            // 보스 턴 종료 후 사망 처리
             if (pendingDeaths.Count > 0)
             {
                 foreach (var entity in pendingDeaths)
@@ -458,7 +455,6 @@ namespace GameSystem
                 yield break;
             }
             
-            // 스킬 사용은 자동 진행
             yield return uiController.ShowMessageAuto($"{source.EntityName} used {moveInst.Data.Name}!", 1.0f);
             
             yield return ApplyMoveEffects(source, action.Target, moveInst);
@@ -622,14 +618,12 @@ namespace GameSystem
         {
             var hit = DamageFormula.GetRawHit(source, effect.Power, effect.Accuracy, effect.CritChance);
             
-            // 1. 이펙트 재생
             yield return SpawnEffect(target, moveInst.Data);
             
             yield return new WaitForSeconds(0.3f);
             
             if (!hit.IsHit)
             {
-                // Miss는 클릭 대기
                 yield return uiController.ShowMessageAndWaitForClick("Miss!");
                 yield break;
             }
@@ -637,18 +631,14 @@ namespace GameSystem
             float effectiveness = TypeChart.GetEffectiveness(moveInst.Data.Type, target.ElementType);
             bool isWeakness = effectiveness > 1f;
             
-            // 2. 데미지 플래시 (깜빡임)
             int prevHP = target.CurrentHP;
             target.TakeDamage(moveInst.Data.Type, hit.Damage);
             yield return target.PlayDamageFlash(moveInst.Data.Type, battleSettings.MessageDuration);
             
-            // 3. HP바 업데이트
             uiController.UpdateEntityHP(target);
             
-            // 4. HP바 감소 애니메이션 대기 + 약간의 딜레이
             yield return new WaitForSeconds(0.5f);
             
-            // 5. 특수 메시지는 클릭 대기
             if (isWeakness && target is BossEntity)
             {
                 yield return uiController.ShowMessageAndWaitForClick("효과가 굉장했다!");
@@ -746,7 +736,6 @@ namespace GameSystem
                     effectComponent = effectObj.AddComponent<Effects.Effect>();
                 }
                 
-                // 애니메이션 길이만큼 대기
                 yield return new WaitForSeconds(effectComponent.GetDuration());
             }
         }
@@ -784,7 +773,6 @@ namespace GameSystem
             currentTurnIndex++;
             SkipDeadEntities();
     
-            // 현재 엔티티가 보스인지 확인
             if (currentTurnIndex < turnOrder.Count && turnOrder[currentTurnIndex] is BossEntity)
             {
                 TransitionToState(BattleState.BossAction);

@@ -23,6 +23,7 @@ namespace UI
         [SerializeField] private Transform buttonsContainer;
         [SerializeField] private GameObject buttonPrefab;
         [SerializeField] private int maxButtonCount = 8;
+        [SerializeField] private UITheme uiTheme;
 
         private BattleUIController uiController;
         private BattleEntity currentEntity;
@@ -35,10 +36,12 @@ namespace UI
 
         private readonly Action[] mainMenuActions = new Action[4];
         private readonly string[] mainMenuLabels = { "Fight", "Item", "Guard", "Taunt" };
+        private readonly ActionType[] mainMenuActionTypes = { ActionType.Move, ActionType.Item, ActionType.Guard, ActionType.Taunt };
         
         private Button[] buttonComponents;
         private TextMeshProUGUI[] buttonTexts;
         private EventTrigger[] eventTriggers;
+        private Image[] buttonImages;
 
         private void Awake()
         {
@@ -82,11 +85,13 @@ namespace UI
             buttonComponents = new Button[maxButtonCount];
             buttonTexts = new TextMeshProUGUI[maxButtonCount];
             eventTriggers = new EventTrigger[maxButtonCount];
+            buttonImages = new Image[maxButtonCount];
             
             for (int i = 0; i < buttons.Count; i++)
             {
                 buttonComponents[i] = buttons[i].GetComponent<Button>();
                 buttonTexts[i] = buttons[i].GetComponentInChildren<TextMeshProUGUI>();
+                buttonImages[i] = buttons[i].GetComponent<Image>();
                 
                 eventTriggers[i] = buttons[i].GetComponent<EventTrigger>();
                 if (eventTriggers[i] == null)
@@ -133,7 +138,8 @@ namespace UI
             
             for (int i = 0; i < mainMenuLabels.Length && i < buttons.Count; i++)
             {
-                SetupButton(i, mainMenuLabels[i], mainMenuActions[i]);
+                Sprite buttonSprite = uiTheme != null ? uiTheme.GetActionSprite(mainMenuActionTypes[i]) : null;
+                SetupButton(i, mainMenuLabels[i], mainMenuActions[i], buttonSprite);
                 buttons[i].SetActive(true);
             }
             
@@ -152,7 +158,8 @@ namespace UI
                 int index = i;
                 var moveData = currentMoves[i].Data;
                 
-                SetupButton(i, moveData.Name, () => HandleActionSelect(ActionType.Move, index));
+                Sprite buttonSprite = uiTheme != null ? uiTheme.GetElementSprite(moveData.Type) : null;
+                SetupButton(i, moveData.Name, () => HandleActionSelect(ActionType.Move, index), buttonSprite);
                 buttons[i].SetActive(true);
                 
                 eventTriggers[i].triggers.Clear();
@@ -171,7 +178,7 @@ namespace UI
             SetContainerActive(true);
         }
 
-        private void SetupButton(int index, string text, Action onClick)
+        private void SetupButton(int index, string text, Action onClick, Sprite buttonSprite = null)
         {
             if (buttonComponents[index] != null)
             {
@@ -183,6 +190,15 @@ namespace UI
             {
                 buttonTexts[index].text = text;
             }
+            
+            if (buttonImages[index] != null && buttonSprite != null)
+            {
+                buttonImages[index].sprite = buttonSprite;
+            }
+            else if (buttonImages[index] != null && uiTheme != null)
+            {
+                buttonImages[index].sprite = uiTheme.defaultButtonSprite;
+            }
         }
 
         private void HideAllButtons()
@@ -191,6 +207,26 @@ namespace UI
             {
                 buttons[i].SetActive(false);
             }
+        }
+        
+        public void ClearAllButtons()
+        {
+            HideAllButtons();
+            
+            for (int i = 0; i < buttons.Count; i++)
+            {
+                if (buttonComponents[i] != null)
+                {
+                    buttonComponents[i].onClick.RemoveAllListeners();
+                }
+                
+                if (eventTriggers[i] != null)
+                {
+                    eventTriggers[i].triggers.Clear();
+                }
+            }
+            
+            SetContainerActive(false);
         }
         
         private void ShowMoveDescription(MoveData moveData)

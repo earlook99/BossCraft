@@ -231,6 +231,11 @@ namespace GameSystem.UI
             {
                 actionMenuPanel.SetActive(visible);
             }
+            
+            if (!visible && actionMenuUI != null)
+            {
+                actionMenuUI.ClearAllButtons();
+            }
         }
         
         public void OnActionSelect(ActionType actionType, int actionIndex)
@@ -333,14 +338,12 @@ namespace GameSystem.UI
                 clickPrompt.SetActive(false);
         }
         
-        // 자동 진행 메시지 (일정 시간 후 자동으로 넘어감)
         public IEnumerator ShowMessageAuto(string message, float duration = 1.0f)
         {
             ShowMessage(message);
             yield return new WaitForSeconds(duration);
         }
         
-        // 클릭 대기 메시지 (중요한 메시지)
         public IEnumerator ShowMessageAndWaitForClick(string message)
         {
             ShowMessage(message);
@@ -348,10 +351,8 @@ namespace GameSystem.UI
             if (clickPrompt != null)
                 clickPrompt.SetActive(true);
             
-            // 실수 클릭 방지를 위한 짧은 딜레이
             yield return new WaitForSeconds(0.2f);
             
-            // 클릭 대기
             while (!Input.GetMouseButtonDown(0))
             {
                 yield return null;

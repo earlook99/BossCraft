@@ -15,7 +15,7 @@ MonoBehaviour:
   Name: Sword Dance
   Category: 2
   AllowedTargetSide: 3
-  Type: 7
+  Type: 5
   Cooldown: 0
   RequiresCharge: 0
   Effects:
