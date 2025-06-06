@@ -59,6 +59,8 @@ namespace GameSystem
         
         private List<int> validTargetIndices = new List<int>(5);
         
+        private List<BattleEntity> pendingDeaths = new List<BattleEntity>();
+        
         private void Awake()
         {
             if (cameraManager == null)
@@ -298,17 +300,17 @@ namespace GameSystem
         {
             cameraManager.SwitchCameraTo(CineCamType.ZoomOut);
             SetSpriteAlphaExclusive(-1);
-    
+
             yield return new WaitForSeconds(battleSettings.TurnTransitionDelay);
-    
+
             var boss = GetBoss();
             if (boss == null) yield break;
-            
+    
             Debug.Log($"보스 Attack: {boss.Attack}");
             Debug.Log($"보스 Defense: {boss.Defense}");
-            
+    
             ActionData bossAction;
-            
+    
             if (boss.IsCharging)
             {
                 bossAction = new ActionData(
@@ -322,18 +324,18 @@ namespace GameSystem
             {
                 var players = GetAlivePlayersArray();
                 Debug.Log($"살아있는 플레이어 수: {players.Length}");
-    
+
                 var bossAI = new UtilityAI(boss, players, aiWeights, turnCount);
                 var decision = bossAI.Decide();
-    
+
                 Debug.Log($"AI 결정 - MoveIndex: {decision.MoveIndex}, Target: {decision.TargetEntity}");
-    
+
                 if (decision.MoveIndex < 0) 
                 {
                     Debug.LogError("보스 AI가 스킬을 선택하지 못함!");
                     yield break;
                 }
-                
+        
                 bossAction = new ActionData(
                     ActionType.Move,
                     decision.MoveIndex,
@@ -341,9 +343,19 @@ namespace GameSystem
                     decision.TargetEntity
                 );
             }
-            
+    
             yield return ExecuteAction(bossAction);
-            
+    
+            // 보스 턴 종료 후 사망 처리
+            if (pendingDeaths.Count > 0)
+            {
+                foreach (var entity in pendingDeaths)
+                {
+                    yield return ShowDeathSequence(entity);
+                }
+                pendingDeaths.Clear();
+            }
+    
             TransitionToState(BattleState.CheckBattleEnd);
         }
         
@@ -760,6 +772,12 @@ namespace GameSystem
         
         private void AdvanceTurn()
         {
+            if (currentState == BattleState.ExecutingAction && actionQueue.Count > 0)
+            {
+                Debug.Log("[TURN] Death sequence in progress, skipping turn advance");
+                return;
+            }
+            
             if (currentTurnIndex < turnOrder.Count)
                 turnOrder[currentTurnIndex].EndTurn();
     
@@ -814,7 +832,72 @@ namespace GameSystem
         
         private void OnEntityDefeated(BattleEntity entity)
         {
-            EnqueueAction(() => WaitAndCheckBattleEnd());
+            if (currentState == BattleState.PlayerChoice || currentState == BattleState.ExecutingAction)
+            {
+                EnqueueAction(() => ShowDeathSequence(entity));
+            }
+            else if (currentState == BattleState.BossAction)
+            {
+                pendingDeaths.Add(entity);
+            }
+        }
+        
+        private IEnumerator ShowDeathSequence(BattleEntity entity)
+        {
+            int entityIndex = GetEntityIndex(entity);
+    
+            if (entity is BossEntity)
+            {
+                Debug.Log($"Boss defeated, switching to ZoomOut camera");
+                cameraManager.SwitchCameraTo(CineCamType.ZoomOut);
+                yield return new WaitForSeconds(2f);
+        
+                yield return uiController.ShowMessageAndWaitForClick($"{entity.EntityName}를 물리쳤다!");
+                yield return FadeOutEntity(entity);
+            }
+            else if (entityIndex >= 0 && entityIndex < PLAYER_COUNT)
+            {
+                Debug.Log($"Player {entityIndex} defeated, switching to camera {(CineCamType)entityIndex}");
+                cameraManager.SwitchCameraTo((CineCamType)entityIndex);
+                SetSpriteAlphaExclusive(entityIndex);
+        
+                float waitTime = entityIndex == 0 ? 2.2f : 0.7f;
+                yield return new WaitForSeconds(waitTime);
+        
+                yield return uiController.ShowMessageAndWaitForClick($"{entity.EntityName}이(가) 쓰러졌다!");
+                yield return FadeOutEntity(entity);
+            }
+    
+            yield return WaitAndCheckBattleEnd();
+        }
+        
+        private IEnumerator FadeOutEntity(BattleEntity entity)
+        {
+            if (entity.SpriteRenderer == null) yield break;
+    
+            Color originalColor = entity.SpriteRenderer.color;
+            float fadeTime = 0.5f;
+            float elapsed = 0f;
+    
+            while (elapsed < fadeTime)
+            {
+                elapsed += Time.deltaTime;
+                float alpha = Mathf.Lerp(originalColor.a, 0f, elapsed / fadeTime);
+                entity.SpriteRenderer.color = new Color(originalColor.r, originalColor.g, originalColor.b, alpha);
+                yield return null;
+            }
+    
+            entity.SpriteRenderer.color = new Color(originalColor.r, originalColor.g, originalColor.b, 0f);
+        }
+
+        private int GetEntityIndex(BattleEntity entity)
+        {
+            for (int i = 0; i < entities.Length; i++)
+            {
+                if (entities[i] == entity)
+                    return i;
+            }
+            return -1;
         }
         
         private IEnumerator WaitAndCheckBattleEnd()

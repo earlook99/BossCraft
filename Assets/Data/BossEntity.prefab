@@ -610,7 +610,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   EntityName: TestBoss
   ElementType: 6
-  maxHP: 100
+  maxHP: 1000
   currentHP: 0
   attack: 50
   defense: 50

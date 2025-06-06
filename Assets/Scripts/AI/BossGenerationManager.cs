@@ -2,7 +2,6 @@ using System;
 using System.Collections;
 using System.Text;
 using System.IO;
-using SimpleFileBrowser;
 using Data;
 using GameSystem;
 using TMPro;
@@ -291,8 +290,10 @@ namespace AI
 
 #if UNITY_EDITOR
             SelectImageInEditor();
+#elif UNITY_WEBGL
+            SelectImageInWebGL();
 #else
-            StartFileBrowser();
+            UpdateStatus("File selection is only supported in Editor and WebGL builds.");
 #endif
         }
 
@@ -306,31 +307,54 @@ namespace AI
             }
         }
 #endif
-        
-        private void StartFileBrowser()
-        {
-            FileBrowser.SetFilters(true, new FileBrowser.Filter("Images", ".jpg", ".jpeg", ".png"));
-            FileBrowser.SetDefaultFilter(".png");
-            FileBrowser.SetExcludedExtensions(".lnk", ".tmp", ".zip", ".rar", ".exe");
-    
-            FileBrowser.ShowLoadDialog(OnFileSelected, OnFileBrowserCancelled, 
-                FileBrowser.PickMode.Files, false, null, null, "Select Boss Image", "Select");
-        }
-        
-        private void OnFileSelected(string[] paths)
-        {
-            if (paths != null && paths.Length > 0)
-            {
-                string selectedPath = paths[0];
-                UpdateStatus(STATUS_MSG_LOADING_IMAGE);
-                StartCoroutine(LoadImage(selectedPath));
-            }
-        }
 
-        private void OnFileBrowserCancelled()
+#if UNITY_WEBGL
+        private void SelectImageInWebGL()
         {
-            UpdateStatus("Image selection cancelled.");
+            WebGLFileUploader.OpenFilePicker((base64Data) => 
+            {
+                StartCoroutine(LoadImageFromBase64(base64Data));
+            });
         }
+        
+        private IEnumerator LoadImageFromBase64(string base64Data)
+        {
+            UpdateStatus(STATUS_MSG_LOADING_IMAGE);
+            isProcessing = true;
+            UpdateUIState();
+            
+            try
+            {
+                string base64 = base64Data;
+                if (base64.Contains(","))
+                {
+                    base64 = base64.Split(',')[1];
+                }
+                
+                byte[] imageBytes = Convert.FromBase64String(base64);
+                Texture2D texture = new Texture2D(2, 2);
+                
+                if (texture.LoadImage(imageBytes))
+                {
+                    ProcessLoadedTexture(texture);
+                }
+                else
+                {
+                    UpdateStatus(STATUS_MSG_FAILED_LOAD);
+                    _isImageLoaded = false;
+                }
+            }
+            catch (Exception e)
+            {
+                UpdateStatus($"Failed to load image: {e.Message}");
+                _isImageLoaded = false;
+            }
+            
+            isProcessing = false;
+            UpdateUIState();
+            yield return null;
+        }
+#endif
 
         private IEnumerator LoadImage(string path)
         {
@@ -703,62 +727,20 @@ namespace AI
 
         private void DownloadGeneratedImage()
         {
-            if (!_hasGeneratedImage || generatedImage.texture == null)
+#if UNITY_WEBGL && !UNITY_EDITOR
+            if (!_hasGeneratedImage || _tempImageData == null)
             {
                 UpdateStatus(STATUS_MSG_NO_IMAGE);
                 return;
             }
-
-            Texture2D textureToSave = generatedImage.texture as Texture2D;
-            if (textureToSave == null)
-            {
-                UpdateStatus(ERROR_MSG_DOWNLOAD_FORMAT);
-                return;
-            }
-
-            string defaultFileName = GenerateFileName();
-            FileBrowser.ShowSaveDialog(OnSaveLocationSelected, OnSaveCancelled, 
-                FileBrowser.PickMode.Files, false, null, defaultFileName, 
-                "Save Boss Image", "Save");
-        }
-        
-        private void OnSaveLocationSelected(string[] paths)
-        {
-            if (paths != null && paths.Length > 0)
-            {
-                SaveImageToPath(paths[0]);
-            }
-        }
-
-        private void OnSaveCancelled()
-        {
-            UpdateStatus("Save cancelled.");
-        }
-
-        private void SaveImageToPath(string savePath)
-        {
-            try
-            {
-                Texture2D textureToSave = generatedImage.texture as Texture2D;
-                byte[] imageBytes = textureToSave.EncodeToPNG();
-        
-                if (!savePath.EndsWith(".png", System.StringComparison.OrdinalIgnoreCase))
-                {
-                    savePath += ".png";
-                }
-        
-                System.IO.File.WriteAllBytes(savePath, imageBytes);
-        
-                string fileName = System.IO.Path.GetFileName(savePath);
-                UpdateStatus($"Image saved: {fileName}");
-        
-                Debug.Log($"Boss image saved to: {savePath}");
-            }
-            catch (System.Exception e)
-            {
-                UpdateStatus(ERROR_MSG_SAVE_FAILED);
-                Debug.LogError($"Failed to save image: {e.Message}");
-            }
+            
+            string fileName = GenerateFileName();
+            string base64Data = DATA_IMAGE_JPEG + Convert.ToBase64String(_tempImageData);
+            WebGLFileUploader.DownloadFile(fileName, base64Data);
+            UpdateStatus($"Download started: {fileName}");
+#else
+            UpdateStatus("Download is only supported in WebGL builds.");
+#endif
         }
 
         private string GenerateFileName()
