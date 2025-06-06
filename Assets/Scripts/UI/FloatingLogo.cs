@@ -23,10 +23,7 @@ namespace UI
         private Vector3 originalRotation;
         private Vector3 originalScale;
         
-        private float cachedTime;
-        private float cachedFloatSin;
-        private float cachedRotationSin;
-        private float cachedScaleSin;
+        private const float UPDATE_INTERVAL = 0.1f;
         
         private void Awake()
         {
@@ -40,43 +37,46 @@ namespace UI
         private void OnEnable()
         {
             ResetToOriginal();
+            InvokeRepeating(nameof(UpdateAnimation), 0f, UPDATE_INTERVAL);
         }
         
-        private void Update()
+        private void OnDisable()
         {
-            cachedTime = Time.time;
+            CancelInvoke(nameof(UpdateAnimation));
+        }
+        
+        private void UpdateAnimation()
+        {
+            float time = Time.time;
             
-            cachedFloatSin = Mathf.Sin(cachedTime * floatSpeed);
-            ApplyFloating();
+            ApplyFloating(time);
             
             if (enableRotation)
             {
-                cachedRotationSin = Mathf.Sin(cachedTime * rotationSpeed);
-                ApplyRotation();
+                ApplyRotation(time);
             }
             
             if (enableScale)
             {
-                cachedScaleSin = Mathf.Sin(cachedTime * scaleSpeed);
-                ApplyScaling();
+                ApplyScaling(time);
             }
         }
 
-        private void ApplyFloating()
+        private void ApplyFloating(float time)
         {
-            float yOffset = cachedFloatSin * floatAmplitude;
+            float yOffset = Mathf.Sin(time * floatSpeed) * floatAmplitude;
             rectTransform.anchoredPosition = new Vector3(originalPosition.x, originalPosition.y + yOffset, originalPosition.z);
         }
 
-        private void ApplyRotation()
+        private void ApplyRotation(float time)
         {
-            float rotationOffset = cachedRotationSin * rotationAmplitude;
+            float rotationOffset = Mathf.Sin(time * rotationSpeed) * rotationAmplitude;
             rectTransform.localEulerAngles = new Vector3(originalRotation.x, originalRotation.y, originalRotation.z + rotationOffset);
         }
 
-        private void ApplyScaling()
+        private void ApplyScaling(float time)
         {
-            float scaleOffset = 1f + cachedScaleSin * scaleAmplitude;
+            float scaleOffset = 1f + Mathf.Sin(time * scaleSpeed) * scaleAmplitude;
             rectTransform.localScale = originalScale * scaleOffset;
         }
         

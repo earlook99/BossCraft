@@ -1,6 +1,5 @@
 using System.Collections;
 using System.Collections.Generic;
-using System.Linq;
 using UnityEngine;
 using Entity;
 using AI;
@@ -299,7 +298,7 @@ namespace GameSystem
             }
             else
             {
-                var players = GetAlivePlayers().ToArray();
+                var players = GetAlivePlayersArray();
                 var bossAI = new UtilityAI(boss, players, aiWeights, turnCount);
                 var decision = bossAI.Decide();
                 
@@ -599,7 +598,6 @@ namespace GameSystem
             target.TakeDamage(moveInst.Data.Type, hit.Damage);
             
             uiController.UpdateEntityHP(target);
-            uiController.ShowDamageText(target, prevHP - target.CurrentHP);
             
             yield return target.PlayDamageFlash(moveInst.Data.Type, battleSettings.MessageDuration);
             
@@ -726,7 +724,6 @@ namespace GameSystem
             boss.TakeDamage(counter.ElementType, damage);
             
             uiController.UpdateEntityHP(boss);
-            uiController.ShowDamageText(boss, damage);
         }
         
         private void AdvanceTurn()
@@ -765,7 +762,14 @@ namespace GameSystem
         {
             currentTurnIndex = 0;
             turnCount++;
-            turnOrder.RemoveAll(entity => entity.CurrentHP <= 0);
+            
+            for (int i = turnOrder.Count - 1; i >= 0; i--)
+            {
+                if (turnOrder[i].CurrentHP <= 0)
+                {
+                    turnOrder.RemoveAt(i);
+                }
+            }
         }
         
         private bool ShouldGoToBossTurn()
@@ -839,15 +843,27 @@ namespace GameSystem
         public BattleEntity GetEntity(EntityType type) => entities[(int)type];
         public BattleEntity GetEntity(int index) => index >= 0 && index < entities.Length ? entities[index] : null;
         public BossEntity GetBoss() => entities[BOSS_INDEX] as BossEntity;
+        
         public List<BattleEntity> GetAlivePlayers()
         {
-            var alivePlayers = new List<BattleEntity>();
+            var alivePlayers = new List<BattleEntity>(PLAYER_COUNT);
             for (int i = 0; i < PLAYER_COUNT; i++)
             {
                 if (entities[i] != null && entities[i].CurrentHP > 0)
                     alivePlayers.Add(entities[i]);
             }
             return alivePlayers;
+        }
+        
+        private BattleEntity[] GetAlivePlayersArray()
+        {
+            var alivePlayers = GetAlivePlayers();
+            var players = new BattleEntity[alivePlayers.Count];
+            for (int i = 0; i < alivePlayers.Count; i++)
+            {
+                players[i] = alivePlayers[i];
+            }
+            return players;
         }
         
         private BattleEntity GetCurrentEntity() => currentTurnIndex < turnOrder.Count ? turnOrder[currentTurnIndex] : null;

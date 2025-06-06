@@ -36,6 +36,10 @@ namespace UI
         
         private readonly Action[] mainMenuActions = new Action[4];
         private readonly string[] mainMenuLabels = { "Fight", "Item", "Guard", "Taunt" };
+        
+        private Button[] buttonComponents;
+        private TextMeshProUGUI[] buttonTexts;
+        private EventTrigger[] eventTriggers;
 
         private void Awake()
         {
@@ -54,6 +58,7 @@ namespace UI
             }
             
             CreateButtons();
+            CacheButtonComponents();
             
             mainMenuActions[0] = () => SwitchMenuState(MenuState.Moves);
             mainMenuActions[1] = () => SwitchMenuState(MenuState.Items);
@@ -70,6 +75,23 @@ namespace UI
                 GameObject buttonObj = Instantiate(buttonPrefab, buttonsContainer);
                 buttonObj.SetActive(false);
                 buttons.Add(buttonObj);
+            }
+        }
+        
+        private void CacheButtonComponents()
+        {
+            buttonComponents = new Button[maxButtonCount];
+            buttonTexts = new TextMeshProUGUI[maxButtonCount];
+            eventTriggers = new EventTrigger[maxButtonCount];
+            
+            for (int i = 0; i < buttons.Count; i++)
+            {
+                buttonComponents[i] = buttons[i].GetComponent<Button>();
+                buttonTexts[i] = buttons[i].GetComponentInChildren<TextMeshProUGUI>();
+                
+                eventTriggers[i] = buttons[i].GetComponent<EventTrigger>();
+                if (eventTriggers[i] == null)
+                    eventTriggers[i] = buttons[i].AddComponent<EventTrigger>();
             }
         }
 
@@ -112,7 +134,7 @@ namespace UI
             
             for (int i = 0; i < mainMenuLabels.Length && i < buttons.Count; i++)
             {
-                SetupButton(buttons[i], mainMenuLabels[i], mainMenuActions[i]);
+                SetupButton(i, mainMenuLabels[i], mainMenuActions[i]);
                 buttons[i].SetActive(true);
             }
             
@@ -131,49 +153,44 @@ namespace UI
                 int index = i;
                 var moveData = currentMoves[i].Data;
                 
-                SetupButton(buttons[i], moveData.Name, () => HandleActionSelect(ActionType.Move, index));
+                SetupButton(i, moveData.Name, () => HandleActionSelect(ActionType.Move, index));
                 buttons[i].SetActive(true);
                 
-                var eventTrigger = buttons[i].GetComponent<EventTrigger>() 
-                                  ?? buttons[i].gameObject.AddComponent<EventTrigger>();
-                
-                eventTrigger.triggers.Clear();
+                eventTriggers[i].triggers.Clear();
                 
                 var enterEntry = new EventTrigger.Entry();
                 enterEntry.eventID = EventTriggerType.PointerEnter;
                 enterEntry.callback.AddListener((_) => ShowMoveDescription(moveData));
-                eventTrigger.triggers.Add(enterEntry);
+                eventTriggers[i].triggers.Add(enterEntry);
                 
                 var exitEntry = new EventTrigger.Entry();
                 exitEntry.eventID = EventTriggerType.PointerExit;
                 exitEntry.callback.AddListener((_) => HideMoveDescription());
-                eventTrigger.triggers.Add(exitEntry);
+                eventTriggers[i].triggers.Add(exitEntry);
             }
     
             SetContainerActive(true);
         }
 
-        private void SetupButton(GameObject buttonObj, string text, Action onClick)
+        private void SetupButton(int index, string text, Action onClick)
         {
-            var button = buttonObj.GetComponent<Button>();
-            if (button != null)
+            if (buttonComponents[index] != null)
             {
-                button.onClick.RemoveAllListeners();
-                button.onClick.AddListener(() => onClick());
+                buttonComponents[index].onClick.RemoveAllListeners();
+                buttonComponents[index].onClick.AddListener(() => onClick());
             }
             
-            var textComponent = buttonObj.GetComponentInChildren<TextMeshProUGUI>();
-            if (textComponent != null)
+            if (buttonTexts[index] != null)
             {
-                textComponent.text = text;
+                buttonTexts[index].text = text;
             }
         }
 
         private void HideAllButtons()
         {
-            foreach (var button in buttons)
+            for (int i = 0; i < buttons.Count; i++)
             {
-                button.SetActive(false);
+                buttons[i].SetActive(false);
             }
         }
         

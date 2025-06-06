@@ -34,6 +34,11 @@ namespace UI
         private const int PLAYER_COUNT = 4;
         private const int BOSS_INDEX = 4;
         private const float MOUSE_MOVE_THRESHOLD = 0.1f;
+        
+        private static readonly Color COLOR_VALID = new Color(0, 1, 0, 0.3f);
+        private static readonly Color COLOR_INVALID = new Color(1, 0, 0, 0.3f);
+        private const float ALPHA_ACTIVE = 1f;
+        private const float ALPHA_INACTIVE = 0.3f;
 
         private void Awake()
         {
@@ -52,8 +57,9 @@ namespace UI
         {
             _colliderToEntityCache.Clear();
             
-            foreach (var entity in _allEntities)
+            for (int i = 0; i < _allEntities.Length; i++)
             {
+                var entity = _allEntities[i];
                 if (entity != null)
                 {
                     var collider = entity.GetComponent<Collider2D>();
@@ -197,7 +203,7 @@ namespace UI
             {
                 if (IsValidHoverTarget(entity))
                 {
-                    int entityIndex = System.Array.IndexOf(_allEntities, entity);
+                    int entityIndex = GetEntityIndex(entity);
                     ConfirmTarget(entityIndex);
                 }
                 else
@@ -211,10 +217,30 @@ namespace UI
             }
         }
 
+        private int GetEntityIndex(BattleEntity entity)
+        {
+            for (int i = 0; i < _allEntities.Length; i++)
+            {
+                if (_allEntities[i] == entity)
+                    return i;
+            }
+            return -1;
+        }
+
         private bool IsValidHoverTarget(BattleEntity entity)
         {
-            int idx = System.Array.IndexOf(_allEntities, entity);
-            return idx >= 0 && _validTargetIndices.Contains(idx);
+            int idx = GetEntityIndex(entity);
+            return idx >= 0 && ListContains(_validTargetIndices, idx);
+        }
+
+        private bool ListContains(List<int> list, int value)
+        {
+            for (int i = 0; i < list.Count; i++)
+            {
+                if (list[i] == value)
+                    return true;
+            }
+            return false;
         }
 
         private void UpdateHighlight(BattleEntity newHoverEntity)
@@ -240,7 +266,7 @@ namespace UI
 
         private void ConfirmTarget(int entityIndex)
         {
-            if (!_validTargetIndices.Contains(entityIndex)) return;
+            if (!ListContains(_validTargetIndices, entityIndex)) return;
 
             _isActive = false;
             ClearHighlight();
@@ -281,15 +307,16 @@ namespace UI
         
         private void HighlightValidTargets()
         {
-            foreach (int index in _validTargetIndices)
+            for (int i = 0; i < _validTargetIndices.Count; i++)
             {
+                int index = _validTargetIndices[i];
                 if (index < _allEntities.Length && _allEntities[index] != null)
                 {
                     var spriteRenderer = _allEntities[index].SpriteRenderer;
                     if (spriteRenderer != null)
                     {
                         Color color = spriteRenderer.color;
-                        color.a = 1f;
+                        color.a = ALPHA_ACTIVE;
                         spriteRenderer.color = color;
                     }
                 }
@@ -297,13 +324,13 @@ namespace UI
             
             for (int i = 0; i < _allEntities.Length; i++)
             {
-                if (!_validTargetIndices.Contains(i) && _allEntities[i] != null)
+                if (!ListContains(_validTargetIndices, i) && _allEntities[i] != null)
                 {
                     var spriteRenderer = _allEntities[i].SpriteRenderer;
                     if (spriteRenderer != null)
                     {
                         Color color = spriteRenderer.color;
-                        color.a = 0.3f;
+                        color.a = ALPHA_INACTIVE;
                         spriteRenderer.color = color;
                     }
                 }
@@ -312,12 +339,13 @@ namespace UI
         
         private void ClearValidTargetHighlights()
         {
-            foreach (var entity in _allEntities)
+            for (int i = 0; i < _allEntities.Length; i++)
             {
+                var entity = _allEntities[i];
                 if (entity != null && entity.SpriteRenderer != null)
                 {
                     Color color = entity.SpriteRenderer.color;
-                    color.a = entity is BossEntity ? 1f : GameConstants.UI.INACTIVE_SPRITE_ALPHA;
+                    color.a = entity is BossEntity ? ALPHA_ACTIVE : GameConstants.UI.INACTIVE_SPRITE_ALPHA;
                     entity.SpriteRenderer.color = color;
                 }
             }

@@ -31,7 +31,6 @@ namespace UI
         
         [Header("Effect Prefabs")]
         [SerializeField] private GameObject statusIconPrefab;
-        [SerializeField] private GameObject damageTextPrefab;
         
         [Header("Message UI")]
         [SerializeField] private GameObject battleMessagePanel;
@@ -56,6 +55,9 @@ namespace UI
         
         private const int PLAYER_COUNT = 4;
         private const int BOSS_INDEX = 4;
+        
+        private static readonly Color COLOR_RED = Color.red;
+        private static readonly Color COLOR_WHITE = Color.white;
         
         private void Awake()
         {
@@ -347,11 +349,21 @@ namespace UI
         {
             if (entity == null) return;
             
-            int entityIndex = System.Array.IndexOf(battleEntities, entity);
+            int entityIndex = GetEntityIndex(entity);
             if (entityIndex >= 0 && entityStatusUIs.TryGetValue(entityIndex, out var statusUI))
             {
                 statusUI.UpdateHP(entity.CurrentHP);
             }
+        }
+        
+        private int GetEntityIndex(BattleEntity entity)
+        {
+            for (int i = 0; i < battleEntities.Length; i++)
+            {
+                if (battleEntities[i] == entity)
+                    return i;
+            }
+            return -1;
         }
         
         public void AnimateShieldConversion(BossEntity boss, int previousHP, int currentHP, int shieldHP)
@@ -362,22 +374,9 @@ namespace UI
             }
         }
         
-        public void ShowDamageText(BattleEntity target, int damage)
-        {
-            if (damageTextPrefab == null || dynamicCanvas == null) return;
-            
-            GameObject damageTextObj = Instantiate(damageTextPrefab, dynamicCanvas.transform);
-            var damageText = damageTextObj.GetComponent<GameSystem.UI.DamageText>();
-            
-            if (damageText != null)
-            {
-                damageText.Setup(target.transform.position, damage, Color.red);
-            }
-        }
-        
         public void UpdateBuffIcon(BattleEntity entity, BuffsType buffType)
         {
-            int entityIndex = System.Array.IndexOf(battleEntities, entity);
+            int entityIndex = GetEntityIndex(entity);
             if (entityIndex < 0) return;
             
             var key = (entityIndex, buffType);

@@ -30,18 +30,24 @@ namespace UI
         
         private BattleEntity _linkedEntity;
         private BossEntity _linkedBoss;
+        private Coroutine _hpAnimationCoroutine;
         private Coroutine _transitionCoroutine;
         private List<GameObject> _stackDividers = new List<GameObject>();
         
         private static readonly StringBuilder _hpTextBuilder = new StringBuilder(16);
         private static readonly Color COLOR_WHITE = Color.white;
+        private static readonly Color COLOR_BLACK = Color.black;
         private static readonly Color COLOR_BLACK_TRANSPARENT = new Color(0, 0, 0, 0);
         
         private RectTransform _hpFillRectTransform;
         private RectTransform _shieldFillRectTransform;
-        private CanvasGroup[] _dividerCanvasGroups;
         private Image[] _dividerImages;
+        
+        private float _currentDisplayHP;
+        private float _targetHP;
+        private bool _isAnimatingHP;
 
+        private const float HP_ANIMATION_SPEED = 2f;
         private const float HP_FLASH_DURATION = 0.2f;
         private const float SHIELD_ANIM_DURATION = 0.3f;
         private const float SHIELD_INITIAL_SCALE = 1.3f;
@@ -65,10 +71,7 @@ namespace UI
 
         private void OnDestroy()
         {
-            if (_transitionCoroutine != null)
-            {
-                StopCoroutine(_transitionCoroutine);
-            }
+            StopAllCoroutines();
         }
 
         public void Setup(BattleEntity entity, int index)
@@ -86,7 +89,9 @@ namespace UI
                 HideShieldElements();
             }
             
-            UpdateHP(_linkedEntity.CurrentHP);
+            _currentDisplayHP = _linkedEntity.CurrentHP;
+            _targetHP = _linkedEntity.CurrentHP;
+            UpdateHPImmediate(_linkedEntity.CurrentHP);
         }
         
         private void SetupShieldSystem()
@@ -126,42 +131,76 @@ namespace UI
         public void UpdateHP(int newHP)
         {
             if (_linkedEntity == null) return;
-
+            
+            _targetHP = newHP;
+            
+            if (!_isAnimatingHP && Mathf.Abs(_targetHP - _currentDisplayHP) > 0.1f)
+            {
+                if (_hpAnimationCoroutine != null)
+                    StopCoroutine(_hpAnimationCoroutine);
+                    
+                _hpAnimationCoroutine = StartCoroutine(AnimateHP());
+            }
+        }
+        
+        private IEnumerator AnimateHP()
+        {
+            _isAnimatingHP = true;
+            
+            while (Mathf.Abs(_targetHP - _currentDisplayHP) > 0.1f)
+            {
+                _currentDisplayHP = Mathf.Lerp(_currentDisplayHP, _targetHP, Time.deltaTime * HP_ANIMATION_SPEED);
+                UpdateHPDisplay(_currentDisplayHP);
+                yield return null;
+            }
+            
+            _currentDisplayHP = _targetHP;
+            UpdateHPDisplay(_currentDisplayHP);
+            
+            _isAnimatingHP = false;
+            _hpAnimationCoroutine = null;
+        }
+        
+        private void UpdateHPDisplay(float displayHP)
+        {
             _hpBar.maxValue = _linkedEntity.MaxHP;
             
             if (_linkedBoss != null && _linkedBoss.HasShield)
             {
-                UpdateCombinedBar(newHP, _linkedBoss.ShieldHP, _linkedEntity.MaxHP);
+                UpdateCombinedBarDisplay(displayHP, _linkedBoss.ShieldHP, _linkedEntity.MaxHP);
             }
             else
             {
-                UpdateRegularHP(newHP);
+                UpdateRegularHPDisplay(displayHP);
             }
         }
-
-        private void UpdateRegularHP(int newHP)
+        
+        private void UpdateHPImmediate(int hp)
         {
-            _hpBar.value = newHP;
+            _currentDisplayHP = hp;
+            _targetHP = hp;
+            UpdateHPDisplay(hp);
+        }
+
+        private void UpdateRegularHPDisplay(float displayHP)
+        {
+            _hpBar.value = displayHP;
             
             if (_linkedBoss == null || !_hideHPTextForBoss)
             {
                 _hpTextBuilder.Clear();
-                _hpTextBuilder.Append(newHP).Append('/').Append(_linkedEntity.MaxHP);
+                _hpTextBuilder.Append(Mathf.RoundToInt(displayHP)).Append('/').Append(_linkedEntity.MaxHP);
                 _hpText.text = _hpTextBuilder.ToString();
             }
-            else if (_hpText != null)
-            {
-                _hpText.gameObject.SetActive(false);
-            }
             
-            UpdateHPFillOnly(newHP, _linkedEntity.MaxHP);
+            UpdateHPFillOnly(displayHP, _linkedEntity.MaxHP);
         }
         
-        private void UpdateHPFillOnly(int hp, int maxHP)
+        private void UpdateHPFillOnly(float hp, int maxHP)
         {
             if (_hpFillRectTransform == null) return;
             
-            float hpRatio = (float)hp / maxHP;
+            float hpRatio = hp / maxHP;
             _hpFillRectTransform.anchorMax = new Vector2(hpRatio, 1f);
             
             HideShieldElements();
@@ -170,21 +209,20 @@ namespace UI
 
         private void ClearStackDividers()
         {
-            foreach (var divider in _stackDividers)
+            for (int i = 0; i < _stackDividers.Count; i++)
             {
-                if (divider != null)
-                    Destroy(divider);
+                if (_stackDividers[i] != null)
+                    Destroy(_stackDividers[i]);
             }
             _stackDividers.Clear();
-            _dividerCanvasGroups = null;
             _dividerImages = null;
         }
         
-        private void UpdateCombinedBar(int hp, int shield, int maxHP)
+        private void UpdateCombinedBarDisplay(float hp, int shield, int maxHP)
         {
             if (_hpFillRectTransform == null || _shieldFillRectTransform == null) return;
             
-            float hpRatio = (float)hp / maxHP;
+            float hpRatio = hp / maxHP;
             float shieldRatio = (float)shield / maxHP;
             float totalRatio = hpRatio + shieldRatio;
             
@@ -239,7 +277,6 @@ namespace UI
             float shieldWidth = containerWidth * shieldRatio;
             
             int dividerCount = currentStacks - 1;
-            _dividerCanvasGroups = new CanvasGroup[dividerCount];
             _dividerImages = new Image[dividerCount];
             
             for (int i = 0; i < dividerCount; i++)
@@ -286,6 +323,15 @@ namespace UI
                 StopCoroutine(_transitionCoroutine);
             }
             
+            if (_hpAnimationCoroutine != null)
+            {
+                StopCoroutine(_hpAnimationCoroutine);
+                _isAnimatingHP = false;
+            }
+            
+            _currentDisplayHP = hpAfter;
+            _targetHP = hpAfter;
+            
             _transitionCoroutine = StartCoroutine(ShieldConversionAnimation(hpBefore, hpAfter, shieldAmount));
         }
         
@@ -298,7 +344,7 @@ namespace UI
             yield return AnimateHPFlash();
             yield return AnimateShieldAppear();
             
-            UpdateCombinedBar(hpAfter, shieldAmount, _linkedEntity.MaxHP);
+            UpdateCombinedBarDisplay(hpAfter, shieldAmount, _linkedEntity.MaxHP);
             
             if (_linkedBoss.ShieldStacks > 1)
             {
@@ -367,7 +413,7 @@ namespace UI
         {
             if (_dividerImages == null) yield break;
             
-            Color targetColor = Color.black;
+            Color targetColor = COLOR_BLACK;
             
             for (int i = 0; i < _dividerImages.Length; i++)
             {
@@ -399,7 +445,7 @@ namespace UI
         public void UpdateShield(int currentStacks, int maxStacks, int shieldHP)
         {
             if (_linkedBoss == null) return;
-            UpdateCombinedBar(_linkedBoss.CurrentHP, shieldHP, _linkedBoss.MaxHP);
+            UpdateCombinedBarDisplay(_linkedBoss.CurrentHP, shieldHP, _linkedBoss.MaxHP);
         }
     }
 }

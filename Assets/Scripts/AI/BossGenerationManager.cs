@@ -1,10 +1,7 @@
 using System;
 using System.Collections;
 using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
 using System.IO;
-using System.Linq;
 using SimpleFileBrowser;
 using Data;
 using GameSystem;
@@ -110,7 +107,6 @@ namespace AI
         private Sprite bossSprite;
         private string bossName = "";
         private byte[] _tempImageData;
-        private CancellationTokenSource _cts;
         
         private static readonly StringBuilder _stringBuilder = new StringBuilder(256);
         
@@ -155,7 +151,6 @@ namespace AI
         private void Awake()
         {
             InitializeServerUrl();
-            _cts = new CancellationTokenSource();
         }
 
         private void InitializeServerUrl()
@@ -174,8 +169,6 @@ namespace AI
 
         private void OnDestroy()
         {
-            // _cts 관련 코드 삭제
-    
             if (uploadedTexture != null) Destroy(uploadedTexture);
             if (generatedImage.texture != null) Destroy(generatedImage.texture);
             if (bossSprite != null && bossSprite.texture != null) Destroy(bossSprite.texture);
@@ -309,11 +302,9 @@ namespace AI
 #if UNITY_EDITOR
             SelectImageInEditor();
 #else
-    StartFileBrowser();
+            StartFileBrowser();
 #endif
         }
-        
-
 
 #if UNITY_EDITOR
         private void SelectImageInEditor()
@@ -378,41 +369,6 @@ namespace AI
     
             isProcessing = false;
             UpdateUIState();
-        }
-        
-        private async Task LoadImageFromBase64Async(string base64Data)
-        {
-            UpdateStatus(STATUS_MSG_LOADING_IMAGE);
-            isProcessing = true;
-            UpdateUIState();
-
-            string base64 = ExtractBase64Data(base64Data);
-            byte[] imageBytes = Convert.FromBase64String(base64);
-    
-            if (uploadedTexture != null) Destroy(uploadedTexture);
-    
-            uploadedTexture = new Texture2D(2, 2);
-            if (uploadedTexture.LoadImage(imageBytes))
-            {
-                ProcessLoadedTexture(uploadedTexture);
-            }
-            else
-            {
-                UpdateStatus(STATUS_MSG_FAILED_LOAD);
-                _isImageLoaded = false;
-            }
-
-            isProcessing = false;
-            UpdateUIState();
-            
-            await Task.Yield();
-        }
-
-        private string ExtractBase64Data(string base64Data)
-        {
-            return base64Data.Contains(DATA_SEPARATOR) 
-                ? base64Data.Split(DATA_SEPARATOR)[1] 
-                : base64Data;
         }
 
         private void ProcessLoadedTexture(Texture2D texture)
@@ -497,7 +453,9 @@ namespace AI
         {
             byte[] jsonBytes = System.Text.Encoding.UTF8.GetBytes(json);
             
-            string url = activeServerUrl + PREDICT_ENDPOINT;
+            _stringBuilder.Clear();
+            _stringBuilder.Append(activeServerUrl).Append(PREDICT_ENDPOINT);
+            string url = _stringBuilder.ToString();
             
             var www = new UnityWebRequest(url, "POST");
             www.uploadHandler = new UploadHandlerRaw(jsonBytes);
@@ -608,6 +566,11 @@ namespace AI
 
             UpdateGeneratedImage(generatedTexture);
             LogTypeInference(response.parameters_used);
+            
+            if (!string.IsNullOrEmpty(response.pokemon_type))
+            {
+                SetBossType(response.pokemon_type);
+            }
 
             UpdateStatus(STATUS_MSG_BOSS_GENERATED);
             if (response.duration > 0) 
@@ -665,6 +628,45 @@ namespace AI
                 Debug.Log($"[Type Inference] Observed Type (Pass 2): {parameters.observed_type_pass2}");
                 Debug.Log($"[Type Inference] Final Type Decision: {parameters.final_type_decision}");
             }
+        }
+        
+        private void SetBossType(string typeString)
+        {
+            ElementType elementType = ParseElementType(typeString);
+            
+            if (BossContainer.Instance != null)
+            {
+                BossContainer.Instance.CurrentBossType = elementType;
+            }
+            
+            Debug.Log($"Boss type set to: {elementType}");
+        }
+        
+        private ElementType ParseElementType(string typeString)
+        {
+            if (string.IsNullOrEmpty(typeString))
+                return ElementType.Dark;
+                
+            string lowercaseType = typeString.ToLower();
+            
+            if (lowercaseType.Contains("fire") || lowercaseType.Contains("flame"))
+                return ElementType.Blaze;
+            else if (lowercaseType.Contains("water") || lowercaseType.Contains("aqua"))
+                return ElementType.Tide;
+            else if (lowercaseType.Contains("psychic") || lowercaseType.Contains("fairy"))
+                return ElementType.Mystic;
+            else if (lowercaseType.Contains("ground") || lowercaseType.Contains("rock"))
+                return ElementType.Terra;
+            else if (lowercaseType.Contains("grass") || lowercaseType.Contains("bug"))
+                return ElementType.Nature;
+            else if (lowercaseType.Contains("dark") || lowercaseType.Contains("ghost"))
+                return ElementType.Dark;
+            else if (lowercaseType.Contains("electric") || lowercaseType.Contains("normal"))
+                return ElementType.Light;
+            else if (lowercaseType.Contains("flying") || lowercaseType.Contains("dragon"))
+                return ElementType.Storm;
+            else
+                return ElementType.Dark;
         }
 
         private void CreateBossSprite(Texture2D texture)
@@ -791,7 +793,7 @@ namespace AI
 
         private void ReturnToPreviousScene()
         {
-            Debug.Log("Return button clicked. Implement scene transition.");
+            UnityEngine.SceneManagement.SceneManager.LoadScene(GameConstants.Scene.MAIN_MENU_SCENE);
         }
 
         private void UpdateStatus(string message)
