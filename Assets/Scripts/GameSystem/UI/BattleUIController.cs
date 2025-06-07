@@ -36,6 +36,7 @@ namespace GameSystem.UI
         [SerializeField] private GameObject battleMessagePanel;
         [SerializeField] private TextMeshProUGUI battleMessageText;
         [SerializeField] private GameObject clickPrompt;
+        [SerializeField] private TextMeshProUGUI clickPromptText;
         
         [Header("Buff Icons")]
         [SerializeField] private Sprite attackBuffIcon;
@@ -78,6 +79,14 @@ namespace GameSystem.UI
                     messageCanvasGroup = battleMessagePanel.AddComponent<CanvasGroup>();
                     
                 messageCanvasGroup.alpha = 1f;
+                
+                // clickPromptText가 없으면 동적으로 생성
+                if (clickPromptText == null && battleMessageText != null)
+                {
+                    // battleMessageText의 overflow 설정 확인
+                    battleMessageText.overflowMode = TextOverflowModes.Overflow;
+                    CreateClickPromptText();
+                }
             }
             
             if (targetSelectionUI == null)
@@ -120,6 +129,36 @@ namespace GameSystem.UI
             rect.offsetMax = Vector2.zero;
             
             targetSelectionUI = targetSelectionGO.AddComponent<TargetSelectionUI>();
+        }
+        
+        private void CreateClickPromptText()
+        {
+            // clickPromptText 동적 생성
+            GameObject promptGO = new GameObject("ClickPromptText");
+            promptGO.transform.SetParent(battleMessageText.transform.parent, false);  // battleMessagePanel의 자식으로
+            
+            // RectTransform 설정
+            RectTransform promptRect = promptGO.AddComponent<RectTransform>();
+            
+            // battleMessageText와 같은 앵커 설정 (Top-Left)
+            promptRect.anchorMin = new Vector2(0, 1);
+            promptRect.anchorMax = new Vector2(0, 1);
+            promptRect.pivot = new Vector2(0, 0.5f);  // 왼쪽 중앙
+            
+            // 초기 위치는 ShowMessageAndWaitForClick에서 설정
+            promptRect.anchoredPosition = Vector2.zero;
+            promptRect.sizeDelta = new Vector2(30, 30);
+            
+            // TextMeshProUGUI 컴포넌트 추가 및 설정
+            clickPromptText = promptGO.AddComponent<TextMeshProUGUI>();
+            clickPromptText.text = "▼";
+            clickPromptText.fontSize = battleMessageText.fontSize;
+            clickPromptText.font = battleMessageText.font;
+            clickPromptText.color = battleMessageText.color;
+            clickPromptText.alignment = TextAlignmentOptions.Center;
+            clickPromptText.overflowMode = TextOverflowModes.Overflow;  // 부모 영역 밖으로도 표시
+            
+            promptGO.SetActive(false);
         }
         
         public void Initialize(BattleEntity[] entities, GameSystem.BattleManager manager)
@@ -348,17 +387,66 @@ namespace GameSystem.UI
         {
             ShowMessage(message);
             
-            if (clickPrompt != null)
+            // 별도의 프롬프트 텍스트 표시
+            if (clickPromptText != null)
+            {
+                // 실제 텍스트 너비 계산
+                battleMessageText.ForceMeshUpdate();
+                float textWidth = battleMessageText.preferredWidth;
+                
+                // battleMessageText의 위치 정보
+                // Pivot이 (0.5, 0.5)이므로 왼쪽 끝은 X - (Width/2)
+                float textLeftX = 633f - (1158f / 2f);  // 54
+                float textTopY = -78.7f + (105.5f / 2f);  // -25.95
+                
+                // 텍스트의 실제 끝 위치
+                float promptX = textLeftX + textWidth + 10f;
+                float promptY = textTopY - (battleMessageText.fontSize * 0.5f);  // 첫 줄 중앙
+                
+                RectTransform promptRect = clickPromptText.GetComponent<RectTransform>();
+                promptRect.anchoredPosition = new Vector2(promptX, promptY);
+                
+                clickPromptText.text = "▼";
+                clickPromptText.gameObject.SetActive(true);
+            }
+            else if (clickPrompt != null)
+            {
                 clickPrompt.SetActive(true);
+            }
             
             yield return new WaitForSeconds(0.2f);
             
+            // 깜빡임 애니메이션
+            float blinkTimer = 0f;
+            bool isVisible = true;
+            
             while (!Input.GetMouseButtonDown(0))
             {
+                blinkTimer += Time.deltaTime;
+                
+                // 0.5초마다 깜빡임
+                if (blinkTimer >= 0.5f)
+                {
+                    isVisible = !isVisible;
+                    blinkTimer = 0f;
+                    
+                    if (clickPromptText != null)
+                    {
+                        clickPromptText.gameObject.SetActive(isVisible);
+                    }
+                    else if (clickPrompt != null)
+                    {
+                        clickPrompt.SetActive(isVisible);
+                    }
+                }
+                
                 yield return null;
             }
             
-            if (clickPrompt != null)
+            // 프롬프트 숨기기
+            if (clickPromptText != null)
+                clickPromptText.gameObject.SetActive(false);
+            else if (clickPrompt != null)
                 clickPrompt.SetActive(false);
         }
         
@@ -370,6 +458,16 @@ namespace GameSystem.UI
             if (entityIndex >= 0 && entityStatusUIs.TryGetValue(entityIndex, out var statusUI))
             {
                 statusUI.UpdateHP(entity.CurrentHP);
+            }
+        }
+        
+        public void UpdateEntityShield(BossEntity boss)
+        {
+            if (boss == null) return;
+            
+            if (entityStatusUIs.TryGetValue(BOSS_INDEX, out var statusUI))
+            {
+                statusUI.UpdateShield(boss.ShieldStacks, boss.MaxShieldStacks, boss.ShieldHP);
             }
         }
         
@@ -443,6 +541,31 @@ namespace GameSystem.UI
             icon.Setup(sprite, stackCount);
             
             buffIcons[(entityIndex, buffType)] = icon;
+        }
+        
+        public CharacterStatusUI GetBossStatusUI()
+        {
+            return entityStatusUIs.TryGetValue(BOSS_INDEX, out var statusUI) ? statusUI : null;
+        }
+        
+        public IEnumerator FlashShieldBar(BossEntity boss)
+        {
+            if (entityStatusUIs.TryGetValue(BOSS_INDEX, out var statusUI))
+            {
+                yield return statusUI.FlashShieldBar();
+            }
+            else
+            {
+                yield return null;
+            }
+        }
+        
+        public void UpdateEntityShieldImmediate(BossEntity boss)
+        {
+            if (entityStatusUIs.TryGetValue(BOSS_INDEX, out var statusUI))
+            {
+                statusUI.UpdateShieldImmediate(boss.ShieldStacks, boss.MaxShieldStacks, boss.ShieldHP);
+            }
         }
         
         private void OnDestroy()

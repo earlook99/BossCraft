@@ -15,7 +15,6 @@ namespace UI
         private BattleUIController _uiController;
         private BattleEntity[] _allEntities;
         private List<int> _validTargetIndices = new List<int>();
-        private int _currentTargetIndex = 0;
 
         private Action<EntityType> _onTargetSelected;
         private Action _onCancelled;
@@ -89,7 +88,7 @@ namespace UI
             }
             else
             {
-                _currentTargetIndex = 0;
+                // Reset target selection
                 _lastMousePosition = Input.mousePosition;
                 ShowTargetingMode(true);
                 HighlightValidTargets();

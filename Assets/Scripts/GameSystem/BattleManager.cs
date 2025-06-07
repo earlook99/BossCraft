@@ -631,33 +631,186 @@ namespace GameSystem
             float effectiveness = TypeChart.GetEffectiveness(moveInst.Data.Type, target.ElementType);
             bool isWeakness = effectiveness > 1f;
             
+            // 보스의 실드 상태 저장
+            BossEntity boss = target as BossEntity;
+            int prevShieldHP = boss?.ShieldHP ?? 0;
+            int prevShieldStacks = boss?.ShieldStacks ?? 0;
+            bool hadShield = boss?.HasShield ?? false;
+            
             int prevHP = target.CurrentHP;
-            target.TakeDamage(moveInst.Data.Type, hit.Damage);
+            
+            // 1. 먼저 데미지 플래시 (깜빡임)
             yield return target.PlayDamageFlash(moveInst.Data.Type, battleSettings.MessageDuration);
             
-            uiController.UpdateEntityHP(target);
+            // 2. 실제 데미지 적용
+            target.TakeDamage(moveInst.Data.Type, hit.Damage);
             
-            yield return new WaitForSeconds(0.5f);
+            // 3. HP/실드 UI 업데이트 및 애니메이션
+            if (boss != null && hadShield)
+            {
+                // 실드 데미지 애니메이션
+                yield return AnimateShieldDamage(boss, prevShieldHP, prevShieldStacks);
+            }
+            else
+            {
+                // 일반 HP 업데이트
+                uiController.UpdateEntityHP(target);
+                yield return new WaitForSeconds(0.5f);
+            }
             
-            if (isWeakness && target is BossEntity)
+            // 약점 공격 처리
+            if (isWeakness && boss != null)
             {
                 yield return uiController.ShowMessageAndWaitForClick("효과가 굉장했다!");
+                
+                // 약점 공격으로 실드가 파괴된 경우
+                if (boss.WasWeaknessHit)
+                {
+                    if (boss.HasShield)
+                    {
+                        // 실드 파괴 시 즉시 카메라 줌아웃
+                        cameraManager.SwitchCameraTo(CineCamType.ZoomOut);
+                        yield return new WaitForSeconds(0.3f); // 카메라 전환 대기
+                        
+                        // 메시지 표시
+                        yield return uiController.ShowMessageAuto($"실드가 부서졌다!", 1.5f);
+                    }
+                    else if (boss.WasCompletelyDestroyed)
+                    {
+                        // 실드 완전 파괴 시 즉시 카메라 줌아웃
+                        cameraManager.SwitchCameraTo(CineCamType.ZoomOut);
+                        yield return new WaitForSeconds(0.3f); // 카메라 전환 대기
+                        
+                        // 실드 완전 파괴 메시지만
+                        yield return ShowShieldDestroyedSequence(boss);
+                    }
+                }
             }
+            // 일반 공격으로 실드 파괴
+            else if (boss != null && boss.WasStackBroken)
+            {
+                if (boss.HasShield)
+                {
+                    // 실드 파괴 시 즉시 카메라 줌아웃
+                    cameraManager.SwitchCameraTo(CineCamType.ZoomOut);
+                    yield return new WaitForSeconds(0.3f); // 카메라 전환 대기
+                    
+                    // 메시지 표시
+                    yield return uiController.ShowMessageAuto($"실드가 부서졌다!", 1.5f);
+                }
+                else if (boss.WasCompletelyDestroyed)
+                {
+                    // 실드 완전 파괴 시 즉시 카메라 줌아웃
+                    cameraManager.SwitchCameraTo(CineCamType.ZoomOut);
+                    yield return new WaitForSeconds(0.3f); // 카메라 전환 대기
+                    
+                    // 실드 완전 파괴 메시지만
+                    yield return ShowShieldDestroyedSequence(boss);
+                }
+            }
+            
+            // 플래그 리셋
+            boss?.ResetDamageFlags();
             
             if (target.CurrentHP <= 0)
             {
                 OnEntityDefeated(target);
             }
-            else if (target is BossEntity bossTarget && !bossTarget.HasShield)
+            else if (boss != null && !boss.HasShield)
             {
                 // 보스가 데미지를 받은 후 실드 조건 체크
-                var trigger = bossTarget.GetAvailableShieldTrigger(turnCount);
+                var trigger = boss.GetAvailableShieldTrigger(turnCount);
                 if (trigger != null)
                 {
-                    Debug.Log($"[SHIELD] Boss shield will trigger after damage! HP: {bossTarget.CurrentHP}/{bossTarget.MaxHP}");
+                    Debug.Log($"[SHIELD] Boss shield will trigger after damage! HP: {boss.CurrentHP}/{boss.MaxHP}");
                     // 실드 발동은 현재 액션이 끝난 후에 처리됨 (AdvanceTurn에서)
                 }
             }
+        }
+        
+        private IEnumerator AnimateShieldDamage(BossEntity boss, int prevShieldHP, int prevShieldStacks)
+        {
+            // 스택이 파괴된 경우
+            if (boss.ShieldStacks < prevShieldStacks || boss.ShieldHP == 0)
+            {
+                // 번쩍이는 효과
+                yield return uiController.FlashShieldBar(boss);
+                
+                // 즉시 UI 업데이트 (애니메이션 없이)
+                uiController.UpdateEntityShieldImmediate(boss);
+                yield return new WaitForSeconds(0.2f);
+            }
+            else
+            {
+                // 일반 데미지인 경우에만 HP 감소 애니메이션
+                yield return AnimateShieldHPReduction(boss, prevShieldHP, boss.ShieldHP);
+            }
+        }
+        
+        private IEnumerator AnimateShieldHPReduction(BossEntity boss, int fromHP, int toHP)
+        {
+            // 실드 HP 바가 부드럽게 감소하는 애니메이션
+            // CharacterStatusUI가 애니메이션을 처리하도록 위임
+            uiController.UpdateEntityShield(boss);
+            
+            // 애니메이션이 완료될 때까지 대기
+            yield return new WaitForSeconds(0.5f);
+        }
+        
+        private IEnumerator ShowShieldStackDestroyAnimation(BossEntity boss, int destroyedStacks)
+        {
+            // 카메라는 이미 전환되어 있음
+            
+            // 보스 상태 UI 가져오기
+            var bossStatusUI = uiController.GetBossStatusUI();
+            if (bossStatusUI == null)
+            {
+                Debug.LogWarning("[SHIELD ANIMATION] Boss status UI not found!");
+                yield break;
+            }
+            
+            // 각 파괴된 스택에 대해 이펙트 재생
+            int currentStacks = boss.ShieldStacks;
+            int maxStacks = boss.MaxShieldStacks;
+            
+            for (int i = 0; i < destroyedStacks; i++)
+            {
+                if (boss.ShieldPattern != null && boss.ShieldPattern.EffectPrefab != null)
+                {
+                    // UI 위치를 가져와서 월드 좌표로 변환
+                    int stackIndex = currentStacks + i;
+                    Vector3 uiPosition = bossStatusUI.GetShieldStackWorldPosition(stackIndex, maxStacks);
+                    
+                    // 파괴 이펙트 생성
+                    var effect = Instantiate(boss.ShieldPattern.EffectPrefab, uiPosition, Quaternion.identity);
+                    effect.transform.localScale = Vector3.one * 0.1f; // 훨씬 더 작게
+                    
+                    // Sorting Order로 맨 앞에 표시
+                    var spriteRenderer = effect.GetComponentInChildren<SpriteRenderer>();
+                    if (spriteRenderer != null)
+                    {
+                        spriteRenderer.sortingOrder = 1000; // 높은 값으로 설정
+                    }
+                    
+                    // Effects.Effect 컴포넌트 확인/추가 (SpawnEffect와 동일)
+                    var effectComponent = effect.GetComponent<Effects.Effect>();
+                    if (effectComponent == null)
+                    {
+                        effectComponent = effect.AddComponent<Effects.Effect>();
+                    }
+                    
+                    // 약간의 랜덤 오프셋 추가 (월드 스케일로 조정)
+                    float offsetX = UnityEngine.Random.Range(-0.2f, 0.2f);
+                    float offsetY = UnityEngine.Random.Range(-0.1f, 0.1f);
+                    effect.transform.position += new Vector3(offsetX, offsetY, 0);
+                    
+                    // 다음 스택 파괴 전 대기
+                    if (i < destroyedStacks - 1)
+                        yield return new WaitForSeconds(0.3f);
+                }
+            }
+            
+            yield return new WaitForSeconds(0.5f);
         }
         
         private IEnumerator ProcessHeal(BattleEntity source, BattleEntity target, MoveInstance moveInst, MoveEffect effect)
@@ -834,11 +987,21 @@ namespace GameSystem
         private bool CheckAndQueueBossShield()
         {
             var boss = GetBoss();
-            if (boss == null || boss.HasShield || boss.CurrentHP <= 0) return false;
+            Debug.Log($"[SHIELD QUEUE CHECK] Boss null: {boss == null}, HasShield: {boss?.HasShield ?? false}, HP: {boss?.CurrentHP ?? 0}");
+            
+            if (boss == null || boss.HasShield || boss.CurrentHP <= 0) 
+            {
+                Debug.Log($"[SHIELD QUEUE CHECK] Skipping - Boss null: {boss == null}, HasShield: {boss?.HasShield ?? false}, Dead: {boss?.CurrentHP <= 0}");
+                return false;
+            }
             
             // 현재 턴 수와 HP 비율로 실드 발동 조건 체크
             var trigger = boss.GetAvailableShieldTrigger(turnCount);
-            if (trigger == null) return false;
+            if (trigger == null) 
+            {
+                Debug.Log("[SHIELD QUEUE CHECK] No available trigger");
+                return false;
+            }
             
             Debug.Log($"[SHIELD] Boss shield triggered! HP: {boss.CurrentHP}/{boss.MaxHP} ({(float)boss.CurrentHP/boss.MaxHP*100:F1}%)");
             
@@ -1061,6 +1224,196 @@ namespace GameSystem
         }
         
         public int GetCurrentTurn() => turnCount;
+        
+        public void NotifyShieldUpdate(BossEntity boss)
+        {
+            if (boss != null && uiController != null)
+            {
+                uiController.UpdateEntityShield(boss);
+            }
+        }
+        
+        public void NotifyShieldStackBroken(BossEntity boss, int oldStacks, int newStacks)
+        {
+            if (boss != null && uiController != null)
+            {
+                StartCoroutine(ShowShieldStackBrokenEffect(boss, oldStacks, newStacks));
+            }
+        }
+        
+        public void NotifyShieldDestroyed(BossEntity boss)
+        {
+            if (boss != null && uiController != null)
+            {
+                StartCoroutine(ShowShieldDestroyedEffect(boss));
+            }
+        }
+        
+        private IEnumerator ShowShieldStackBrokenEffect(BossEntity boss, int oldStacks, int newStacks)
+        {
+            // 카메라 전환
+            cameraManager.SwitchCameraTo(CineCamType.ZoomOut);
+            
+            // 실드 파괴 메시지
+            yield return uiController.ShowMessageAuto($"실드가 부서졌다!", 1.5f);
+            
+            // TODO: 실드 파괴 이펙트 재생
+            if (boss.ShieldPattern != null && boss.ShieldPattern.EffectPrefab != null)
+            {
+                var effect = Instantiate(boss.ShieldPattern.EffectPrefab, boss.transform.position, Quaternion.identity);
+                effect.transform.localScale = Vector3.one * 0.7f; // 작은 크기로
+                Destroy(effect, 1.5f);
+            }
+            
+            yield return new WaitForSeconds(0.5f);
+        }
+        
+        private IEnumerator ShowShieldBreakAnimation(BossEntity boss)
+        {
+            // 카메라는 이미 전환되어 있음
+            
+            // 보스 상태 UI 가져오기
+            var bossStatusUI = uiController.GetBossStatusUI();
+            if (bossStatusUI == null)
+            {
+                Debug.LogWarning("[SHIELD ANIMATION] Boss status UI not found!");
+                yield break;
+            }
+            
+            // 실드 파괴 이펙트 재생 (다중 파편 효과)
+            if (boss.ShieldPattern != null && boss.ShieldPattern.EffectPrefab != null)
+            {
+                // 실드 바의 중앙 위치 가져오기
+                Vector3 shieldBarCenter = bossStatusUI.GetShieldBarCenterWorldPosition();
+                
+                // 메인 파괴 이펙트 생성
+                var mainEffect = Instantiate(boss.ShieldPattern.EffectPrefab, shieldBarCenter, Quaternion.identity);
+                mainEffect.transform.localScale = Vector3.one * 0.15f; // 훨씬 더 작게
+                
+                // Sorting Order로 맨 앞에 표시
+                var mainSpriteRenderer = mainEffect.GetComponentInChildren<SpriteRenderer>();
+                if (mainSpriteRenderer != null)
+                {
+                    mainSpriteRenderer.sortingOrder = 1000;
+                }
+                
+                // 추가 파편 이펙트들
+                int fragmentCount = 6;
+                for (int i = 0; i < fragmentCount; i++)
+                {
+                    float angle = (360f / fragmentCount) * i;
+                    float radius = 0.5f; // 월드 스케일로 조정
+                    Vector3 offset = new Vector3(
+                        Mathf.Cos(angle * Mathf.Deg2Rad) * radius,
+                        Mathf.Sin(angle * Mathf.Deg2Rad) * radius,
+                        0
+                    );
+                    
+                    var fragment = Instantiate(boss.ShieldPattern.EffectPrefab, shieldBarCenter + offset, Quaternion.identity);
+                    fragment.transform.localScale = Vector3.one * 0.2f; // 파편은 더 작게
+                    
+                    // 바깥쪽으로 이동하는 애니메이션
+                    StartCoroutine(MoveFragmentUI(fragment, offset * 2f, 1.5f));
+                }
+                
+                // 이펙트 재생 시간 대기
+                var effectComponent = mainEffect.GetComponent<Effects.Effect>();
+                float mainEffectDuration = effectComponent != null ? effectComponent.GetDuration() : 2.0f;
+                
+                // 충분한 시간 대기
+                yield return new WaitForSeconds(mainEffectDuration);
+                
+                // 여유 시간을 두고 파괴
+                Destroy(mainEffect, 0.5f);
+            }
+            else
+            {
+                yield return new WaitForSeconds(0.5f);
+            }
+        }
+        
+        private IEnumerator MoveFragmentUI(GameObject fragment, Vector3 targetOffset, float duration)
+        {
+            Vector3 startPos = fragment.transform.position;
+            Vector3 endPos = startPos + targetOffset;
+            float elapsed = 0f;
+            
+            while (elapsed < duration)
+            {
+                elapsed += Time.deltaTime;
+                float t = elapsed / duration;
+                
+                // EaseOut 효과
+                float easedT = 1f - Mathf.Pow(1f - t, 2f);
+                
+                fragment.transform.position = Vector3.Lerp(startPos, endPos, easedT);
+                
+                // 페이드 아웃
+                var spriteRenderer = fragment.GetComponentInChildren<SpriteRenderer>();
+                if (spriteRenderer != null)
+                {
+                    Color color = spriteRenderer.color;
+                    color.a = 1f - t;
+                    spriteRenderer.color = color;
+                }
+                
+                // 크기 감소
+                float scale = Mathf.Lerp(1f, 0.3f, t);
+                fragment.transform.localScale = fragment.transform.localScale * scale;
+                
+                yield return null;
+            }
+            
+            Destroy(fragment);
+        }
+        
+        private IEnumerator MoveFragment(GameObject fragment, Vector3 targetOffset, float duration)
+        {
+            Vector3 startPos = fragment.transform.position;
+            Vector3 endPos = startPos + targetOffset;
+            float elapsed = 0f;
+            
+            while (elapsed < duration)
+            {
+                elapsed += Time.deltaTime;
+                float t = elapsed / duration;
+                
+                // EaseOut 효과
+                float easedT = 1f - Mathf.Pow(1f - t, 2f);
+                
+                fragment.transform.position = Vector3.Lerp(startPos, endPos, easedT);
+                
+                // 페이드 아웃
+                var spriteRenderer = fragment.GetComponentInChildren<SpriteRenderer>();
+                if (spriteRenderer != null)
+                {
+                    Color color = spriteRenderer.color;
+                    color.a = 1f - t;
+                    spriteRenderer.color = color;
+                }
+                
+                yield return null;
+            }
+            
+            Destroy(fragment);
+        }
+        
+        private IEnumerator ShowShieldDestroyedSequence(BossEntity boss)
+        {
+            // 실드 완전 파괴 메시지
+            yield return uiController.ShowMessageAuto($"{boss.EntityName}의 실드가 완전히 파괴되었다!", 2.0f);
+            
+            // 기절 메시지
+            yield return uiController.ShowMessageAuto($"{boss.EntityName}는 기절했다!", 1.5f);
+            
+            yield return new WaitForSeconds(0.3f);
+        }
+        
+        private IEnumerator ShowShieldDestroyedEffect(BossEntity boss)
+        {
+            // 이제 사용하지 않음 - ShowShieldBreakAnimation과 ShowShieldDestroyedSequence로 분리
+            yield break;
+        }
         
         private void OnDestroy()
         {

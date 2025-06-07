@@ -17,6 +17,7 @@ namespace Data
         public int StackCount = 3;
         
         [HideInInspector]
+        [System.Obsolete("Use BossEntity's usedShieldTriggers array instead")]
         public bool HasBeenUsed = false;
     }
     
@@ -49,10 +50,8 @@ namespace Data
         
         public void ResetTriggers()
         {
-            foreach (var trigger in Triggers)
-            {
-                trigger.HasBeenUsed = false;
-            }
+            // ScriptableObject의 트리거를 직접 수정하지 않음
+            // BossEntity가 자체 배열로 관리하도록 함
         }
     }
 }

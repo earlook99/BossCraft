@@ -26,7 +26,6 @@ namespace UI
         [Header("Visual Settings")]
         [SerializeField] private Color _hpColor = new Color(0.8f, 0.2f, 0.2f, 1f);
         [SerializeField] private Color _shieldColor = new Color(0.3f, 0.6f, 1f, 0.9f);
-        [SerializeField] private float _transitionDuration = 0.5f;
         [SerializeField] private bool _hideHPTextForBoss = true;
         
         private BattleEntity _linkedEntity;
@@ -48,6 +47,10 @@ namespace UI
         private float _currentDisplayHP;
         private float _targetHP;
         private bool _isAnimatingHP;
+        
+        private float _currentDisplayShieldHP;
+        private float _targetShieldHP;
+        private Coroutine _shieldAnimationCoroutine;
 
         private void Awake()
         {
@@ -84,6 +87,13 @@ namespace UI
             
             _currentDisplayHP = _linkedEntity.CurrentHP;
             _targetHP = _linkedEntity.CurrentHP;
+            
+            if (_linkedBoss != null)
+            {
+                _currentDisplayShieldHP = _linkedBoss.ShieldHP;
+                _targetShieldHP = _linkedBoss.ShieldHP;
+            }
+            
             UpdateHPImmediate(_linkedEntity.CurrentHP);
         }
         
@@ -171,7 +181,7 @@ namespace UI
             
             if (_linkedBoss != null && _linkedBoss.HasShield)
             {
-                UpdateCombinedBarDisplay(displayHP, _linkedBoss.ShieldHP, _linkedEntity.MaxHP);
+                UpdateCombinedBarDisplay(displayHP, Mathf.RoundToInt(_currentDisplayShieldHP), _linkedEntity.MaxHP);
             }
             else
             {
@@ -240,7 +250,13 @@ namespace UI
             }
             
             UpdateShieldSeparator(hpRatio);
-            UpdateShieldStackDividers(hpRatio, shieldRatio, _linkedBoss.ShieldStacks);
+            
+            // 실드 칸 구분선은 최대 실드 HP 기준으로 고정 위치, 현재 스택 수만큼만 표시
+            if (_linkedBoss != null && _linkedBoss.HasShield)
+            {
+                float maxShieldRatio = (float)_linkedBoss.MaxShieldHP / maxHP;
+                UpdateShieldStackDividers(hpRatio, maxShieldRatio, _linkedBoss.ShieldStacks);
+            }
         }
 
         private void UpdateHPAndShieldFills(float hpRatio, float totalRatio)
@@ -280,12 +296,14 @@ namespace UI
             float shieldStartX = containerWidth * hpRatio;
             float shieldWidth = containerWidth * shieldRatio;
             
+            // 구분선은 최대 스택 기준으로 위치를 계산하되, 현재 스택 수만큼만 표시
+            int maxStacks = _linkedBoss != null ? _linkedBoss.MaxShieldStacks : currentStacks;
             int dividerCount = currentStacks - 1;
             _dividerImages = new Image[dividerCount];
             
             for (int i = 0; i < dividerCount; i++)
             {
-                CreateStackDivider(shieldStartX, shieldWidth, i + 1, currentStacks, i);
+                CreateStackDivider(shieldStartX, shieldWidth, i + 1, maxStacks, i);
             }
         }
 
@@ -337,6 +355,10 @@ namespace UI
             
             _currentDisplayHP = hpAfter;
             _targetHP = hpAfter;
+            
+            // 실드 HP 초기화
+            _currentDisplayShieldHP = shieldAmount;
+            _targetShieldHP = shieldAmount;
             
             _transitionCoroutine = StartCoroutine(ShieldConversionAnimation(hpBefore, hpAfter, shieldAmount));
         }
@@ -476,10 +498,130 @@ namespace UI
             }
         }
         
+        public Vector3 GetShieldStackWorldPosition(int stackIndex, int totalStacks)
+        {
+            if (_fillContainer == null || _linkedBoss == null) 
+                return transform.position;
+            
+            float containerWidth = GetContainerWidth();
+            float hpRatio = (float)_linkedBoss.CurrentHP / _linkedBoss.MaxHP;
+            float maxShieldRatio = (float)_linkedBoss.MaxShieldHP / _linkedBoss.MaxHP;
+            
+            float shieldStartX = containerWidth * hpRatio;
+            float shieldWidth = containerWidth * maxShieldRatio;
+            
+            // 스택의 중앙 위치 계산
+            float stackPosition = shieldStartX + (shieldWidth * (stackIndex + 0.5f) / totalStacks);
+            
+            // 로컬 좌표를 월드 좌표로 변환
+            Vector3 localPos = new Vector3(stackPosition - containerWidth * 0.5f, 0, 0);
+            Vector3 worldPos = _fillContainer.TransformPoint(localPos);
+            
+            // Canvas가 Screen Space Overlay인 경우 처리
+            Canvas canvas = GetComponentInParent<Canvas>();
+            if (canvas != null && canvas.renderMode == RenderMode.ScreenSpaceOverlay)
+            {
+                // RectTransform의 스크린 좌표를 가져와서 월드 좌표로 변환
+                Camera cam = Camera.main;
+                Vector3 screenPos = RectTransformUtility.WorldToScreenPoint(null, worldPos);
+                screenPos.z = 2f; // 카메라로부터의 거리 (더 가깝게)
+                worldPos = cam.ScreenToWorldPoint(screenPos);
+            }
+            
+            return worldPos;
+        }
+        
+        public Vector3 GetShieldBarCenterWorldPosition()
+        {
+            if (_fillContainer == null || _linkedBoss == null)
+                return transform.position;
+                
+            float containerWidth = GetContainerWidth();
+            float hpRatio = (float)_linkedBoss.CurrentHP / _linkedBoss.MaxHP;
+            float shieldRatio = (float)_linkedBoss.ShieldHP / _linkedBoss.MaxHP;
+            
+            float shieldCenterX = containerWidth * (hpRatio + shieldRatio * 0.5f);
+            
+            Vector3 localPos = new Vector3(shieldCenterX - containerWidth * 0.5f, 0, 0);
+            Vector3 worldPos = _fillContainer.TransformPoint(localPos);
+            
+            // Canvas가 Screen Space Overlay인 경우 처리
+            Canvas canvas = GetComponentInParent<Canvas>();
+            if (canvas != null && canvas.renderMode == RenderMode.ScreenSpaceOverlay)
+            {
+                Camera cam = Camera.main;
+                Vector3 screenPos = RectTransformUtility.WorldToScreenPoint(null, worldPos);
+                screenPos.z = 2f; // 카메라로부터의 거리 (더 가깝게)
+                worldPos = cam.ScreenToWorldPoint(screenPos);
+            }
+            
+            return worldPos;
+        }
+        
         public void UpdateShield(int currentStacks, int maxStacks, int shieldHP)
         {
             if (_linkedBoss == null) return;
+            
+            _targetShieldHP = shieldHP;
+            
+            // 애니메이션으로 부드럽게 감소
+            if (_shieldAnimationCoroutine != null)
+                StopCoroutine(_shieldAnimationCoroutine);
+                
+            _shieldAnimationCoroutine = StartCoroutine(AnimateShieldHP());
+        }
+        
+        public void UpdateShieldImmediate(int currentStacks, int maxStacks, int shieldHP)
+        {
+            if (_linkedBoss == null) return;
+            
+            _targetShieldHP = shieldHP;
+            _currentDisplayShieldHP = shieldHP;
+            
+            // 즉시 업데이트 (애니메이션 없이)
             UpdateCombinedBarDisplay(_linkedBoss.CurrentHP, shieldHP, _linkedBoss.MaxHP);
+        }
+        
+        public IEnumerator FlashShieldBar()
+        {
+            if (_shieldFillImage == null) yield break;
+            
+            Color originalColor = _shieldFillImage.color;
+            Color flashColor = Color.white;
+            
+            // 흰색으로 번쩍
+            _shieldFillImage.color = flashColor;
+            yield return new WaitForSeconds(0.1f);
+            
+            // 원래 색으로 복귀
+            _shieldFillImage.color = originalColor;
+            yield return new WaitForSeconds(0.1f);
+        }
+        
+        private IEnumerator AnimateShieldHP()
+        {
+            float startShieldHP = _currentDisplayShieldHP;
+            float distance = _targetShieldHP - startShieldHP;
+            float duration = Mathf.Min(Mathf.Abs(distance) / (_linkedBoss.MaxShieldHP * 0.5f), 1.0f); // 최대 1초
+            float elapsed = 0f;
+            
+            while (elapsed < duration)
+            {
+                elapsed += Time.deltaTime;
+                float t = elapsed / duration;
+                
+                // EaseOutCubic 곡선 사용
+                float easedT = 1f - Mathf.Pow(1f - t, 3f);
+                
+                _currentDisplayShieldHP = startShieldHP + (distance * easedT);
+                UpdateCombinedBarDisplay(_linkedBoss.CurrentHP, Mathf.RoundToInt(_currentDisplayShieldHP), _linkedBoss.MaxHP);
+                yield return null;
+            }
+            
+            _currentDisplayShieldHP = _targetShieldHP;
+            UpdateCombinedBarDisplay(_linkedBoss.CurrentHP, Mathf.RoundToInt(_currentDisplayShieldHP), _linkedBoss.MaxHP);
+            
+            _shieldAnimationCoroutine = null;
         }
     }
 }

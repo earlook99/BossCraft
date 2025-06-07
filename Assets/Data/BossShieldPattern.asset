@@ -14,11 +14,14 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   DefenseMultiplier: 5
   MinimumHPRatio: 0.2
+  shieldEffectPrefab: {fileID: 3822704047910981250, guid: 6bebefdc5da085c4a814297cc3a5938b, type: 3}
+  shieldActivationMessage: "\uAC00 \uBC29\uC5B4 \uD0DC\uC138\uB97C \uCDE8\uD55C\uB2E4!"
+  shieldActivationDelay: 0.5
   Triggers:
   - HPThreshold: 0.8
     HPConversionRatio: 0.4
     StackCount: 3
-    HasBeenUsed: 1
+    HasBeenUsed: 0
   - HPThreshold: 0.4
     HPConversionRatio: 0.3
     StackCount: 5

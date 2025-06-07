@@ -20,7 +20,7 @@ MonoBehaviour:
   RequiresCharge: 1
   Effects:
   - EffectType: 0
-    Power: 120
+    Power: 4
     BuffsType: 0
     Accuracy: 1
     CritChance: 0
