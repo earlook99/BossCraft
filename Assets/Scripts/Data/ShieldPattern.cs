@@ -30,6 +30,11 @@ namespace Data
         [Range(0.1f, 0.5f)]
         public float MinimumHPRatio = 0.2f;
         
+        [Header("Shield Visual Effects")]
+        [SerializeField] private GameObject shieldEffectPrefab;
+        [SerializeField] private string shieldActivationMessage = "가 방어 태세를 취한다!";
+        [SerializeField] private float shieldActivationDelay = 0.5f;
+        
         [Header("Shield Triggers")]
         public ShieldTrigger[] Triggers = new ShieldTrigger[]
         {
@@ -37,6 +42,10 @@ namespace Data
             new ShieldTrigger { HPThreshold = 0.5f, HPConversionRatio = 0.20f, StackCount = 3 },
             new ShieldTrigger { HPThreshold = 0.3f, HPConversionRatio = 0.15f, StackCount = 2 }
         };
+        
+        public GameObject EffectPrefab => shieldEffectPrefab;
+        public string ActivationMessage => shieldActivationMessage;
+        public float ActivationDelay => shieldActivationDelay;
         
         public void ResetTriggers()
         {

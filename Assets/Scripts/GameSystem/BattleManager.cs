@@ -645,7 +645,19 @@ namespace GameSystem
             }
             
             if (target.CurrentHP <= 0)
+            {
                 OnEntityDefeated(target);
+            }
+            else if (target is BossEntity bossTarget && !bossTarget.HasShield)
+            {
+                // 보스가 데미지를 받은 후 실드 조건 체크
+                var trigger = bossTarget.GetAvailableShieldTrigger(turnCount);
+                if (trigger != null)
+                {
+                    Debug.Log($"[SHIELD] Boss shield will trigger after damage! HP: {bossTarget.CurrentHP}/{bossTarget.MaxHP}");
+                    // 실드 발동은 현재 액션이 끝난 후에 처리됨 (AdvanceTurn에서)
+                }
+            }
         }
         
         private IEnumerator ProcessHeal(BattleEntity source, BattleEntity target, MoveInstance moveInst, MoveEffect effect)
@@ -770,6 +782,17 @@ namespace GameSystem
             if (currentTurnIndex < turnOrder.Count)
                 turnOrder[currentTurnIndex].EndTurn();
     
+            // 플레이어 턴 종료 후 보스 실드 체크
+            if (currentTurnIndex < turnOrder.Count && !(turnOrder[currentTurnIndex] is BossEntity))
+            {
+                if (CheckAndQueueBossShield())
+                {
+                    // 실드가 발동되면 ExecutingAction 상태로 전환
+                    TransitionToState(BattleState.ExecutingAction);
+                    return;
+                }
+            }
+    
             currentTurnIndex++;
             SkipDeadEntities();
     
@@ -806,6 +829,59 @@ namespace GameSystem
                     turnOrder.RemoveAt(i);
                 }
             }
+        }
+        
+        private bool CheckAndQueueBossShield()
+        {
+            var boss = GetBoss();
+            if (boss == null || boss.HasShield || boss.CurrentHP <= 0) return false;
+            
+            // 현재 턴 수와 HP 비율로 실드 발동 조건 체크
+            var trigger = boss.GetAvailableShieldTrigger(turnCount);
+            if (trigger == null) return false;
+            
+            Debug.Log($"[SHIELD] Boss shield triggered! HP: {boss.CurrentHP}/{boss.MaxHP} ({(float)boss.CurrentHP/boss.MaxHP*100:F1}%)");
+            
+            // 실드 액션을 큐에 추가 (이제 실드는 스킬이 아니라 특수 행동)
+            actionQueue.Clear(); // 기존 큐 클리어
+            EnqueueAction(() => ExecuteBossShieldInterrupt(trigger));
+            
+            return true;
+        }
+        
+        private IEnumerator ExecuteBossShieldInterrupt(ShieldTrigger trigger)
+        {
+            var boss = GetBoss();
+            if (boss == null) yield break;
+            
+            // 보스 쪽으로 카메라 전환 (ZoomOut 사용)
+            cameraManager.SwitchCameraTo(CineCamType.ZoomOut);
+            yield return new WaitForSeconds(boss.ShieldPattern.ActivationDelay);
+            
+            // 실드 발동 메시지 (자동 진행)
+            yield return uiController.ShowMessageAuto($"{boss.EntityName}{boss.ShieldPattern.ActivationMessage}", 1.5f);
+            
+            // 실드 효과 재생
+            if (boss.ShieldPattern.EffectPrefab != null)
+            {
+                var effect = Instantiate(boss.ShieldPattern.EffectPrefab, boss.transform.position, Quaternion.identity);
+                Destroy(effect, battleSettings.EffectDuration);
+            }
+            
+            // 실드 활성화 전 HP 저장
+            int hpBefore = boss.CurrentHP;
+            
+            // 실드 활성화
+            boss.ActivateShield(trigger);
+            
+            // 실드 전환 애니메이션 실행
+            uiController.AnimateShieldActivation(boss, hpBefore);
+            yield return new WaitForSeconds(0.8f); // 애니메이션 대기
+            
+            yield return new WaitForSeconds(0.5f);
+            
+            // 다음 턴으로 진행
+            AdvanceTurn();
         }
         
         private bool ShouldGoToBossTurn()

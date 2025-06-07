@@ -391,6 +391,14 @@ namespace GameSystem.UI
             }
         }
         
+        public void AnimateShieldActivation(BossEntity boss, int hpBefore)
+        {
+            if (entityStatusUIs.TryGetValue(BOSS_INDEX, out var statusUI))
+            {
+                statusUI.AnimateShieldConversion(hpBefore, boss.CurrentHP, boss.ShieldHP);
+            }
+        }
+        
         public void UpdateBuffIcon(BattleEntity entity, BuffsType buffType)
         {
             int entityIndex = GetEntityIndex(entity);

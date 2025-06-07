@@ -28,10 +28,7 @@ namespace GameSystem
 
         public MoveDecision Decide()
         {
-            if (ShouldUseShield(out int shieldMoveIndex))
-            {
-                return new MoveDecision(shieldMoveIndex, EntityType.Boss, SHIELD_PRIORITY_SCORE);
-            }
+            // 실드는 이제 interrupt로만 발동되므로 AI 선택에서 제외
             
             MoveDecision best = default;
             MoveDecision second = default;
@@ -47,42 +44,6 @@ namespace GameSystem
             return SelectFinalDecision(best, second, third);
         }
 
-        private bool ShouldUseShield(out int shieldMoveIndex)
-        {
-            shieldMoveIndex = INVALID_MOVE_INDEX;
-            
-            if (!(_boss is BossEntity bossEntity) || bossEntity.HasShield)
-                return false;
-
-            var trigger = bossEntity.GetAvailableShieldTrigger(_currentTurn);
-
-            if (trigger == null)
-                return false;
-
-            shieldMoveIndex = GetShieldMoveIndex();
-            return shieldMoveIndex >= 0;
-        }
-        
-        private int GetShieldMoveIndex()
-        {
-            MoveInstance[] moves = _boss.MoveInstances;
-            
-            for (int i = 0; i < moves.Length; i++)
-            {
-                if (moves[i].CooldownLeft > 0)
-                    continue;
-                    
-                var effects = moves[i].Data.Effects;
-                for (int j = 0; j < effects.Length; j++)
-                {
-                    if (effects[j].EffectType == MoveEffectType.Shield)
-                    {
-                        return i;
-                    }
-                }
-            }
-            return INVALID_MOVE_INDEX;
-        }
 
         private void EvaluateAllMoves(ref MoveDecision best, ref MoveDecision second, ref MoveDecision third)
         {
@@ -98,6 +59,23 @@ namespace GameSystem
         
                 if (move.CooldownLeft > 0)
                     continue;
+                
+                // 실드 스킬은 평가에서 제외
+                bool isShieldMove = false;
+                foreach (var effect in move.Data.Effects)
+                {
+                    if (effect.EffectType == MoveEffectType.Shield)
+                    {
+                        isShieldMove = true;
+                        break;
+                    }
+                }
+                
+                if (isShieldMove)
+                {
+                    Debug.Log($"스킬 {i}는 실드 스킬이므로 스킵");
+                    continue;
+                }
 
                 MoveDecision decision = EvaluateMove(i, move.Data);
                 Debug.Log($"스킬 {i} 점수: {decision.UtilityScore}");

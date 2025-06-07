@@ -39,6 +39,7 @@ namespace UI
         private static readonly Color COLOR_WHITE = Color.white;
         private static readonly Color COLOR_BLACK = Color.black;
         private static readonly Color COLOR_BLACK_TRANSPARENT = new Color(0, 0, 0, 0);
+        private static readonly Color COLOR_SHIELD_DIVIDER = new Color(1f, 1f, 1f, 0.5f); // 반투명 흰색
         
         private RectTransform _hpFillRectTransform;
         private RectTransform _shieldFillRectTransform;
@@ -139,9 +140,20 @@ namespace UI
         {
             _isAnimatingHP = true;
             
-            while (Mathf.Abs(_targetHP - _currentDisplayHP) > 0.1f)
+            float startHP = _currentDisplayHP;
+            float distance = _targetHP - startHP;
+            float duration = Mathf.Min(Mathf.Abs(distance) / (_linkedEntity.MaxHP * 0.5f), 1.5f); // 최대 1.5초
+            float elapsed = 0f;
+            
+            while (elapsed < duration)
             {
-                _currentDisplayHP = Mathf.Lerp(_currentDisplayHP, _targetHP, Time.deltaTime * HP_ANIMATION_SPEED);
+                elapsed += Time.deltaTime;
+                float t = elapsed / duration;
+                
+                // EaseOutCubic 곡선 사용 - 시작은 빠르고 끝에서 약간만 감속
+                float easedT = 1f - Mathf.Pow(1f - t, 3f);
+                
+                _currentDisplayHP = startHP + (distance * easedT);
                 UpdateHPDisplay(_currentDisplayHP);
                 yield return null;
             }
@@ -295,14 +307,16 @@ namespace UI
             var image = divider.GetComponent<Image>();
 
             rectTransform.sizeDelta = new Vector2(DIVIDER_WIDTH, _fillContainer.rect.height);
-            image.color = COLOR_BLACK_TRANSPARENT;
+            image.color = COLOR_SHIELD_DIVIDER;  // 반투명 흰색으로 표시
 
             float dividerX = shieldStartX + (shieldWidth * stackIndex / totalStacks);
             rectTransform.anchorMin = new Vector2(0, 0.5f);
             rectTransform.anchorMax = new Vector2(0, 0.5f);
             rectTransform.anchoredPosition = new Vector2(dividerX, 0);
+            rectTransform.localPosition = new Vector3(rectTransform.localPosition.x, rectTransform.localPosition.y, -1f); // Z축으로 앞으로
 
-            divider.AddComponent<Mask>().showMaskGraphic = false;
+            // 구분선을 맨 앞으로 이동
+            rectTransform.SetAsLastSibling();
             
             _stackDividers.Add(divider);
             _dividerImages[arrayIndex] = image;
@@ -364,14 +378,24 @@ namespace UI
 
         private IEnumerator AnimateHPFlash()
         {
-            float elapsed = 0f;
             Color originalColor = _hpColor;
+            Color flashColor = new Color(1f, 0.9f, 0.8f, 1f); // 밝은 주황빛 플래시
             
-            while (elapsed < HP_FLASH_DURATION)
+            // 즉시 밝게 번쩍
+            _hpFillImage.color = flashColor;
+            yield return new WaitForSeconds(0.08f);
+            
+            // 원래 색으로 빠르게 페이드
+            float elapsed = 0f;
+            float fadeTime = HP_FLASH_DURATION - 0.08f;
+            
+            while (elapsed < fadeTime)
             {
                 elapsed += Time.deltaTime;
-                float t = elapsed / HP_FLASH_DURATION;
-                _hpFillImage.color = Color.Lerp(originalColor, COLOR_WHITE, Mathf.Sin(t * Mathf.PI));
+                float t = elapsed / fadeTime;
+                // EaseOutQuad로 자연스럽게
+                float easedT = t * (2f - t);
+                _hpFillImage.color = Color.Lerp(flashColor, originalColor, easedT);
                 yield return null;
             }
             
@@ -382,16 +406,34 @@ namespace UI
         {
             float elapsed = 0f;
             Color targetColor = _shieldColor;
+            Color flashColor = new Color(0.8f, 0.9f, 1f, 1f); // 밝은 하늘색 플래시
             
+            // 실드 영역 전체를 밝게 번쩍
+            _shieldFillImage.color = flashColor;
+            yield return new WaitForSeconds(0.05f);
+            
+            // 페이드 인과 스케일 애니메이션
             while (elapsed < SHIELD_ANIM_DURATION)
             {
                 elapsed += Time.deltaTime;
                 float t = elapsed / SHIELD_ANIM_DURATION;
                 
-                float alpha = Mathf.Pow(t, 0.5f) * SHIELD_ALPHA;
-                _shieldFillImage.color = new Color(targetColor.r, targetColor.g, targetColor.b, alpha);
+                // 플래시에서 원래 색으로 전환
+                Color currentColor = Color.Lerp(flashColor, targetColor, t);
                 
-                float scale = 1f + (0.3f * Mathf.Pow(1f - t, 3f));
+                // 추가 반짝임 효과 (펄스)
+                float pulse = Mathf.Sin(t * Mathf.PI * 3f) * 0.2f * (1f - t); // 점점 약해지는 펄스
+                currentColor = new Color(
+                    currentColor.r + pulse,
+                    currentColor.g + pulse,
+                    currentColor.b + pulse,
+                    currentColor.a
+                );
+                
+                _shieldFillImage.color = currentColor;
+                
+                // 스케일 애니메이션 (1.3 -> 1.0으로 부드럽게)
+                float scale = Mathf.Lerp(SHIELD_INITIAL_SCALE, 1f, t);
                 _shieldFillImage.transform.localScale = new Vector3(scale, scale, 1f);
                 
                 yield return null;
@@ -405,7 +447,7 @@ namespace UI
         {
             if (_dividerImages == null) yield break;
             
-            Color targetColor = COLOR_BLACK;
+            Color targetColor = COLOR_SHIELD_DIVIDER;
             
             for (int i = 0; i < _dividerImages.Length; i++)
             {
