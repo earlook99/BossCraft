@@ -1,11 +1,10 @@
 fileFormatVersion: 2
-guid: 1f21e3e93995e5e429d9515a17028639
+guid: 0adba4d353165a04abd758ebf43bb6f0
 TextureImporter:
   internalIDToNameTable:
   - first:
-      213: -6843414790489502650
-    second: depositphotos_102869658-stock-illustration-hacker-attack-on-digital-binary
-      (1)_0
+      213: -2777245684595117368
+    second: "\uD669\uD63C\uC758\uC218\uD638\uC790_\uCD08\uC0C1\uD654_0"
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -114,14 +113,13 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: depositphotos_102869658-stock-illustration-hacker-attack-on-digital-binary
-        (1)_0
+      name: "\uD669\uD63C\uC758\uC218\uD638\uC790_\uCD08\uC0C1\uD654_0"
       rect:
         serializedVersion: 2
         x: 0
         y: 0
-        width: 1018
-        height: 458
+        width: 661
+        height: 722
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -130,8 +128,8 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 64c083a818e4701a0800000000000000
-      internalID: -6843414790489502650
+      spriteID: 8c2b8bba3cd3579d0800000000000000
+      internalID: -2777245684595117368
       vertices: []
       indices: 
       edges: []
@@ -150,7 +148,7 @@ TextureImporter:
     spriteCustomMetadata:
       entries: []
     nameFileIdTable:
-      depositphotos_102869658-stock-illustration-hacker-attack-on-digital-binary (1)_0: -6843414790489502650
+      "\uD669\uD63C\uC758\uC218\uD638\uC790_\uCD08\uC0C1\uD654_0": -2777245684595117368
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

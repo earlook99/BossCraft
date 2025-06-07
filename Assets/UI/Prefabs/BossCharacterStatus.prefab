@@ -315,7 +315,6 @@ MonoBehaviour:
   _dividerPrefab: {fileID: 1134752270760009787}
   _hpColor: {r: 0.10980392, g: 0.81960785, b: 0, a: 1}
   _shieldColor: {r: 0.3019608, g: 0.6, b: 0.9019608, a: 1}
-  _transitionDuration: 0.5
   _hideHPTextForBoss: 1
 --- !u!1 &2698437606964492697
 GameObject:
@@ -618,7 +617,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: 96, y: -42}
+  m_AnchoredPosition: {x: 168, y: -47.296}
   m_SizeDelta: {x: 307.1975, y: 52.294}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &2216868894348483200
@@ -683,7 +682,7 @@ MonoBehaviour:
   m_fontSizeMin: 18
   m_fontSizeMax: 72
   m_fontStyle: 0
-  m_HorizontalAlignment: 2
+  m_HorizontalAlignment: 1
   m_VerticalAlignment: 512
   m_textAlignment: 65535
   m_characterSpacing: 0

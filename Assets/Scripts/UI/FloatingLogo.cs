@@ -23,8 +23,6 @@ namespace UI
         private Vector3 originalRotation;
         private Vector3 originalScale;
         
-        private const float UPDATE_INTERVAL = 0.1f;
-        
         private void Awake()
         {
             rectTransform = GetComponent<RectTransform>();
@@ -37,15 +35,9 @@ namespace UI
         private void OnEnable()
         {
             ResetToOriginal();
-            InvokeRepeating(nameof(UpdateAnimation), 0f, UPDATE_INTERVAL);
         }
         
-        private void OnDisable()
-        {
-            CancelInvoke(nameof(UpdateAnimation));
-        }
-        
-        private void UpdateAnimation()
+        private void Update()
         {
             float time = Time.time;
             

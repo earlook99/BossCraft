@@ -35,8 +35,8 @@ namespace Data
                     return itemSprite;
                 case ActionType.Guard:
                     return guardSprite;
-                case ActionType.Taunt:
-                    return tauntSprite;
+                case ActionType.Run:
+                    return tauntSprite; // Using taunt sprite for run button
                 default:
                     return defaultButtonSprite;
             }

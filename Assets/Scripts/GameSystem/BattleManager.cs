@@ -184,7 +184,7 @@ namespace GameSystem
                 texture,
                 new Rect(0, 0, texture.width, texture.height),
                 new Vector2(0.5f, 0.5f),
-                0.7f
+                1.2f
             );
             
             var spriteRenderer = boss.GetComponentInChildren<SpriteRenderer>();
@@ -237,6 +237,7 @@ namespace GameSystem
         {
             if (currentState == newState) return;
             
+            Debug.Log($"[STATE] Transitioning from {currentState} to {newState}");
             currentState = newState;
             
             switch (newState)
@@ -298,6 +299,9 @@ namespace GameSystem
         {
             cameraManager.SwitchCameraTo(CineCamType.ZoomOut);
             SetSpriteAlphaExclusive(-1);
+            
+            // Notify UI controller about boss turn
+            uiController.OnBossTurnStart();
 
             yield return new WaitForSeconds(battleSettings.TurnTransitionDelay);
 
@@ -436,8 +440,9 @@ namespace GameSystem
                 case ActionType.Guard:
                     yield return ExecuteGuard(source);
                     break;
-                case ActionType.Taunt:
-                    yield return ExecuteTaunt(source);
+                case ActionType.Run:
+                    // Run action is handled in UI, shouldn't reach here
+                    Debug.LogWarning("Run action reached BattleManager execution");
                     break;
             }
         }
@@ -471,10 +476,6 @@ namespace GameSystem
             yield return uiController.ShowMessageAuto($"{source.EntityName} takes a defensive stance!", 1.0f);
         }
         
-        private IEnumerator ExecuteTaunt(BattleEntity source)
-        {
-            yield return uiController.ShowMessageAuto($"{source.EntityName} taunts the enemy!", 1.0f);
-        }
         
         private IEnumerator ApplyMoveEffects(BattleEntity source, EntityType targetType, MoveInstance moveInst)
         {
@@ -1147,8 +1148,11 @@ namespace GameSystem
                 }
             }
             
+            Debug.Log($"[CHECK BATTLE END] Boss defeated: {bossDefeated}, All players defeated: {allPlayersDefeated}");
+            
             if (bossDefeated || allPlayersDefeated)
             {
+                Debug.Log("[CHECK BATTLE END] Battle is ending, transitioning to BattleEnded state");
                 TransitionToState(BattleState.BattleEnded);
             }
             else if (currentState == BattleState.CheckBattleEnd)
@@ -1162,6 +1166,7 @@ namespace GameSystem
         {
             actionQueue.Clear();
             bool playerWon = entities[BOSS_INDEX].CurrentHP <= 0;
+            Debug.Log($"[BATTLE END] Battle ended. Player won: {playerWon}");
             uiController.OnBattleEnded(playerWon);
         }
         
@@ -1172,14 +1177,8 @@ namespace GameSystem
                 var entity = entities[i];
                 if (entity == null) continue;
                 
-                var sr = entity.SpriteRenderer;
-                if (sr == null) continue;
-                
-                var color = sr.color;
-                color.a = (activeIndex < 0 || i == activeIndex) 
-                    ? GameConstants.UI.ACTIVE_SPRITE_ALPHA 
-                    : GameConstants.UI.INACTIVE_SPRITE_ALPHA;
-                sr.color = color;
+                bool isActive = (activeIndex < 0 || i == activeIndex);
+                entity.UpdateTransparency();
             }
         }
         
@@ -1224,6 +1223,20 @@ namespace GameSystem
         }
         
         public int GetCurrentTurn() => turnCount;
+        
+        public bool IsEntityActive(BattleEntity entity)
+        {
+            if (entity == null) return false;
+            if (entity is BossEntity) return true;
+            
+            var currentPlayer = GetCurrentPlayerIndex();
+            for (int i = 0; i < PLAYER_COUNT; i++)
+            {
+                if (entities[i] == entity)
+                    return i == currentPlayer;
+            }
+            return false;
+        }
         
         public void NotifyShieldUpdate(BossEntity boss)
         {

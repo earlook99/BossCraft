@@ -259,6 +259,9 @@ namespace Entity
         {
             if (SpriteRenderer == null) yield break;
 
+            if (TransparencyManager != null)
+                TransparencyManager.StartDamageFlash();
+
             Color originalColor = SpriteRenderer.color;
 
             float effectiveness = TypeChart.GetEffectiveness(attackType, this.ElementType);
@@ -279,6 +282,9 @@ namespace Entity
             }
 
             SpriteRenderer.color = originalColor;
+
+            if (TransparencyManager != null)
+                TransparencyManager.EndDamageFlash();
         }
     }
 }

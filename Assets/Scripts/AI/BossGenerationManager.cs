@@ -217,6 +217,10 @@ namespace AI
             Texture2D texture = new Texture2D(2, 2);
             if (texture.LoadImage(bossData.imageData))
             {
+                // Set high quality settings for the loaded texture
+                texture.filterMode = FilterMode.Trilinear;
+                texture.anisoLevel = 16;
+                
                 UpdateGeneratedImage(texture);
                 SetBossType(bossData.bossType.ToString());
                 CreateBossSprite(texture);
@@ -224,7 +228,7 @@ namespace AI
                 _tempImageData = bossData.imageData;
                 _hasGeneratedImage = true;
                 
-                UpdateStatus("이전 보스를 불러왔습니다!");
+                UpdateStatus("이전 보스를 불러왔습니다! 이름을 입력하고 확인을 누르세요.");
                 UpdateUIState();
             }
             else
@@ -315,7 +319,8 @@ namespace AI
 
             if (bossHistoryDropdown != null)
             {
-                bossHistoryDropdown.SetInteractable(!_hasConfirmedBoss);
+                // Disable history button during processing
+                bossHistoryDropdown.SetInteractable(!_hasConfirmedBoss && !isProcessing);
             }
         }
 
@@ -441,6 +446,10 @@ namespace AI
         {
             if (uploadedTexture != null && uploadedTexture != texture) 
                 Destroy(uploadedTexture);
+            
+            // Set high quality settings for loaded texture
+            texture.filterMode = FilterMode.Trilinear;
+            texture.anisoLevel = 16;
                 
             uploadedTexture = texture;
             originalImage.texture = uploadedTexture;
@@ -675,6 +684,10 @@ namespace AI
                 return null;
             }
 
+            // Set high quality settings
+            texture.filterMode = FilterMode.Trilinear;
+            texture.anisoLevel = 16;
+            
 #if UNITY_EDITOR
             texture.alphaIsTransparency = true;
             texture.Apply();
@@ -745,6 +758,10 @@ namespace AI
         {
             if (bossSprite != null && bossSprite.texture != null) 
                 Destroy(bossSprite.texture);
+            
+            // Ensure texture has high quality settings
+            texture.filterMode = FilterMode.Trilinear;
+            texture.anisoLevel = 16;
                 
             bossSprite = Sprite.Create(
                 texture,

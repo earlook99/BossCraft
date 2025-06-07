@@ -1,3 +1,5 @@
+using UnityEngine;
+
 namespace GameSystem
 {
     public static class GameConstants
@@ -43,9 +45,28 @@ namespace GameSystem
             public const float DIVIDER_FADE_TIME = 0.1f;
             public const float DIVIDER_DELAY = 0.05f;
             
+            // Transparency values
             public const float ACTIVE_SPRITE_ALPHA = 1f;
-            public const float INACTIVE_SPRITE_ALPHA = 0.1f;
-            public const float STEALTH_ALPHA = 0.5f;
+            public const float INACTIVE_SPRITE_ALPHA = 0.5f;  // Changed from 0.1f
+            public const float DEAD_SPRITE_ALPHA = 0.2f;
+            public const float STEALTH_ALPHA = 0.3f;  // Changed from 0.5f
+            public const float STUNNED_ALPHA = 0.7f;
+            public const float CHARGING_ALPHA_MIN = 0.8f;
+            public const float CHARGING_ALPHA_MAX = 1f;
+            public const float TARGETING_INVALID_ALPHA = 0.3f;
+            
+            // Transparency transition
+            public const float ALPHA_TRANSITION_DURATION = 0.2f;
+            
+            // Hover tint color for targeting
+            public static readonly Color HOVER_TINT_COLOR = new Color(0.4f, 0.8f, 1.0f, 1.0f);
+            
+            // Party Status UI Scaling
+            public const float ACTIVE_STATUS_SCALE = 1.0f;
+            public const float INACTIVE_STATUS_SCALE = 0.6f;
+            public const float STATUS_SCALE_DURATION = 0.3f;
+            public const float STATUS_UI_BASE_WIDTH = 200f;
+            public const float STATUS_UI_BASE_HEIGHT = 60f;
         }
         
         public static class Camera

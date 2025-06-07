@@ -33,17 +33,27 @@ namespace AI
                     return null;
                 }
 
-                const int thumbnailSize = 64;
-                RenderTexture renderTexture = RenderTexture.GetTemporary(thumbnailSize, thumbnailSize, 0);
+                // Increase thumbnail size for better quality
+                const int thumbnailSize = 512;
+                // Use high quality settings for RenderTexture
+                RenderTexture renderTexture = RenderTexture.GetTemporary(thumbnailSize, thumbnailSize, 0, RenderTextureFormat.ARGB32);
+                renderTexture.filterMode = FilterMode.Trilinear;
+                renderTexture.antiAliasing = 4;
+                
+                // Set high quality texture settings
+                originalTexture.filterMode = FilterMode.Trilinear;
+                originalTexture.anisoLevel = 16;
+                
                 Graphics.Blit(originalTexture, renderTexture);
 
                 RenderTexture.active = renderTexture;
-                Texture2D thumbnailTexture = new Texture2D(thumbnailSize, thumbnailSize, TextureFormat.RGB24, false);
+                Texture2D thumbnailTexture = new Texture2D(thumbnailSize, thumbnailSize, TextureFormat.ARGB32, false);
                 thumbnailTexture.ReadPixels(new Rect(0, 0, thumbnailSize, thumbnailSize), 0, 0);
                 thumbnailTexture.Apply();
                 RenderTexture.active = null;
 
-                byte[] thumbnailBytes = thumbnailTexture.EncodeToJPG(75);
+                // Use PNG for better quality (lossless)
+                byte[] thumbnailBytes = thumbnailTexture.EncodeToPNG();
 
                 UnityEngine.Object.DestroyImmediate(originalTexture);
                 UnityEngine.Object.DestroyImmediate(thumbnailTexture);

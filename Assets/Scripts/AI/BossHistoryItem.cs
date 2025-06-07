@@ -74,7 +74,7 @@ namespace AI
             {
                 // 고품질 설정
                 thumbnailTexture.filterMode = FilterMode.Trilinear;
-                thumbnailTexture.anisoLevel = 9;
+                thumbnailTexture.anisoLevel = 16; // Increased anisotropic level
                 
                 Debug.Log($"[BossHistoryItem] Thumbnail loaded: {thumbnailTexture.width}x{thumbnailTexture.height}");
                 
@@ -85,6 +85,9 @@ namespace AI
                     100f // PixelsPerUnit을 100으로 설정 (더 선명함)
                 );
                 thumbnailImage.sprite = thumbnailSprite;
+                
+                // Set image component to use better rendering
+                thumbnailImage.preserveAspect = true;
             }
             else
             {
@@ -99,9 +102,8 @@ namespace AI
 
             DateTime timestamp = DateTime.FromBinary(bossData.timestamp);
             string timeAgo = GetTimeAgoString(timestamp);
-            string text = $"보스 #{historyIndex + 1}\n({timeAgo})";
             
-            infoText.text = text;
+            infoText.text = timeAgo;
         }
 
         private string GetTimeAgoString(DateTime timestamp)

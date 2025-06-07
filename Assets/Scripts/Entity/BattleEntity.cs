@@ -59,9 +59,12 @@ namespace Entity
         private SpriteOutlineToggle outlineToggle;
         private Collider2D entityCollider;
         private MoveInstance[] moveInstances;
+        private TransparencyManager transparencyManager;
         
         protected BattleManager battleManager;
         private BattleUIController uiController;
+        
+        public BattleManager BattleManager => battleManager;
         
         private bool isCharging = false;
         private bool isGuarding = false;
@@ -86,6 +89,7 @@ namespace Entity
         public SpriteOutlineToggle OutlineToggle => outlineToggle;
         public Collider2D EntityCollider => entityCollider;
         public MoveInstance[] MoveInstances => moveInstances;
+        public TransparencyManager TransparencyManager => transparencyManager;
         public bool IsStunned { get; private set; }
         public int StunTurnsLeft { get; private set; }
         public bool IsCharging => isCharging;
@@ -133,6 +137,12 @@ namespace Entity
             spriteRenderer = GetComponentInChildren<SpriteRenderer>();
             outlineToggle = GetComponentInChildren<SpriteOutlineToggle>();
             entityCollider = GetComponent<Collider2D>();
+            transparencyManager = GetComponent<TransparencyManager>();
+            
+            if (transparencyManager == null)
+            {
+                transparencyManager = gameObject.AddComponent<TransparencyManager>();
+            }
         }
         
         public void Initialize()
@@ -152,11 +162,11 @@ namespace Entity
                 moveInstances = new MoveInstance[0];
             }
     
-            if (spriteRenderer != null && this is not BossEntity)
+            if (transparencyManager != null)
             {
-                var color = spriteRenderer.color;
-                color.a = GameConstants.UI.INACTIVE_SPRITE_ALPHA;
-                spriteRenderer.color = color;
+                bool isActive = this is BossEntity;
+                var state = TransparencyManager.DetermineStateForEntity(this, isActive);
+                transparencyManager.SetState(state, true);
             }
         }
         
@@ -198,6 +208,12 @@ namespace Entity
             if (hasCounter && CurrentHP > 0 && battleManager != null)
             {
                 battleManager.QueueCounterAttack(this);
+            }
+            
+            // Update transparency if dead
+            if (CurrentHP <= 0 && transparencyManager != null)
+            {
+                transparencyManager.SetState(TransparencyState.Dead);
             }
         }
         
@@ -345,6 +361,7 @@ namespace Entity
         {
             IsStunned = true;
             StunTurnsLeft = turns;
+            UpdateTransparency();
         }
         
         public void ApplyStealth(int turns)
@@ -368,11 +385,11 @@ namespace Entity
         
         private void UpdateStealthVisual()
         {
-            if (spriteRenderer != null)
+            if (transparencyManager != null)
             {
-                var color = spriteRenderer.color;
-                color.a = isStealthed ? STEALTH_ALPHA : 1f;
-                spriteRenderer.color = color;
+                bool isActive = this is BossEntity || (battleManager != null && battleManager.IsEntityActive(this));
+                var state = TransparencyManager.DetermineStateForEntity(this, isActive);
+                transparencyManager.SetState(state);
             }
         }
         
@@ -390,7 +407,10 @@ namespace Entity
             {
                 StunTurnsLeft--;
                 if (StunTurnsLeft <= 0) 
+                {
                     IsStunned = false;
+                    UpdateTransparency();
+                }
             }
         }
 
@@ -404,11 +424,25 @@ namespace Entity
             isCharging = newState;
             chargingMoveIndex = moveIndex;
             chargingMoveTarget = target;
+            UpdateTransparency();
+        }
+        
+        public void UpdateTransparency()
+        {
+            if (transparencyManager != null && battleManager != null)
+            {
+                bool isActive = this is BossEntity || battleManager.IsEntityActive(this);
+                var state = TransparencyManager.DetermineStateForEntity(this, isActive);
+                transparencyManager.SetState(state);
+            }
         }
         
         public virtual IEnumerator PlayDamageFlash(ElementType attackType, float duration)
         {
             if (spriteRenderer == null) yield break;
+
+            if (transparencyManager != null)
+                transparencyManager.StartDamageFlash();
 
             Color originalColor = spriteRenderer.color;
             float flashInterval = 0.15f;
@@ -424,6 +458,9 @@ namespace Entity
             }
     
             spriteRenderer.color = originalColor;
+            
+            if (transparencyManager != null)
+                transparencyManager.EndDamageFlash();
         }
     }
 }

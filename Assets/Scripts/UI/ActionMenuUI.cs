@@ -35,8 +35,8 @@ namespace UI
         private bool isInitialized = false;
 
         private readonly Action[] mainMenuActions = new Action[4];
-        private readonly string[] mainMenuLabels = { "Fight", "Item", "Guard", "Taunt" };
-        private readonly ActionType[] mainMenuActionTypes = { ActionType.Move, ActionType.Item, ActionType.Guard, ActionType.Taunt };
+        private readonly string[] mainMenuLabels = { "Fight", "Item", "Guard", "Run" };
+        private readonly ActionType[] mainMenuActionTypes = { ActionType.Move, ActionType.Item, ActionType.Guard, ActionType.Run };
         
         private Button[] buttonComponents;
         private TextMeshProUGUI[] buttonTexts;
@@ -65,7 +65,7 @@ namespace UI
             mainMenuActions[0] = () => SwitchMenuState(MenuState.Moves);
             mainMenuActions[1] = () => SwitchMenuState(MenuState.Items);
             mainMenuActions[2] = () => HandleActionSelect(ActionType.Guard, -1);
-            mainMenuActions[3] = () => HandleActionSelect(ActionType.Taunt, -1);
+            mainMenuActions[3] = () => HandleActionSelect(ActionType.Run, -1);
             
             isInitialized = true;
         }
@@ -265,6 +265,26 @@ namespace UI
         private void HandleActionSelect(ActionType actionType, int actionIndex)
         {
             uiController.OnActionSelect(actionType, actionIndex);
+        }
+        
+        public void SetButtonsInteractable(bool interactable)
+        {
+            if (buttonComponents == null) return;
+            
+            for (int i = 0; i < buttonComponents.Length; i++)
+            {
+                if (buttonComponents[i] != null)
+                {
+                    buttonComponents[i].interactable = interactable;
+                }
+            }
+            
+            // Also update canvas group if available
+            if (containerCanvasGroup != null)
+            {
+                containerCanvasGroup.interactable = interactable;
+                containerCanvasGroup.blocksRaycasts = interactable;
+            }
         }
     }
 }

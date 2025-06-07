@@ -7,7 +7,8 @@ using Entity;
 using GameSystem;
 using GameSystem.UI;
 using static GameSystem.GameConstants.Battle;
-using static GameSystem.GameConstants.UI; 
+using static GameSystem.GameConstants.UI;
+
 namespace UI
 {
     public class TargetSelectionUI : MonoBehaviour
@@ -25,6 +26,7 @@ namespace UI
         private Camera _mainCamera;
         private Vector3 _lastMousePosition;
         private Dictionary<Collider2D, BattleEntity> _colliderToEntityCache = new Dictionary<Collider2D, BattleEntity>();
+        private bool _isInTargetingMode = false;
         
         [Header("Visual Feedback")]
         [SerializeField] private GameObject _targetingOverlay;
@@ -79,6 +81,7 @@ namespace UI
             _onTargetSelected = onSelected;
             _onCancelled = onCancelled;
             _isActive = true;
+            _isInTargetingMode = true;
 
             FindValidTargets(caster, allowedSide, category);
 
@@ -248,6 +251,19 @@ namespace UI
                 SetHighlight(_currentHoverEntity, false);
                 SetHighlight(newHoverEntity, true);
                 _currentHoverEntity = newHoverEntity;
+                
+                // Update portrait based on hover
+                if (_uiController != null)
+                {
+                    if (newHoverEntity != null)
+                    {
+                        _uiController.ShowTargetPortrait(newHoverEntity);
+                    }
+                    else
+                    {
+                        _uiController.HidePlayerPortrait();
+                    }
+                }
             }
         }
 
@@ -260,6 +276,20 @@ namespace UI
             {
                 outlineToggle.SetOutline(enabled);
             }
+            
+            // Update transparency state for hover
+            if (entity.TransparencyManager != null)
+            {
+                bool isValidTarget = IsValidHoverTarget(entity);
+                var state = TransparencyManager.DetermineStateForEntity(
+                    entity, 
+                    entity is BossEntity || (entity.BattleManager != null && entity.BattleManager.IsEntityActive(entity)),
+                    _isInTargetingMode,
+                    isValidTarget,
+                    enabled
+                );
+                entity.TransparencyManager.SetState(state);
+            }
         }
 
         private void ConfirmTarget(int entityIndex)
@@ -267,18 +297,34 @@ namespace UI
             if (!ListContains(_validTargetIndices, entityIndex)) return;
 
             _isActive = false;
+            _isInTargetingMode = false;
             ClearHighlight();
             ShowTargetingMode(false);
             ClearValidTargetHighlights();
+            
+            // Restore original player portrait
+            if (_uiController != null)
+            {
+                _uiController.RestoreCurrentPlayerPortrait();
+            }
+            
             _onTargetSelected?.Invoke((EntityType)entityIndex);
         }
 
         private void Cancel()
         {
             _isActive = false;
+            _isInTargetingMode = false;
             ClearHighlight();
             ShowTargetingMode(false);
             ClearValidTargetHighlights();
+            
+            // Restore original player portrait
+            if (_uiController != null)
+            {
+                _uiController.RestoreCurrentPlayerPortrait();
+            }
+            
             _onCancelled?.Invoke();
         }
 
@@ -305,32 +351,20 @@ namespace UI
         
         private void HighlightValidTargets()
         {
-            for (int i = 0; i < _validTargetIndices.Count; i++)
-            {
-                int index = _validTargetIndices[i];
-                if (index < _allEntities.Length && _allEntities[index] != null)
-                {
-                    var spriteRenderer = _allEntities[index].SpriteRenderer;
-                    if (spriteRenderer != null)
-                    {
-                        Color color = spriteRenderer.color;
-                        color.a = ALPHA_ACTIVE;
-                        spriteRenderer.color = color;
-                    }
-                }
-            }
-            
             for (int i = 0; i < _allEntities.Length; i++)
             {
-                if (!ListContains(_validTargetIndices, i) && _allEntities[i] != null)
+                var entity = _allEntities[i];
+                if (entity != null && entity.TransparencyManager != null)
                 {
-                    var spriteRenderer = _allEntities[i].SpriteRenderer;
-                    if (spriteRenderer != null)
-                    {
-                        Color color = spriteRenderer.color;
-                        color.a = ALPHA_INACTIVE;
-                        spriteRenderer.color = color;
-                    }
+                    bool isValidTarget = ListContains(_validTargetIndices, i);
+                    var state = TransparencyManager.DetermineStateForEntity(
+                        entity,
+                        entity is BossEntity || (entity.BattleManager != null && entity.BattleManager.IsEntityActive(entity)),
+                        _isInTargetingMode,
+                        isValidTarget,
+                        false
+                    );
+                    entity.TransparencyManager.SetState(state);
                 }
             }
         }
@@ -340,11 +374,9 @@ namespace UI
             for (int i = 0; i < _allEntities.Length; i++)
             {
                 var entity = _allEntities[i];
-                if (entity != null && entity.SpriteRenderer != null)
+                if (entity != null)
                 {
-                    Color color = entity.SpriteRenderer.color;
-                    color.a = entity is BossEntity ? ALPHA_ACTIVE : GameConstants.UI.INACTIVE_SPRITE_ALPHA;
-                    entity.SpriteRenderer.color = color;
+                    entity.UpdateTransparency();
                 }
             }
         }

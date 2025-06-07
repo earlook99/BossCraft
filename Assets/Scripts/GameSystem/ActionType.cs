@@ -5,6 +5,6 @@ namespace GameSystem
         Move,
         Item,
         Guard,
-        Taunt
+        Run
     }
 }
