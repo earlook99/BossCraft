@@ -12,6 +12,7 @@ using UnityEngine.UI;
 using WebGL;
 using static GameSystem.GameConstants.Network;
 using static GameSystem.GameConstants.Scene;
+using System.Collections.Generic;
 
 namespace AI
 {
@@ -90,6 +91,7 @@ namespace AI
         [SerializeField] private TextMeshProUGUI statusText;
         [SerializeField] private GameObject loadingIndicator;
         [SerializeField] private TMP_InputField bossNameField;
+        [SerializeField] private CustomBossDropdown bossHistoryDropdown;
 
         [Header("Generation Parameters")]
         [SerializeField] private GenerationParameters parameters = new GenerationParameters();
@@ -155,6 +157,7 @@ namespace AI
         {
             InitializeButtons();
             InitializeUI();
+            SetupBossHistoryDropdown();
             StartCoroutine(WarmupServer());
         }
 
@@ -183,6 +186,52 @@ namespace AI
             _hasGeneratedImage = false;
             _isServerReady = false;
             UpdateUIState();
+        }
+
+        private void SetupBossHistoryDropdown()
+        {
+            if (bossHistoryDropdown == null) return;
+
+            bossHistoryDropdown.SetOnBossSelectedCallback(OnBossHistorySelected);
+            UpdateBossHistoryDropdown();
+        }
+
+        private void UpdateBossHistoryDropdown()
+        {
+            if (bossHistoryDropdown == null) return;
+            bossHistoryDropdown.UpdateHistory();
+        }
+
+        private void OnBossHistorySelected(BossHistoryData bossData)
+        {
+            if (bossData != null)
+            {
+                LoadBossFromHistory(bossData);
+            }
+        }
+
+        private void LoadBossFromHistory(BossHistoryData bossData)
+        {
+            if (bossData.imageData == null) return;
+
+            Texture2D texture = new Texture2D(2, 2);
+            if (texture.LoadImage(bossData.imageData))
+            {
+                UpdateGeneratedImage(texture);
+                SetBossType(bossData.bossType.ToString());
+                CreateBossSprite(texture);
+                
+                _tempImageData = bossData.imageData;
+                _hasGeneratedImage = true;
+                
+                UpdateStatus("이전 보스를 불러왔습니다!");
+                UpdateUIState();
+            }
+            else
+            {
+                Destroy(texture);
+                UpdateStatus("보스 이미지를 불러오는데 실패했습니다.");
+            }
         }
 
         private void OnBossNameChanged(string inputValue)
@@ -262,6 +311,11 @@ namespace AI
             if (bossNameField != null)
             {
                 bossNameField.interactable = !_hasConfirmedBoss;
+            }
+
+            if (bossHistoryDropdown != null)
+            {
+                bossHistoryDropdown.SetInteractable(!_hasConfirmedBoss);
             }
         }
 
@@ -592,6 +646,12 @@ namespace AI
 
             CreateBossSprite(generatedTexture);
             _hasGeneratedImage = true;
+
+            if (BossContainer.Instance != null)
+            {
+                BossContainer.Instance.AddToHistory(_tempImageData, BossContainer.Instance.CurrentBossType);
+                UpdateBossHistoryDropdown();
+            }
         }
 
         private string ExtractImageData(string data)
@@ -658,24 +718,24 @@ namespace AI
         {
             if (string.IsNullOrEmpty(typeString))
                 return ElementType.Dark;
-                
+        
             string lowercaseType = typeString.ToLower();
-            
-            if (lowercaseType.Contains("fire") || lowercaseType.Contains("flame"))
+    
+            if (lowercaseType.Contains("blaze"))
                 return ElementType.Blaze;
-            else if (lowercaseType.Contains("water") || lowercaseType.Contains("aqua"))
+            else if (lowercaseType.Contains("tide"))
                 return ElementType.Tide;
-            else if (lowercaseType.Contains("psychic") || lowercaseType.Contains("fairy"))
+            else if (lowercaseType.Contains("mystic"))
                 return ElementType.Mystic;
-            else if (lowercaseType.Contains("ground") || lowercaseType.Contains("rock"))
+            else if (lowercaseType.Contains("terra"))
                 return ElementType.Terra;
-            else if (lowercaseType.Contains("grass") || lowercaseType.Contains("bug"))
+            else if (lowercaseType.Contains("nature"))
                 return ElementType.Nature;
-            else if (lowercaseType.Contains("dark") || lowercaseType.Contains("ghost"))
+            else if (lowercaseType.Contains("dark"))
                 return ElementType.Dark;
-            else if (lowercaseType.Contains("electric") || lowercaseType.Contains("normal"))
+            else if (lowercaseType.Contains("light"))
                 return ElementType.Light;
-            else if (lowercaseType.Contains("flying") || lowercaseType.Contains("dragon"))
+            else if (lowercaseType.Contains("storm"))
                 return ElementType.Storm;
             else
                 return ElementType.Dark;
